@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Cairo", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Cairo", sans-serif;
+  --font-arabic: "Cairo", sans-serif;
+  
+  --color-brand-green: #1D8348;
+  --color-brand-green-hover: #196F3D;
+  --color-brand-navy: #112233;
+  --color-brand-navy-light: #1B2E46;
+}
+
+/* Custom styling for sleek scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #1D8348;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #196F3D;
+}
+

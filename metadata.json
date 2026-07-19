@@ -1,0 +1,6 @@
+{
+  "name": "TIKATKOM",
+  "description": "A modern, high-conversion Single-Page E-commerce Landing Page with dual French/Arabic layouts, fully responsive and optimized for Algerian Cash-on-Delivery (COD) checkout.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
