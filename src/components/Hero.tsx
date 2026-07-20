@@ -95,11 +95,11 @@ export default function Hero({ lang, onExploreClick, onBuyFlagshipClick }: HeroP
             {/* Soft backdrop radial shadow */}
             <div className="absolute inset-0 m-auto h-72 w-72 rounded-full bg-brand-green/10 blur-3xl"></div>
             
-            <div className="relative group overflow-hidden rounded-3xl bg-gradient-to-tr from-brand-navy to-brand-navy-light p-1 shadow-2xl transition-transform duration-500 hover:scale-[1.02]">
+            <div className="relative group overflow-hidden rounded-3xl bg-white shadow-2xl border border-gray-100 transition-transform duration-500 hover:scale-[1.02]">
               {/* Product Card Container */}
-              <div className="relative overflow-hidden rounded-[20px] bg-white">
+              <div className="relative overflow-hidden rounded-3xl bg-white">
                 <img
-                  src="/src/assets/images/tikatkom_brand_hero_1784440228867.jpg"
+                  src="/src/assets/images/tikatkom_brand_hero_new_1784455583613.jpg"
                   alt="Tikatkom Brand Lifestyle"
                   className="h-[320px] w-[320px] object-cover sm:h-[380px] sm:w-[380px] transition-transform duration-700 group-hover:scale-105"
                   referrerPolicy="no-referrer"

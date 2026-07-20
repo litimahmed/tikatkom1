@@ -23,8 +23,17 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
   const [selectedWilayaCode, setSelectedWilayaCode] = useState<string>("");
   const [selectedCommune, setSelectedCommune] = useState<string>("");
   const [address, setAddress] = useState<string>("");
+  const [selectedCourier, setSelectedCourier] = useState<string>("yalidine");
   const [deliveryType, setDeliveryType] = useState<"home" | "desk">("home");
   const [notes, setNotes] = useState<string>("");
+
+  const couriersList = [
+    { id: "yalidine", nameFR: "Yalidine Express", nameAR: "ياليدين إكسبريس", badge: "Populaire" },
+    { id: "zrexpress", nameFR: "ZR Express", nameAR: "زد آر إكسبريس", badge: "Rapide" },
+    { id: "maystro", nameFR: "Maystro Delivery", nameAR: "مايسترو دليفري", badge: "Sécurisé" },
+    { id: "noest", nameFR: "NOEST Delivery", nameAR: "نويست دليفري", badge: "Fiable" },
+    { id: "ecotrack", nameFR: "Ecotrack", nameAR: "إيكوتراك", badge: "Éco" },
+  ];
 
   // Validation & Loading
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -115,6 +124,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
       setSelectedWilayaCode("");
       setSelectedCommune("");
       setAddress("");
+      setSelectedCourier("yalidine");
       setDeliveryType("home");
       setNotes("");
       setErrors({});
@@ -378,6 +388,40 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
 
               </div>
 
+              {/* Courier Service Selection Grid */}
+              <div className="space-y-3">
+                <label className="block text-xs font-black uppercase tracking-wider text-brand-navy">
+                  {lang === "fr" ? "Service de Courrier" : "شركة التوصيل المفضلة"}
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  {couriersList.map((c) => {
+                    const isSelected = selectedCourier === c.id;
+                    return (
+                      <div
+                        key={c.id}
+                        onClick={() => setSelectedCourier(c.id)}
+                        className={`cursor-pointer rounded-xl border p-2.5 text-center transition-all duration-200 flex flex-col items-center justify-between gap-1.5 min-h-[72px] ${
+                          isSelected
+                            ? "border-brand-green bg-brand-green/5 shadow-sm"
+                            : "border-gray-100 bg-white hover:border-gray-200"
+                        }`}
+                      >
+                        <span className="text-[10px] font-bold text-brand-navy leading-tight">
+                          {lang === "fr" ? c.nameFR : c.nameAR}
+                        </span>
+                        <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full ${
+                          isSelected 
+                            ? "bg-brand-green text-white" 
+                            : "bg-gray-100 text-gray-400"
+                        }`}>
+                          {c.badge}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Delivery Type Switcher (Card styling for beautiful UI) */}
               <div className="space-y-3">
                 <label className="block text-xs font-black uppercase tracking-wider text-brand-navy">
@@ -564,6 +608,12 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                     {deliveryType === "home" ? t.formHome : t.formDesk}
                   </span>
                 </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>{lang === "fr" ? "Transporteur" : "شركة التوصيل"} :</span>
+                  <span className="font-semibold text-brand-navy font-sans">
+                    {couriersList.find(c => c.id === selectedCourier)?.[lang === "fr" ? "nameFR" : "nameAR"]}
+                  </span>
+                </div>
                 <div className="flex justify-between text-sm font-black text-brand-navy pt-2 border-t border-gray-100">
                   <span>{t.grandTotal} :</span>
                   <span className="text-brand-green text-base font-extrabold">{grandTotal.toLocaleString()} {t.priceCurrency}</span>
@@ -574,7 +624,11 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
               <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-sm mx-auto">
                 {/* Whatsapp instant speed-up order helper (High conversion feature in Algeria) */}
                 <a
-                  href={`https://wa.me/+213550123456?text=Bonjour,%20je%20viens%20de%20passer%20commande%20pour%20le%20produit%20${encodeURIComponent(productName)}%20(Réf:%20${orderReference}).%20Merci%20de%20valider.`}
+                  href={`https://wa.me/${((import.meta as any).env?.VITE_MERCHANT_WHATSAPP || "+213781913776").replace(/\s+/g, "")}?text=${encodeURIComponent(
+                    lang === "fr"
+                      ? `Bonjour, je viens de passer commande pour le produit ${productName} (Réf: ${orderReference}). Transporteur: ${couriersList.find(c => c.id === selectedCourier)?.nameFR}, Mode: ${deliveryType === "home" ? "Domicile" : "Bureau"}. Merci de valider.`
+                      : `مرحباً، لقد قمت للتو بطلب المنتج ${productName} (المرجع: ${orderReference}). شركة التوصيل: ${couriersList.find(c => c.id === selectedCourier)?.nameAR}، طريقة الاستلام: ${deliveryType === "home" ? "باب المنزل" : "مكتب التوصيل"}. يرجى تأكيد الطلب.`
+                  )}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] text-white py-3 px-4 text-xs font-bold shadow-md shadow-[#25D366]/20 hover:opacity-95 transition-opacity"

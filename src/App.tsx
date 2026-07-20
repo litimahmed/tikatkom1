@@ -8,9 +8,10 @@ import ProductsGrid from "./components/ProductsGrid";
 import Footer from "./components/Footer";
 import ShippingModal from "./components/ShippingModal";
 import CheckoutModal from "./components/CheckoutModal";
-import { Product } from "./types";
-import { products } from "./data";
+import { Product, Category } from "./types";
+import { products as staticProducts, categories as staticCategories } from "./data";
 import { ChevronRight, ChevronLeft } from "lucide-react";
+import { getWooCategories, getWooProducts } from "./lib/woocommerce";
 
 export default function App() {
   // Primary Localization State: defaults to French, toggleable to Arabic
@@ -19,6 +20,10 @@ export default function App() {
   // Page Routing State: "home" or "products"
   const [view, setView] = useState<"home" | "products">("home");
 
+  // Dynamic Catalog States: preloaded with high-fidelity local static arrays for instant paint
+  const [products, setProducts] = useState<Product[]>(staticProducts);
+  const [categories, setCategories] = useState<Category[]>(staticCategories);
+
   // Modals Visibility State
   const [isShippingOpen, setIsShippingOpen] = useState<boolean>(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
@@ -26,6 +31,23 @@ export default function App() {
 
   // Active Category Filter
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // Fetch from live WooCommerce backend on mount
+  useEffect(() => {
+    async function loadWooCommerceData() {
+      try {
+        const [wooCats, wooProds] = await Promise.all([
+          getWooCategories(),
+          getWooProducts()
+        ]);
+        setCategories(wooCats);
+        setProducts(wooProds);
+      } catch (error) {
+        console.warn("Could not load live WooCommerce data, keeping local high-fidelity mock data.", error);
+      }
+    }
+    loadWooCommerceData();
+  }, []);
 
   // Set HTML dir and lang attributes on state changes for perfect RTL/LTR layout behavior
   useEffect(() => {
@@ -62,7 +84,9 @@ export default function App() {
 
   // Handler for hero direct buyout CTA - opens checkout for flagship product
   const handleBuyFlagshipClick = () => {
-    handleOpenCheckout(products[0]);
+    if (products.length > 0) {
+      handleOpenCheckout(products[0]);
+    }
   };
 
   // Handle Logo click - goes back home and resets filters
@@ -100,6 +124,7 @@ export default function App() {
             <CategoriesGrid 
               lang={lang} 
               onCategoryClick={handleCategoryClick} 
+              categories={categories}
             />
 
             {/* 5. Four Custom Product Line Sections */}
@@ -107,6 +132,8 @@ export default function App() {
               lang={lang}
               onBuyClick={handleOpenCheckout}
               onViewAllClick={handleViewAllClick}
+              products={products}
+              categories={categories}
             />
           </>
         ) : (
@@ -155,6 +182,8 @@ export default function App() {
               onBuyClick={handleOpenCheckout}
               selectedCategory={selectedCategory}
               setSelectedCategory={setSelectedCategory}
+              products={products}
+              categories={categories}
             />
           </>
         )}

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { products, categories, translations } from "../data";
-import { Product } from "../types";
+import { translations } from "../data";
+import { Product, Category } from "../types";
 import { Star } from "lucide-react";
 
 interface ProductsGridProps {
@@ -8,6 +8,8 @@ interface ProductsGridProps {
   onBuyClick: (product: Product) => void;
   selectedCategory: string | null;
   setSelectedCategory: (catId: string | null) => void;
+  products: Product[];
+  categories: Category[];
 }
 
 export default function ProductsGrid({
@@ -15,6 +17,8 @@ export default function ProductsGrid({
   onBuyClick,
   selectedCategory,
   setSelectedCategory,
+  products,
+  categories,
 }: ProductsGridProps) {
   const t = translations[lang];
   const isRTL = lang === "ar";

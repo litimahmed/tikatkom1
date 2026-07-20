@@ -1,48 +1,46 @@
 import { ArrowRight, ArrowLeft } from "lucide-react";
-import { products, categories } from "../data";
-import { Product } from "../types";
+import { getProductsForSection } from "../lib/woocommerce";
+import { Product, Category } from "../types";
 
 interface HomeSectionsProps {
   lang: "fr" | "ar";
   onBuyClick: (product: Product) => void;
   onViewAllClick: (categoryId: string | null) => void;
+  products: Product[];
+  categories: Category[];
 }
 
-export default function HomeSections({ lang, onBuyClick, onViewAllClick }: HomeSectionsProps) {
+export default function HomeSections({ lang, onBuyClick, onViewAllClick, products, categories }: HomeSectionsProps) {
   const isRTL = lang === "ar";
 
   // Select filtered subsets of products for each of the 4 sections
   const sectionsData = [
     {
-      id: "most_requested",
+      id: "most_requested" as const,
       titleAR: "الأكثر طلبًا هذا الأسبوع",
       subtitleAR: "منتجات مميزة",
       titleFR: "LES PLUS DEMANDÉS DE LA SEMAINE",
-      productIds: ["1", "2", "3", "4"],
       targetCategory: null, // "all"
     },
     {
-      id: "new_arrivals",
+      id: "new_arrivals" as const,
       titleAR: "جديد وحصري في المخزون",
       subtitleAR: "وصل حديثًا",
       titleFR: "NOUVEAUTÉS & EXCLUSIVITÉS",
-      productIds: ["5", "6", "8", "7"],
       targetCategory: "electronics", // can auto-filter on click
     },
     {
-      id: "best_sellers",
+      id: "best_sellers" as const,
       titleAR: "أفضل مبيعاتنا",
       subtitleAR: "الأكثر مبيعًا",
       titleFR: "NOS MEILLEURES VENTES",
-      productIds: ["3", "4", "5", "8"],
       targetCategory: "home",
     },
     {
-      id: "flash_deals",
+      id: "flash_deals" as const,
       titleAR: "عروض فلاش سريعة",
       subtitleAR: "عرض محدود",
       titleFR: "OFFRES FLASH LIMITÉES",
-      productIds: ["7", "1", "6", "2"],
       targetCategory: null,
     },
   ];
@@ -50,8 +48,8 @@ export default function HomeSections({ lang, onBuyClick, onViewAllClick }: HomeS
   return (
     <div className="space-y-16 py-12 lg:py-16">
       {sectionsData.map((sec) => {
-        // Find products belonging to this section and slice to 3
-        const secProducts = products.filter((p) => sec.productIds.includes(p.id)).slice(0, 3);
+        // Find products belonging to this section using our high-fidelity WooCommerce tags filter
+        const secProducts = getProductsForSection(products, sec.id);
 
         return (
           <section 
@@ -82,7 +80,7 @@ export default function HomeSections({ lang, onBuyClick, onViewAllClick }: HomeS
               {/* Voir Tout Link */}
               <button
                 onClick={() => onViewAllClick(sec.targetCategory)}
-                className="group flex items-center gap-1.5 text-xs font-black text-brand-navy hover:text-brand-green transition-colors focus:outline-none"
+                className="group flex items-center gap-1.5 text-xs font-black text-brand-navy hover:text-brand-green transition-colors focus:outline-none cursor-pointer"
               >
                 <span>{lang === "fr" ? "Voir tout" : "عرض الكل"}</span>
                 {isRTL ? (
@@ -157,7 +155,7 @@ export default function HomeSections({ lang, onBuyClick, onViewAllClick }: HomeS
                         {/* CTA Order Button */}
                         <button
                           onClick={() => onBuyClick(product)}
-                          className="mt-3 w-full rounded-full bg-brand-navy py-2.5 px-4 text-[10px] font-bold text-white transition-all duration-200 hover:bg-brand-green hover:shadow-sm active:scale-[0.98]"
+                          className="mt-3 w-full rounded-full bg-brand-navy py-2.5 px-4 text-[10px] font-bold text-white transition-all duration-200 hover:bg-brand-green hover:shadow-sm active:scale-[0.98] cursor-pointer"
                           id={`home-buy-btn-${sec.id}-${product.id}`}
                         >
                           {lang === "fr" ? "Acheter Maintenant" : "اشتري الآن"}

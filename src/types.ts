@@ -15,6 +15,7 @@ export interface Product {
   stockStatus: "in_stock" | "low_stock" | "out_of_stock";
   featuresFR: string[];
   featuresAR: string[];
+  tags?: Array<{ id: number; name: string; slug: string }>;
 }
 
 export interface Category {

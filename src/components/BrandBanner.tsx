@@ -75,7 +75,7 @@ export default function BrandBanner({ lang }: BrandBannerProps) {
                 </div>
 
                 {/* Pillar 3: Secure Pack */}
-                <div className={`flex flex-col sm:flex-row items-center justify-center gap-2 py-3 px-2 sm:border-r border-brand-green/20 last:border-r-0 ${isRTL ? "sm:border-r-0 sm:border-l animate-pulse" : ""}`}>
+                <div className={`flex flex-col sm:flex-row items-center justify-center gap-2 py-3 px-2 sm:border-r border-brand-green/20 last:border-r-0 ${isRTL ? "sm:border-r-0 sm:border-l" : ""}`}>
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-green text-white">
                     <Package className="h-4.5 w-4.5" />
                   </div>
