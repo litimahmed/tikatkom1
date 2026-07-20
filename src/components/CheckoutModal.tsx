@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { X, Check, ShoppingBag, Phone, MapPin, Truck, AlertCircle, Plus, Minus, Landmark } from "lucide-react";
 import { Product, OrderForm, Wilaya } from "../types";
 import { AlgerianWilayas, translations } from "../data";
-import { syncProductToCoCart, syncCustomerToCoCart, submitWooCommerceOrder, initWooCommerceStoreSession } from "../lib/wordpressSync";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -95,70 +94,25 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
     return Object.keys(newErrors).length === 0;
   };
 
-  // Sync selected product and quantity to WooCommerce/CoCart session
-  useEffect(() => {
-    if (isOpen && product) {
-      syncProductToCoCart(product.id, quantity);
-    }
-  }, [isOpen, product?.id, quantity]);
-
-  // Real-time Lead capture for CartBounty and CoCart (Debounced)
-  useEffect(() => {
-    if (!isOpen || !fullName.trim() || !phone.trim() || !product) return;
-
-    const timer = setTimeout(() => {
-      syncCustomerToCoCart({
-        fullName,
-        phone,
-        wilayaCode: selectedWilayaCode,
-        commune: selectedCommune,
-        address,
-        notes
-      });
-    }, 1200); // 1.2-second debounce to capture leads without stressing the server
-
-    return () => clearTimeout(timer);
-  }, [fullName, phone, selectedWilayaCode, selectedCommune, address, notes, isOpen, product]);
-
   // Submit Handler
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
+      // Scroll to first error or shake form
       return;
     }
 
     setIsSubmitting(true);
 
-    const customerData = {
-      fullName,
-      phone,
-      wilayaCode: selectedWilayaCode,
-      commune: selectedCommune,
-      address,
-      notes
-    };
-
-    // Place the order directly in WooCommerce
-    const wooOrderId = await submitWooCommerceOrder(
-      product.id,
-      quantity,
-      customerData,
-      deliveryType,
-      shippingFee
-    );
-
-    setIsSubmitting(false);
-    setIsSuccess(true);
-
-    if (wooOrderId) {
-      // Use the actual WooCommerce order reference
-      setOrderReference(wooOrderId);
-    } else {
-      // Offline fallback reference
+    // Simulate WordPress/WooCommerce REST API response delay (1.5 seconds)
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setIsSuccess(true);
+      // Generate random high-conversion order number (e.g., TKT-18492)
       const randomRef = `TKT-${Math.floor(10000 + Math.random() * 90000)}`;
       setOrderReference(randomRef);
-    }
+    }, 1500);
   };
 
   // Reset Form states on close or reopen

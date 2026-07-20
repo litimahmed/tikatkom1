@@ -123,22 +123,11 @@ export function mapWooProduct(wpProduct: any): Product {
   const parsePriceValue = (val: any) => {
     if (!val) return 0;
     const num = parseFloat(val);
-    
-    // WooCommerce Store API returns prices in minor units as strings.
-    // e.g. if standard price is 1000.00, the API returns "100000"
-    const minorUnits = wpProduct.prices?.currency_minor_unit ?? 2;
-    let standardPrice = num / Math.pow(10, minorUnits);
-    
-    // Heuristic Fallback: if the resulting price is extremely small (e.g. < 150),
-    // and the seller had set a custom decimal-shifted price like "10.00" on WordPress
-    // to work around the previous scaling bugs, we scale it up by 100 so it displays
-    // correctly as 1000 DA in the frontend. We advise them to update to actual prices on WooCommerce.
-    if (standardPrice > 0 && standardPrice < 150) {
-      console.log(`[Price Heuristic] Standard price is very low (${standardPrice} DA). Auto-scaling by 100 as fallback.`);
-      standardPrice = standardPrice * 100;
+    // If it's represented as minor units (e.g. 620000 instead of 6200), scale it down
+    if (num > 150000) {
+      return num / 100;
     }
-    
-    return standardPrice;
+    return num;
   };
 
   if (wpProduct.prices) {
