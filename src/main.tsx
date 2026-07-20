@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client'
-import App from './App.jsx'
+import App from './App'
 import './index.css'
 
 // Wait until the browser fully creates the shortcode [tikatkom_app] DOM element
