@@ -1,6 +1,6 @@
 import { detectWordPressBaseUrl } from "./woocommerce";
 
-// Retrieve or generate a persistent cart_key for headless session tracking
+// Retrieve or generate a persistent cart_key for headless session tracking in CoCart
 export function getOrCreateCartKey(): string {
   if (typeof window === "undefined") return "";
   let key = localStorage.getItem("tikatkom_cart_key");
@@ -9,6 +9,63 @@ export function getOrCreateCartKey(): string {
     localStorage.setItem("tikatkom_cart_key", key);
   }
   return key;
+}
+
+// In-memory store for WooCommerce Store API headers (Nonces and Cart-Tokens)
+let storeApiNonce: string | null = null;
+let storeApiCartToken: string | null = null;
+
+// Extractor to capture headers from any Store API response
+function extractStoreHeaders(headers: Headers) {
+  const nonce = headers.get("X-WC-Store-API-Nonce") || 
+                headers.get("Nonce") || 
+                headers.get("nonce") || 
+                headers.get("x-wc-store-api-nonce");
+  
+  const token = headers.get("Cart-Token") || 
+                headers.get("cart-token") || 
+                headers.get("Cart-token");
+
+  if (nonce) {
+    storeApiNonce = nonce;
+    console.log("[Store API] Captured Nonce:", storeApiNonce);
+  }
+  if (token) {
+    storeApiCartToken = token;
+    console.log("[Store API] Captured Cart-Token:", storeApiCartToken);
+  }
+}
+
+// Helper to generate headers for WooCommerce Store API requests
+function getStoreHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  
+  if (storeApiNonce) {
+    headers["X-WC-Store-API-Nonce"] = storeApiNonce;
+  }
+  if (storeApiCartToken) {
+    headers["Cart-Token"] = storeApiCartToken;
+  }
+  
+  return headers;
+}
+
+/**
+ * Initialize the WooCommerce Store API session by pre-fetching the cart.
+ * This triggers WooCommerce to generate cookies, session IDs, and the crucial CSRF nonces.
+ */
+export async function initWooCommerceStoreSession(): Promise<void> {
+  const baseUrl = detectWordPressBaseUrl();
+  try {
+    console.log("[Store API] Initializing WooCommerce Store API session...");
+    const url = `${baseUrl}/wp-json/wc/store/v1/cart`;
+    const response = await fetch(url, { method: "GET", headers: getStoreHeaders() });
+    extractStoreHeaders(response.headers);
+  } catch (error) {
+    console.warn("[Store API] Session initialization failed:", error);
+  }
 }
 
 interface CustomerData {
@@ -21,7 +78,7 @@ interface CustomerData {
 }
 
 /**
- * Sync the selected product and quantity to the CoCart session.
+ * Sync the selected product and quantity to BOTH CoCart and native WooCommerce Store API.
  * Since this is a high-converting single-product landing page, we clear previous items
  * first to ensure the cart contains exactly the product the user is looking to buy.
  */
@@ -29,14 +86,21 @@ export async function syncProductToCoCart(productId: string, quantity: number): 
   const baseUrl = detectWordPressBaseUrl();
   const cartKey = getOrCreateCartKey();
 
+  // Ensure WooCommerce Store API session is initialized
+  if (!storeApiNonce) {
+    await initWooCommerceStoreSession();
+  }
+
+  // 1. Sync to CoCart (for CartBounty and CoCart session tracking)
+  let coCartSuccess = false;
   try {
     console.log(`[CoCart] Syncing product ID ${productId} (Qty: ${quantity}) for cart_key: ${cartKey}`);
     
-    // Step 1: Clear previous items in the cart
+    // Clear previous items in CoCart
     const clearUrl = `${baseUrl}/wp-json/cocart/v2/cart/clear?cart_key=${cartKey}`;
     await fetch(clearUrl, { method: "POST" });
 
-    // Step 2: Add the selected product
+    // Add selected product
     const addUrl = `${baseUrl}/wp-json/cocart/v2/cart/add-item?cart_key=${cartKey}`;
     const response = await fetch(addUrl, {
       method: "POST",
@@ -47,20 +111,47 @@ export async function syncProductToCoCart(productId: string, quantity: number): 
       })
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to add item to CoCart: ${response.statusText}`);
+    if (response.ok) {
+      coCartSuccess = true;
+      console.log("[CoCart] Product synced successfully.");
+    } else {
+      console.warn(`[CoCart] Product add failed with status: ${response.status}`);
     }
-
-    console.log("[CoCart] Product synced successfully.");
-    return true;
   } catch (error) {
-    console.warn("[CoCart] Product sync failed (ensure WordPress is running with CoCart installed):", error);
-    return false;
+    console.warn("[CoCart] Product sync failed:", error);
   }
+
+  // 2. Sync to WooCommerce Store API (for native checkout support)
+  let storeSuccess = false;
+  try {
+    console.log(`[Store API] Adding product ID ${productId} (Qty: ${quantity}) to native WooCommerce cart...`);
+    const addUrl = `${baseUrl}/wp-json/wc/store/v1/cart/add-item`;
+    const response = await fetch(addUrl, {
+      method: "POST",
+      headers: getStoreHeaders(),
+      body: JSON.stringify({
+        id: parseInt(productId, 10),
+        quantity: quantity
+      })
+    });
+
+    extractStoreHeaders(response.headers);
+
+    if (response.ok) {
+      storeSuccess = true;
+      console.log("[Store API] Product added to native WooCommerce cart successfully.");
+    } else {
+      console.warn(`[Store API] Product add failed with status: ${response.status}`);
+    }
+  } catch (error) {
+    console.warn("[Store API] Product sync to WooCommerce native cart failed:", error);
+  }
+
+  return coCartSuccess || storeSuccess;
 }
 
 /**
- * Sync customer details to CoCart in real-time as they type.
+ * Sync customer details to BOTH CoCart and WooCommerce Store API in real-time as they type.
  * This updates WooCommerce's active cart session, which instantly triggers CartBounty
  * to capture the abandoned cart/partial form entry with the buyer's name and phone!
  */
@@ -68,15 +159,24 @@ export async function syncCustomerToCoCart(data: CustomerData): Promise<boolean>
   const baseUrl = detectWordPressBaseUrl();
   const cartKey = getOrCreateCartKey();
 
-  // Split name into first and last name if possible, or use full name as first name
+  // Split name into first and last name if possible
   const nameParts = data.fullName.trim().split(/\s+/);
   const firstName = nameParts[0] || "";
   const lastName = nameParts.slice(1).join(" ") || "";
+  const placeholderEmail = `${data.phone.replace(/[^0-9]/g, "") || "customer"}@tikatkom-lead.com`;
 
+  // Ensure WooCommerce Store API session is initialized
+  if (!storeApiNonce) {
+    await initWooCommerceStoreSession();
+  }
+
+  // 1. Sync to CoCart (for CartBounty lead capture)
+  let coCartSuccess = false;
   try {
-    console.log(`[CartBounty & CoCart] Syncing partial customer data for lead capture:`, data);
+    console.log(`[CoCart] Syncing customer details to CoCart:`, data);
     
-    const customerUrl = `${baseUrl}/wp-json/cocart/v2/customer?cart_key=${cartKey}`;
+    // Crucial: Correct path has "/cart" in it -> /wp-json/cocart/v2/cart/customer
+    const customerUrl = `${baseUrl}/wp-json/cocart/v2/cart/customer?cart_key=${cartKey}`;
     const response = await fetch(customerUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -87,29 +187,74 @@ export async function syncCustomerToCoCart(data: CustomerData): Promise<boolean>
           phone: data.phone,
           state: data.wilayaCode,
           city: data.commune,
-          address_1: data.address,
-          email: `${data.phone.replace(/[^0-9]/g, "") || "customer"}@tikatkom-lead.com` // Helper email placeholder for CartBounty tracking
+          address_1: data.address || "Adresse de livraison",
+          email: placeholderEmail
         },
         shipping: {
           first_name: firstName,
           last_name: lastName,
+          phone: data.phone,
           state: data.wilayaCode,
           city: data.commune,
-          address_1: data.address
+          address_1: data.address || "Adresse de livraison"
         }
       })
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to update customer details: ${response.statusText}`);
+    if (response.ok) {
+      coCartSuccess = true;
+      console.log("[CoCart] Customer details successfully synced to CoCart.");
+    } else {
+      console.warn(`[CoCart] Customer update returned status: ${response.status}`);
     }
-
-    console.log("[CartBounty & CoCart] Partial lead details successfully captured.");
-    return true;
   } catch (error) {
-    console.warn("[CartBounty] Lead capture failed (ensure WordPress has CoCart and CartBounty enabled):", error);
-    return false;
+    console.warn("[CoCart] Lead capture sync failed:", error);
   }
+
+  // 2. Sync to native WooCommerce Store API (to authorize checkout session)
+  let storeSuccess = false;
+  try {
+    console.log(`[Store API] Syncing customer details to native WooCommerce Cart:`, data);
+    const customerUrl = `${baseUrl}/wp-json/wc/store/v1/cart/update-customer`;
+    const response = await fetch(customerUrl, {
+      method: "POST",
+      headers: getStoreHeaders(),
+      body: JSON.stringify({
+        billing_address: {
+          first_name: firstName,
+          last_name: lastName,
+          phone: data.phone,
+          state: data.wilayaCode,
+          city: data.commune,
+          address_1: data.address || "Adresse de livraison",
+          country: "DZ",
+          email: placeholderEmail
+        },
+        shipping_address: {
+          first_name: firstName,
+          last_name: lastName,
+          phone: data.phone,
+          state: data.wilayaCode,
+          city: data.commune,
+          address_1: data.address || "Adresse de livraison",
+          country: "DZ"
+        }
+      })
+    });
+
+    extractStoreHeaders(response.headers);
+
+    if (response.ok) {
+      storeSuccess = true;
+      console.log("[Store API] Customer details successfully synced to native WooCommerce Cart.");
+    } else {
+      console.warn(`[Store API] Customer update returned status: ${response.status}`);
+    }
+  } catch (error) {
+    console.warn("[Store API] Customer update failed:", error);
+  }
+
+  return coCartSuccess || storeSuccess;
 }
 
 /**
@@ -124,7 +269,6 @@ export async function submitWooCommerceOrder(
   shippingFee: number
 ): Promise<string | null> {
   const baseUrl = detectWordPressBaseUrl();
-  const cartKey = getOrCreateCartKey();
 
   try {
     console.log("[WooCommerce] Placing final order...", { productId, quantity, customer, deliveryType, shippingFee });
@@ -133,58 +277,43 @@ export async function submitWooCommerceOrder(
     await syncProductToCoCart(productId, quantity);
     await syncCustomerToCoCart(customer);
 
-    // Build checkout payload
-    const checkoutUrl = `${baseUrl}/wp-json/cocart/v2/checkout?cart_key=${cartKey}`;
-    const response = await fetch(checkoutUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        payment_method: "cod",
-        payment_method_title: "Cash on Delivery",
-        customer_note: customer.notes || "",
-        shipping_lines: [
-          {
-            method_id: deliveryType === "home" ? "flat_rate" : "local_pickup",
-            method_title: deliveryType === "home" ? "Domicile" : "Bureau Yalidine",
-            total: shippingFee.toString()
-          }
-        ]
-      })
-    });
+    const nameParts = customer.fullName.trim().split(/\s+/);
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(" ") || "";
+    const placeholderEmail = `${customer.phone.replace(/[^0-9]/g, "") || "customer"}@tikatkom-lead.com`;
 
-    if (response.ok) {
-      const orderData = await response.json();
-      console.log("[WooCommerce] Order created successfully via CoCart:", orderData);
-      return orderData.order_id ? String(orderData.order_id) : orderData.id ? String(orderData.id) : null;
-    }
-
-    // Fallback: If CoCart Checkout endpoint is premium or fails, attempt standard WooCommerce Store API Checkout
-    console.log("[WooCommerce] CoCart checkout failed, attempting fallback to native WooCommerce Store API checkout...");
+    // Attempt native WooCommerce Store API Checkout
+    console.log("[WooCommerce] Attempting checkout via native WooCommerce Store API checkout...");
     const storeCheckoutUrl = `${baseUrl}/wp-json/wc/store/v1/checkout`;
     const storeResponse = await fetch(storeCheckoutUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getStoreHeaders(),
       body: JSON.stringify({
         billing_address: {
-          first_name: customer.fullName,
-          last_name: "",
+          first_name: firstName,
+          last_name: lastName,
           phone: customer.phone,
           state: customer.wilayaCode,
           city: customer.commune,
-          address_1: customer.address,
-          email: `${customer.phone.replace(/[^0-9]/g, "") || "customer"}@tikatkom-lead.com`
+          address_1: customer.address || "Adresse de livraison",
+          country: "DZ",
+          email: placeholderEmail
         },
         shipping_address: {
-          first_name: customer.fullName,
-          last_name: "",
+          first_name: firstName,
+          last_name: lastName,
+          phone: customer.phone,
           state: customer.wilayaCode,
           city: customer.commune,
-          address_1: customer.address
+          address_1: customer.address || "Adresse de livraison",
+          country: "DZ"
         },
         payment_method: "cod",
         customer_note: customer.notes || ""
       })
     });
+
+    extractStoreHeaders(storeResponse.headers);
 
     if (storeResponse.ok) {
       const storeOrder = await storeResponse.json();
@@ -192,7 +321,8 @@ export async function submitWooCommerceOrder(
       return storeOrder.order_id ? String(storeOrder.order_id) : storeOrder.id ? String(storeOrder.id) : null;
     }
 
-    throw new Error(`Order placement failed. Status: ${response.status}`);
+    const errorText = await storeResponse.text();
+    throw new Error(`Order placement failed. Status: ${storeResponse.status}. Response: ${errorText}`);
   } catch (error) {
     console.error("[WooCommerce] Order placement failed:", error);
     return null;

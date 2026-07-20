@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { X, Check, ShoppingBag, Phone, MapPin, Truck, AlertCircle, Plus, Minus, Landmark } from "lucide-react";
 import { Product, OrderForm, Wilaya } from "../types";
 import { AlgerianWilayas, translations } from "../data";
-import { syncProductToCoCart, syncCustomerToCoCart, submitWooCommerceOrder } from "../lib/wordpressSync";
+import { syncProductToCoCart, syncCustomerToCoCart, submitWooCommerceOrder, initWooCommerceStoreSession } from "../lib/wordpressSync";
 
 interface CheckoutModalProps {
   isOpen: boolean;
