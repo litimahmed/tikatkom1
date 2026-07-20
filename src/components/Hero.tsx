@@ -99,8 +99,8 @@ export default function Hero({ lang, onExploreClick, onBuyFlagshipClick }: HeroP
               {/* Product Card Container */}
               <div className="relative overflow-hidden rounded-3xl bg-white">
                 <img
-                  src="/src/assets/images/tikatkom_brand_hero_new_1784455583613.jpg"
-                  alt="Tikatkom Brand Lifestyle"
+                  src={flagshipProduct?.image || "/src/assets/images/placeholder.jpg"}
+                  alt={isRTL ? flagshipProduct?.titleAR : flagshipProduct?.titleFR}
                   className="h-[320px] w-[320px] object-cover sm:h-[380px] sm:w-[380px] transition-transform duration-700 group-hover:scale-105"
                   referrerPolicy="no-referrer"
                 />
@@ -118,15 +118,17 @@ export default function Hero({ lang, onExploreClick, onBuyFlagshipClick }: HeroP
                         {lang === "fr" ? "Style de Vie Premium" : "نمط حياة متميز"}
                       </p>
                       <h4 className="text-sm font-bold text-brand-navy truncate max-w-[180px]">
-                        {lang === "fr" ? "Collection TIKATKOM" : "مجموعة تيكاتكوم"}
+                        {isRTL ? flagshipProduct?.titleAR : flagshipProduct?.titleFR}
                       </h4>
                     </div>
                     <div className={isRTL ? "text-left" : "text-right"}>
-                      <p className="text-xs text-gray-400 line-through">
-                        {(flagshipProduct.oldPrice).toLocaleString()} {lang === "fr" ? "DA" : "دج"}
-                      </p>
+                      {flagshipProduct?.oldPrice && (
+                        <p className="text-xs text-gray-400 line-through">
+                          {(flagshipProduct.oldPrice).toLocaleString()} {lang === "fr" ? "DA" : "دج"}
+                        </p>
+                      )}
                       <p className="text-base font-extrabold text-brand-green">
-                        {(flagshipProduct.price).toLocaleString()} {lang === "fr" ? "DA" : "دج"}
+                        {flagshipProduct ? (flagshipProduct.price).toLocaleString() : 0} {lang === "fr" ? "DA" : "دج"}
                       </p>
                     </div>
                   </div>

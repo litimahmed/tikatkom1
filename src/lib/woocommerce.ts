@@ -4,8 +4,63 @@ import { products as mockProducts, categories as mockCategories } from "../data"
 // WooCommerce Store API endpoints do NOT require credentials for public reading.
 // We resolve the WordPress base URL dynamically:
 // 1. If VITE_WORDPRESS_URL is set in environment, use it (perfect for external dev).
-// 2. Otherwise, use the current origin window.location.origin (perfect when served directly from the WP directory).
-const WP_BASE_URL = (import.meta as any).env?.VITE_WORDPRESS_URL || window.location.origin;
+// 2. Otherwise, we detect if the app is served inside WordPress by parsing script tags
+// 3. Fall back to current origin.
+export function detectWordPressBaseUrl(): string {
+  const envUrl = (import.meta as any).env?.VITE_WORDPRESS_URL;
+  if (envUrl) return envUrl.replace(/\/$/, "");
+
+  // Search script tags to find the WordPress base path (in case of subdirectory install)
+  const scripts = Array.from(document.querySelectorAll('script'));
+  for (const script of scripts) {
+    const src = script.src;
+    if (src && (src.includes('/wp-content/') || src.includes('/wp-includes/'))) {
+      const match = src.match(/^(https?:\/\/[^\/]+(?:\/[^\/]+)*?)\/(?:wp-content|wp-includes)\//);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+  }
+
+  // Fallback to origin
+  return window.location.origin;
+}
+
+const WP_BASE_URL = detectWordPressBaseUrl();
+
+// Helper to make resilient REST requests trying both Pretty and Plain Permalinks
+async function fetchWooStore(apiPath: string): Promise<any> {
+  const baseUrl = detectWordPressBaseUrl();
+  
+  // Try 1: Pretty Permalinks format (/wp-json/...)
+  const prettyUrl = `${baseUrl}/wp-json/${apiPath}`;
+  try {
+    const res = await fetch(prettyUrl);
+    if (res.ok) {
+      return await res.json();
+    }
+    // If it's a 404, we continue to Plain Permalinks fallback
+    if (res.status !== 404) {
+      throw new Error(`HTTP Error ${res.status}`);
+    }
+  } catch (err) {
+    console.warn(`Pretty Permalinks failed for ${prettyUrl}, attempting fallback...`, err);
+  }
+
+  // Try 2: Plain Permalinks format (?rest_route=...)
+  // If the path already has a query string (e.g. ?per_page=100), we append rest_route
+  const pathClean = apiPath.startsWith('/') ? apiPath : `/${apiPath}`;
+  const plainUrl = baseUrl.includes('?') 
+    ? `${baseUrl}&rest_route=${pathClean}`
+    : `${baseUrl}/index.php?rest_route=${pathClean}`;
+
+  console.log(`Attempting fallback Plain Permalinks request to: ${plainUrl}`);
+  const res = await fetch(plainUrl);
+  if (!res.ok) {
+    throw new Error(`Both pretty and plain REST API routes failed (Status ${res.status} for ${plainUrl})`);
+  }
+  return await res.json();
+}
 
 // Helper to split bilingual strings formatted as "French / Arabic" or "Arabic | French"
 export function parseMultilingual(text: string): { fr: string; ar: string } {
@@ -155,9 +210,7 @@ export function mapWooProduct(wpProduct: any): Product {
 // Fetch Categories directly from public WooCommerce Store API
 export async function getWooCategories(): Promise<Category[]> {
   try {
-    const res = await fetch(`${WP_BASE_URL}/wp-json/wc/store/v1/products/categories?per_page=100`);
-    if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-    const data = await res.json();
+    const data = await fetchWooStore("wc/store/v1/products/categories?per_page=100");
     if (Array.isArray(data)) {
       return data.map(mapWooCategory);
     }
@@ -171,9 +224,7 @@ export async function getWooCategories(): Promise<Category[]> {
 // Fetch Products directly from public WooCommerce Store API
 export async function getWooProducts(): Promise<Product[]> {
   try {
-    const res = await fetch(`${WP_BASE_URL}/wp-json/wc/store/v1/products?per_page=100`);
-    if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-    const data = await res.json();
+    const data = await fetchWooStore("wc/store/v1/products?per_page=100");
     if (Array.isArray(data)) {
       return data.map(mapWooProduct);
     }
@@ -191,10 +242,38 @@ export function getProductsForSection(
   sectionId: "most_requested" | "new_arrivals" | "best_sellers" | "flash_deals",
   rawWpProducts: any[] = []
 ): Product[] {
-  // Check if we have raw products with tag structures to inspect
+  // Check if we have mapped products with tag structures to inspect
+  if (allProducts.length > 0) {
+    const matchedProducts = allProducts.filter(p => {
+      if (!p.tags) return false;
+      return p.tags.some(t => {
+        const slug = (t.slug || "").toLowerCase();
+        const name = (t.name || "").toLowerCase();
+        
+        if (sectionId === "most_requested") {
+          return slug.includes("most-requested") || name.includes("أكثر طلبا") || name.includes("الأكثر طلبا") || slug.includes("طلب");
+        }
+        if (sectionId === "new_arrivals") {
+          return slug.includes("new-arrivals") || slug.includes("new-in") || name.includes("جديد") || slug.includes("new");
+        }
+        if (sectionId === "best_sellers") {
+          return slug.includes("best-sellers") || name.includes("الأكثر مبيعا") || name.includes("أفضل مبيعات") || slug.includes("best");
+        }
+        if (sectionId === "flash_deals") {
+          return slug.includes("flash-deals") || slug.includes("deals") || name.includes("فلاش") || name.includes("عروض") || slug.includes("flash");
+        }
+        return false;
+      });
+    });
+
+    if (matchedProducts.length > 0) {
+      return matchedProducts.slice(0, 4); // limit to 4 per homepage section
+    }
+  }
+
+  // If we couldn't match tags from mapped data, check raw array if provided
   if (rawWpProducts.length > 0) {
     const matchedProducts: Product[] = [];
-    
     for (const raw of rawWpProducts) {
       if (!raw.tags) continue;
       const hasTag = raw.tags.some((t: any) => {
@@ -223,7 +302,7 @@ export function getProductsForSection(
     }
 
     if (matchedProducts.length > 0) {
-      return matchedProducts.slice(0, 4); // limit to 4 per homepage section
+      return matchedProducts.slice(0, 4);
     }
   }
 
@@ -263,3 +342,4 @@ export function getProductsForSection(
     return allProducts.filter(p => p.stockStatus === "low_stock").concat(allProducts).slice(0, 4);
   }
 }
+
