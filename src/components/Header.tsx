@@ -47,15 +47,15 @@ export default function Header({ lang, setLang, onOpenShippingModal, onLogoClick
               e.preventDefault();
               onLogoClick();
             }}
-            className="flex items-center gap-1.5 focus:outline-none cursor-pointer"
+            className="flex items-center focus:outline-none cursor-pointer"
           >
-            {/* Elegant Minimalist Logo Mark */}
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-green font-display text-lg font-bold text-white shadow-sm shadow-brand-green/30">
-              T
-            </span>
-            <span className="font-display text-xl font-extrabold tracking-tight text-brand-navy dark:text-white">
-              TIKAT<span className="text-brand-green">KOM</span>
-            </span>
+            {/* Brand Logo Image */}
+            <img 
+              src="/src/assets/images/tikatkom_brand_logo_1784439572660.jpg" 
+              alt="Tikatkom Logo" 
+              className="h-11 w-auto object-contain rounded-lg"
+              referrerPolicy="no-referrer"
+            />
           </button>
         </div>
 

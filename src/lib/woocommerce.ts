@@ -349,7 +349,9 @@ export function getProductsForSection(
     return allProducts.filter(p => p.oldPrice !== undefined).slice(0, 4);
   } else {
     // flash_deals mock fallback
-    return allProducts.filter(p => p.stockStatus === "low_stock").concat(allProducts).slice(0, 4);
+    const lowStock = allProducts.filter(p => p.stockStatus === "low_stock");
+    const others = allProducts.filter(p => p.stockStatus !== "low_stock");
+    return [...lowStock, ...others].slice(0, 4);
   }
 }
 

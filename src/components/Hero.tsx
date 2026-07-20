@@ -99,7 +99,12 @@ export default function Hero({ lang, onExploreClick, onBuyFlagshipClick, product
             {/* Soft backdrop radial shadow */}
             <div className="absolute inset-0 m-auto h-72 w-72 rounded-full bg-brand-green/10 blur-3xl"></div>
             
-            <div className="relative group overflow-hidden rounded-3xl bg-white dark:bg-zinc-900 shadow-2xl border border-gray-100 dark:border-zinc-800 transition-transform duration-500 hover:scale-[1.02]">
+            <div 
+              onClick={onBuyFlagshipClick}
+              className="relative group overflow-hidden rounded-3xl bg-white dark:bg-zinc-900 shadow-2xl border border-gray-100 dark:border-zinc-800 transition-transform duration-500 hover:scale-[1.02] cursor-pointer"
+              id="hero-product-card"
+              title={lang === "fr" ? "Cliquez pour commander !" : "اضغط للطلب الآن !"}
+            >
               {/* Product Card Container */}
               <div className="relative overflow-hidden rounded-3xl bg-white dark:bg-zinc-900">
                 <img
@@ -109,10 +114,7 @@ export default function Hero({ lang, onExploreClick, onBuyFlagshipClick, product
                   referrerPolicy="no-referrer"
                 />
                 
-                {/* Sale Tag Badge Overlay */}
-                <span className={`absolute top-4 ${isRTL ? "right-4" : "left-4"} rounded-lg bg-red-500 px-3 py-1.5 text-xs font-black text-white uppercase tracking-wider`}>
-                  {lang === "fr" ? "OFFRE LIMITÉE" : "عرض محدود"}
-                </span>
+                {/* Product Image */}
 
                 {/* Micro info bar under the image */}
                 <div className="border-t border-gray-100 dark:border-zinc-800 bg-gray-50/80 dark:bg-zinc-950/80 p-4">
