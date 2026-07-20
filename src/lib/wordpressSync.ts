@@ -159,14 +159,18 @@ export async function syncCustomerToCoCart(data: CustomerData): Promise<boolean>
   const baseUrl = detectWordPressBaseUrl();
   const cartKey = getOrCreateCartKey();
 
-  // Split name into first and last name if possible
+  // Split name into first and last name if possible, ensuring last_name is never empty
   const nameParts = data.fullName.trim().split(/\s+/);
-  const firstName = nameParts[0] || "";
-  const lastName = nameParts.slice(1).join(" ") || "";
+  const firstName = nameParts[0] || "Client";
+  const lastName = nameParts.slice(1).join(" ") || firstName;
   const placeholderEmail = `${data.phone.replace(/[^0-9]/g, "") || "customer"}@tikatkom-lead.com`;
 
   // Ensure the state code has the DZ- prefix for Algeria (e.g. DZ-47) as required by WooCommerce
-  const stateCode = data.wilayaCode ? (data.wilayaCode.startsWith("DZ-") ? data.wilayaCode : `DZ-${data.wilayaCode}`) : "";
+  const stateCode = data.wilayaCode ? (data.wilayaCode.startsWith("DZ-") ? data.wilayaCode : `DZ-${data.wilayaCode}`) : "DZ-16";
+  
+  // Generate a valid Algerian postal code based on the state (e.g. 13000 for Tlemcen, or 16000 for Algiers)
+  const numericState = stateCode.replace("DZ-", "");
+  const postcode = numericState ? `${numericState.padStart(2, "0")}000` : "16000";
 
   // Ensure WooCommerce Store API session is initialized
   if (!storeApiNonce) {
@@ -189,8 +193,10 @@ export async function syncCustomerToCoCart(data: CustomerData): Promise<boolean>
           last_name: lastName,
           phone: data.phone,
           state: stateCode,
-          city: data.commune,
+          city: data.commune || "Alger",
           address_1: data.address || "Adresse de livraison",
+          postcode: postcode,
+          country: "DZ",
           email: placeholderEmail
         },
         shipping: {
@@ -198,8 +204,10 @@ export async function syncCustomerToCoCart(data: CustomerData): Promise<boolean>
           last_name: lastName,
           phone: data.phone,
           state: stateCode,
-          city: data.commune,
-          address_1: data.address || "Adresse de livraison"
+          city: data.commune || "Alger",
+          address_1: data.address || "Adresse de livraison",
+          postcode: postcode,
+          country: "DZ"
         }
       })
     });
@@ -228,8 +236,9 @@ export async function syncCustomerToCoCart(data: CustomerData): Promise<boolean>
           last_name: lastName,
           phone: data.phone,
           state: stateCode,
-          city: data.commune,
+          city: data.commune || "Alger",
           address_1: data.address || "Adresse de livraison",
+          postcode: postcode,
           country: "DZ",
           email: placeholderEmail
         },
@@ -238,9 +247,10 @@ export async function syncCustomerToCoCart(data: CustomerData): Promise<boolean>
           last_name: lastName,
           phone: data.phone,
           state: stateCode,
-          city: data.commune,
+          city: data.commune || "Alger",
           address_1: data.address || "Adresse de livraison",
-          country: "DZ"
+          country: "DZ",
+          postcode: postcode
         }
       })
     });
@@ -281,10 +291,12 @@ export async function submitWooCommerceOrder(
     await syncCustomerToCoCart(customer);
 
     const nameParts = customer.fullName.trim().split(/\s+/);
-    const firstName = nameParts[0] || "";
-    const lastName = nameParts.slice(1).join(" ") || "";
+    const firstName = nameParts[0] || "Client";
+    const lastName = nameParts.slice(1).join(" ") || firstName;
     const placeholderEmail = `${customer.phone.replace(/[^0-9]/g, "") || "customer"}@tikatkom-lead.com`;
-    const stateCode = customer.wilayaCode ? (customer.wilayaCode.startsWith("DZ-") ? customer.wilayaCode : `DZ-${customer.wilayaCode}`) : "";
+    const stateCode = customer.wilayaCode ? (customer.wilayaCode.startsWith("DZ-") ? customer.wilayaCode : `DZ-${customer.wilayaCode}`) : "DZ-16";
+    const numericState = stateCode.replace("DZ-", "");
+    const postcode = numericState ? `${numericState.padStart(2, "0")}000` : "16000";
 
     // Attempt native WooCommerce Store API Checkout
     console.log("[WooCommerce] Attempting checkout via native WooCommerce Store API checkout...");
@@ -298,8 +310,9 @@ export async function submitWooCommerceOrder(
           last_name: lastName,
           phone: customer.phone,
           state: stateCode,
-          city: customer.commune,
+          city: customer.commune || "Alger",
           address_1: customer.address || "Adresse de livraison",
+          postcode: postcode,
           country: "DZ",
           email: placeholderEmail
         },
@@ -308,8 +321,9 @@ export async function submitWooCommerceOrder(
           last_name: lastName,
           phone: customer.phone,
           state: stateCode,
-          city: customer.commune,
+          city: customer.commune || "Alger",
           address_1: customer.address || "Adresse de livraison",
+          postcode: postcode,
           country: "DZ"
         },
         payment_method: "cod",
