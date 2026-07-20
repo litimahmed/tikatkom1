@@ -144,7 +144,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
 
       {/* Modal Container */}
       <div 
-        className="relative my-auto w-full max-w-2xl rounded-2xl bg-white shadow-2xl transition-all duration-300 max-h-[96vh] flex flex-col"
+        className="relative my-auto w-full max-w-2xl rounded-2xl bg-white dark:bg-[#1a1a1a] border border-transparent dark:border-[#2a2a2a] shadow-2xl transition-all duration-300 max-h-[96vh] flex flex-col"
         style={{ direction: isRTL ? "rtl" : "ltr" }}
         id="checkout-modal-container"
       >
@@ -154,7 +154,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
         {/* Modal Close Button */}
         <button
           onClick={onClose}
-          className={`absolute top-4 ${isRTL ? "left-4" : "right-4"} z-10 rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors`}
+          className={`absolute top-4 ${isRTL ? "left-4" : "right-4"} z-10 rounded-full p-2 text-gray-400 dark:text-zinc-500 hover:bg-gray-100 dark:hover:bg-[#262626] hover:text-gray-700 dark:hover:text-zinc-300 transition-colors cursor-pointer`}
           aria-label="Close"
           id="close-checkout-modal"
         >
@@ -168,27 +168,27 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
               
               {/* Header Title */}
               <div className="text-center">
-                <h3 className="font-display text-2xl font-black text-brand-navy">
+                <h3 className="font-display text-2xl font-black text-brand-navy dark:text-white">
                   {t.checkoutTitle}
                 </h3>
-                <p className="mt-1 text-xs text-gray-500 max-w-md mx-auto">
+                <p className="mt-1 text-xs text-gray-500 dark:text-zinc-400 max-w-md mx-auto">
                   {t.checkoutSubTitle}
                 </p>
               </div>
 
               {/* Product Brief Row */}
-              <div className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-gray-50/50 p-4">
+              <div className="flex items-center gap-4 rounded-2xl border border-gray-100 dark:border-[#2a2a2a] bg-gray-50/50 dark:bg-[#262626]/30 p-4">
                 <img
                   src={product.image}
                   alt={productName}
-                  className="h-16 w-16 rounded-xl object-cover border border-gray-100 shrink-0"
+                  className="h-16 w-16 rounded-xl object-cover border border-gray-100 dark:border-[#2a2a2a] shrink-0"
                   referrerPolicy="no-referrer"
                 />
                 <div className="flex-1 min-w-0">
                   <span className="text-[10px] font-black uppercase tracking-wider text-brand-green">
                     {lang === "fr" ? "Votre produit sélectionné" : "المنتج المحدد حالياً"}
                   </span>
-                  <h4 className="font-display text-sm font-extrabold text-brand-navy truncate">
+                  <h4 className="font-display text-sm font-extrabold text-brand-navy dark:text-white truncate">
                     {productName}
                   </h4>
                   <p className="text-xs font-black text-brand-green mt-0.5">
@@ -197,23 +197,23 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                 </div>
 
                 {/* Quantity Manager */}
-                <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1 shrink-0">
+                <div className="flex items-center gap-1 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#2a2a2a] rounded-xl p-1 shrink-0">
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="p-1 text-gray-500 hover:text-brand-green rounded-lg transition-colors active:scale-90"
+                    className="p-1 text-gray-500 dark:text-zinc-400 hover:text-brand-green rounded-lg transition-colors active:scale-90 cursor-pointer"
                     aria-label="Decrease quantity"
                     id="quantity-minus-btn"
                   >
                     <Minus className="h-3.5 w-3.5" />
                   </button>
-                  <span className="w-6 text-center text-xs font-black text-brand-navy">
+                  <span className="w-6 text-center text-xs font-black text-brand-navy dark:text-white">
                     {quantity}
                   </span>
                   <button
                     type="button"
                     onClick={() => setQuantity(quantity + 1)}
-                    className="p-1 text-gray-500 hover:text-brand-green rounded-lg transition-colors active:scale-90"
+                    className="p-1 text-gray-500 dark:text-zinc-400 hover:text-brand-green rounded-lg transition-colors active:scale-90 cursor-pointer"
                     aria-label="Increase quantity"
                     id="quantity-plus-btn"
                   >
@@ -227,14 +227,14 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                 
                 {/* Left Col: Customer Information */}
                 <div className="space-y-4">
-                  <h5 className="text-xs font-black uppercase tracking-wider text-brand-navy flex items-center gap-1.5 border-b border-gray-100 pb-2">
+                  <h5 className="text-xs font-black uppercase tracking-wider text-brand-navy dark:text-zinc-200 flex items-center gap-1.5 border-b border-gray-100 dark:border-[#2a2a2a] pb-2">
                     <Phone className="h-3.5 w-3.5 text-brand-green" />
                     <span>{lang === "fr" ? "Coordonnées de livraison" : "معلومات المشتري والاتصال"}</span>
                   </h5>
 
                   {/* Name field */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                    <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1">
                       {t.formName} <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -242,10 +242,10 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder={lang === "fr" ? "Ex: Mohamed Amine" : "مثال: محمد أمين"}
-                      className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 ${
+                      className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 dark:bg-[#262626] dark:text-white ${
                         errors.fullName 
-                          ? "border-red-300 focus:ring-red-100" 
-                          : "border-gray-200 focus:border-brand-green focus:ring-brand-green/10"
+                          ? "border-red-300 dark:border-red-900/30 focus:ring-red-100 dark:focus:ring-red-900/10" 
+                          : "border-gray-200 dark:border-[#2a2a2a] focus:border-brand-green focus:ring-brand-green/10"
                       }`}
                       id="input-fullname"
                     />
@@ -259,7 +259,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
 
                   {/* Phone field */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                    <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1">
                       {t.formPhone} <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -267,10 +267,10 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder={lang === "fr" ? "Ex: 0550 12 34 56" : "مثال: 0550123456"}
-                      className={`w-full rounded-xl border px-4 py-3 text-sm text-left focus:outline-none focus:ring-2 ${
+                      className={`w-full rounded-xl border px-4 py-3 text-sm text-left focus:outline-none focus:ring-2 dark:bg-[#262626] dark:text-white ${
                         errors.phone 
-                          ? "border-red-300 focus:ring-red-100" 
-                          : "border-gray-200 focus:border-brand-green focus:ring-brand-green/10"
+                          ? "border-red-300 dark:border-red-900/30 focus:ring-red-100 dark:focus:ring-red-900/10" 
+                          : "border-gray-200 dark:border-[#2a2a2a] focus:border-brand-green focus:ring-brand-green/10"
                       }`}
                       style={{ direction: "ltr" }}
                       id="input-phone"
@@ -285,7 +285,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
 
                   {/* Special Notes */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                    <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1">
                       {t.formNotes}
                     </label>
                     <textarea
@@ -293,7 +293,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder={t.formNotesPlaceholder}
                       rows={2}
-                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/10"
+                      className="w-full rounded-xl border border-gray-200 dark:border-[#2a2a2a] px-4 py-3 text-sm focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/10 dark:bg-[#262626] dark:text-white"
                       id="input-notes"
                     />
                   </div>
@@ -301,29 +301,29 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
 
                 {/* Right Col: Location & Delivery Details */}
                 <div className="space-y-4">
-                  <h5 className="text-xs font-black uppercase tracking-wider text-brand-navy flex items-center gap-1.5 border-b border-gray-100 pb-2">
+                  <h5 className="text-xs font-black uppercase tracking-wider text-brand-navy dark:text-zinc-200 flex items-center gap-1.5 border-b border-gray-100 dark:border-[#2a2a2a] pb-2">
                     <MapPin className="h-3.5 w-3.5 text-brand-green" />
                     <span>{lang === "fr" ? "Détails d'adresse" : "تفاصيل التوصيل والموقع"}</span>
                   </h5>
 
                   {/* Wilaya Selection */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                    <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1">
                       {t.formWilaya} <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={selectedWilayaCode}
                       onChange={(e) => setSelectedWilayaCode(e.target.value)}
-                      className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 ${
+                      className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 dark:bg-[#262626] dark:text-white ${
                         errors.wilayaCode 
-                          ? "border-red-300 focus:ring-red-100" 
-                          : "border-gray-200 focus:border-brand-green focus:ring-brand-green/10"
+                          ? "border-red-300 dark:border-red-900/30 focus:ring-red-100 dark:focus:ring-red-900/10" 
+                          : "border-gray-200 dark:border-[#2a2a2a] focus:border-brand-green focus:ring-brand-green/10"
                       }`}
                       id="input-wilaya"
                     >
-                      <option value="">{lang === "fr" ? "-- Choisir votre Wilaya --" : "-- اختر الولاية --"}</option>
+                      <option value="" className="dark:bg-[#1a1a1a] dark:text-zinc-300">{lang === "fr" ? "-- Choisir votre Wilaya --" : "-- اختر الولاية --"}</option>
                       {AlgerianWilayas.map((wilaya) => (
-                        <option key={wilaya.code} value={wilaya.code}>
+                        <option key={wilaya.code} value={wilaya.code} className="dark:bg-[#1a1a1a] dark:text-zinc-300">
                           {wilaya.code} - {lang === "fr" ? wilaya.nameFR : wilaya.nameAR}
                         </option>
                       ))}
@@ -338,25 +338,25 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
 
                   {/* Commune Selection (depends on Wilaya) */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                    <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1">
                       {t.formCommune} <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={selectedCommune}
                       onChange={(e) => setSelectedCommune(e.target.value)}
                       disabled={!selectedWilayaCode}
-                      className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 ${
+                      className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 dark:bg-[#262626] dark:text-white ${
                         errors.commune 
-                          ? "border-red-300 focus:ring-red-100" 
-                          : "border-gray-200 focus:border-brand-green focus:ring-brand-green/10"
-                      } ${!selectedWilayaCode ? "bg-gray-50 cursor-not-allowed text-gray-400" : ""}`}
+                          ? "border-red-300 dark:border-red-900/30 focus:ring-red-100 dark:focus:ring-red-900/10" 
+                          : "border-gray-200 dark:border-[#2a2a2a] focus:border-brand-green focus:ring-brand-green/10"
+                      } ${!selectedWilayaCode ? "bg-gray-50 dark:bg-[#121212] cursor-not-allowed text-gray-400 dark:text-zinc-650" : ""}`}
                       id="input-commune"
                     >
                       {!selectedWilayaCode ? (
-                        <option value="">{lang === "fr" ? "Veuillez d'abord choisir la Wilaya" : "يرجى اختيار الولاية أولاً"}</option>
+                        <option value="" className="dark:bg-[#1a1a1a] dark:text-zinc-300">{lang === "fr" ? "Veuillez d'abord choisir la Wilaya" : "يرجى اختيار الولاية أولاً"}</option>
                       ) : (
                         currentWilaya?.communes.map((commune, idx) => (
-                          <option key={idx} value={commune}>
+                          <option key={idx} value={commune} className="dark:bg-[#1a1a1a] dark:text-zinc-300">
                             {commune}
                           </option>
                         ))
@@ -372,7 +372,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
 
                   {/* Detailed Address field */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                    <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1">
                       {t.formAddress}
                     </label>
                     <input
@@ -380,7 +380,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       placeholder={lang === "fr" ? "Nom de rue, numéro de maison, quartier..." : "اسم الشارع، رقم المنزل، الحي..."}
-                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/10"
+                      className="w-full rounded-xl border border-gray-200 dark:border-[#2a2a2a] px-4 py-3 text-sm focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/10 dark:bg-[#262626] dark:text-white"
                       id="input-address"
                     />
                   </div>
@@ -390,7 +390,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
 
               {/* Courier Service Selection Grid */}
               <div className="space-y-3">
-                <label className="block text-xs font-black uppercase tracking-wider text-brand-navy">
+                <label className="block text-xs font-black uppercase tracking-wider text-brand-navy dark:text-zinc-200">
                   {lang === "fr" ? "Service de Courrier" : "شركة التوصيل المفضلة"}
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
@@ -403,16 +403,16 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                         className={`cursor-pointer rounded-xl border p-2.5 text-center transition-all duration-200 flex flex-col items-center justify-between gap-1.5 min-h-[72px] ${
                           isSelected
                             ? "border-brand-green bg-brand-green/5 shadow-sm"
-                            : "border-gray-100 bg-white hover:border-gray-200"
+                            : "border-gray-100 dark:border-[#2a2a2a] bg-white dark:bg-[#262626]/40 hover:border-gray-200 dark:hover:border-[#333333]"
                         }`}
                       >
-                        <span className="text-[10px] font-bold text-brand-navy leading-tight">
+                        <span className="text-[10px] font-bold text-brand-navy dark:text-zinc-200 leading-tight">
                           {lang === "fr" ? c.nameFR : c.nameAR}
                         </span>
                         <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full ${
                           isSelected 
                             ? "bg-brand-green text-white" 
-                            : "bg-gray-100 text-gray-400"
+                            : "bg-gray-100 dark:bg-[#1a1a1a] text-gray-400 dark:text-zinc-500"
                         }`}>
                           {c.badge}
                         </span>
@@ -424,7 +424,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
 
               {/* Delivery Type Switcher (Card styling for beautiful UI) */}
               <div className="space-y-3">
-                <label className="block text-xs font-black uppercase tracking-wider text-brand-navy">
+                <label className="block text-xs font-black uppercase tracking-wider text-brand-navy dark:text-zinc-200">
                   {t.formDeliveryMode}
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -435,18 +435,18 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                     className={`relative flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all duration-200 ${
                       deliveryType === "home"
                         ? "border-brand-green bg-brand-green/5 shadow-sm"
-                        : "border-gray-100 bg-white hover:border-gray-200"
+                        : "border-gray-100 dark:border-[#2a2a2a] bg-white dark:bg-[#262626]/40 hover:border-gray-200 dark:hover:border-[#333333]"
                     }`}
                     id="delivery-home-card"
                   >
                     <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${
-                      deliveryType === "home" ? "bg-brand-green text-white" : "bg-gray-100 text-gray-500"
+                      deliveryType === "home" ? "bg-brand-green text-white" : "bg-gray-100 dark:bg-[#1a1a1a] text-gray-500 dark:text-zinc-400"
                     }`}>
                       <Truck className="h-5 w-5" />
                     </div>
                     <div>
-                      <h6 className="text-xs font-bold text-brand-navy">{t.formHome}</h6>
-                      <p className="text-[10px] text-gray-500 mt-0.5">
+                      <h6 className="text-xs font-bold text-brand-navy dark:text-white">{t.formHome}</h6>
+                      <p className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5">
                         {selectedWilayaCode 
                           ? `${lang === "fr" ? "Livraison" : "شحن"} : ${currentWilaya?.homePrice} DA` 
                           : (lang === "fr" ? "Tarif à domicile selon Wilaya" : "سعر التوصيل لباب البيت حسب الولاية")
@@ -466,18 +466,18 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                     className={`relative flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all duration-200 ${
                       deliveryType === "desk"
                         ? "border-brand-green bg-brand-green/5 shadow-sm"
-                        : "border-gray-100 bg-white hover:border-gray-200"
+                        : "border-gray-100 dark:border-[#2a2a2a] bg-white dark:bg-[#262626]/40 hover:border-gray-200 dark:hover:border-[#333333]"
                     }`}
                     id="delivery-desk-card"
                   >
                     <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${
-                      deliveryType === "desk" ? "bg-brand-green text-white" : "bg-gray-100 text-gray-500"
+                      deliveryType === "desk" ? "bg-brand-green text-white" : "bg-gray-100 dark:bg-[#1a1a1a] text-gray-500 dark:text-zinc-400"
                     }`}>
                       <Landmark className="h-5 w-5" />
                     </div>
                     <div>
-                      <h6 className="text-xs font-bold text-brand-navy">{t.formDesk}</h6>
-                      <p className="text-[10px] text-gray-500 mt-0.5">
+                      <h6 className="text-xs font-bold text-brand-navy dark:text-white">{t.formDesk}</h6>
+                      <p className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5">
                         {selectedWilayaCode 
                           ? `${lang === "fr" ? "Livraison" : "شحن"} : ${currentWilaya?.deskPrice} DA` 
                           : (lang === "fr" ? "Tarif bureau selon Wilaya" : "سعر الاستلام من المكتب حسب الولاية")
@@ -495,26 +495,26 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
               </div>
 
               {/* Order Invoice/Total summary box */}
-              <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5 space-y-3">
-                <h5 className="text-xs font-black uppercase tracking-wider text-brand-navy pb-2 border-b border-gray-200/50">
+              <div className="rounded-2xl border border-gray-100 dark:border-[#2a2a2a] bg-gray-50 dark:bg-[#262626]/30 p-5 space-y-3">
+                <h5 className="text-xs font-black uppercase tracking-wider text-brand-navy dark:text-zinc-100 pb-2 border-b border-gray-200/50 dark:border-[#2a2a2a]/80">
                   {t.orderSummary}
                 </h5>
                 <div className="space-y-2 text-xs">
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-gray-600 dark:text-zinc-400">
                     <span>{t.formQty} :</span>
-                    <span className="font-bold text-brand-navy">{quantity}</span>
+                    <span className="font-bold text-brand-navy dark:text-zinc-100">{quantity}</span>
                   </div>
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-gray-600 dark:text-zinc-400">
                     <span>{t.subtotal} :</span>
-                    <span className="font-bold text-brand-navy">{subtotal.toLocaleString()} {t.priceCurrency}</span>
+                    <span className="font-bold text-brand-navy dark:text-zinc-100">{subtotal.toLocaleString()} {t.priceCurrency}</span>
                   </div>
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-gray-600 dark:text-zinc-400">
                     <span>{t.shippingFee} :</span>
-                    <span className="font-bold text-brand-navy">
+                    <span className="font-bold text-brand-navy dark:text-zinc-100">
                       {selectedWilayaCode ? `${shippingFee.toLocaleString()} ${t.priceCurrency}` : "0 DA"}
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm font-black text-brand-navy pt-2 border-t border-gray-200/50">
+                  <div className="flex justify-between text-sm font-black text-brand-navy dark:text-white pt-2 border-t border-gray-200/50 dark:border-[#2a2a2a]">
                     <span>{t.grandTotal} :</span>
                     <span className="text-base text-brand-green font-extrabold">
                       {grandTotal.toLocaleString()} {t.priceCurrency}
@@ -524,7 +524,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
               </div>
 
               {/* Trust disclaimer */}
-              <p className="text-[10px] text-center text-gray-400 font-semibold flex justify-center items-center gap-1">
+              <p className="text-[10px] text-center text-gray-400 dark:text-zinc-500 font-semibold flex justify-center items-center gap-1">
                 <Check className="h-3.5 w-3.5 text-brand-green stroke-[3]" />
                 <span>{t.orderSecure}</span>
               </p>
@@ -564,17 +564,17 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
               </div>
 
               <div className="space-y-2">
-                <h3 className="font-display text-2xl font-black text-brand-navy">
+                <h3 className="font-display text-2xl font-black text-brand-navy dark:text-white">
                   {t.successTitle}
                 </h3>
-                <p className="text-sm text-gray-600 max-w-md mx-auto leading-relaxed">
+                <p className="text-sm text-gray-600 dark:text-zinc-400 max-w-md mx-auto leading-relaxed">
                   {t.successDesc}
                 </p>
               </div>
 
               {/* Order Reference details */}
-              <div className="mx-auto max-w-sm rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 space-y-1">
-                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
+              <div className="mx-auto max-w-sm rounded-xl border border-dashed border-gray-200 dark:border-[#2a2a2a] bg-gray-50 dark:bg-[#262626]/30 p-4 space-y-1">
+                <p className="text-xs text-gray-400 dark:text-zinc-500 font-semibold uppercase tracking-wider">
                   {t.successCode}
                 </p>
                 <p className="font-mono text-lg font-black text-brand-green tracking-widest">
@@ -583,38 +583,38 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
               </div>
 
               {/* Customer summary */}
-              <div className="mx-auto max-w-md border border-gray-100 rounded-xl p-4 text-left text-xs space-y-2" style={{ direction: isRTL ? "rtl" : "ltr" }}>
-                <div className="flex justify-between border-b border-gray-100 pb-1.5 font-bold text-brand-navy">
+              <div className="mx-auto max-w-md border border-gray-100 dark:border-zinc-800 rounded-xl p-4 text-left text-xs space-y-2" style={{ direction: isRTL ? "rtl" : "ltr" }}>
+                <div className="flex justify-between border-b border-gray-100 dark:border-zinc-800 pb-1.5 font-bold text-brand-navy dark:text-white">
                   <span>{lang === "fr" ? "Détails de facturation" : "معلومات الفاتورة"}</span>
                   <span className="text-brand-green font-extrabold">{lang === "fr" ? "Paiement à la livraison" : "الدفع عند الاستلام"}</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-gray-600 dark:text-zinc-400">
                   <span>{t.formName} :</span>
-                  <span className="font-semibold text-brand-navy">{fullName}</span>
+                  <span className="font-semibold text-brand-navy dark:text-zinc-100">{fullName}</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-gray-600 dark:text-zinc-400">
                   <span>{t.formPhone} :</span>
-                  <span className="font-mono text-brand-navy">{phone}</span>
+                  <span className="font-mono text-brand-navy dark:text-zinc-100">{phone}</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-gray-600 dark:text-zinc-400">
                   <span>{lang === "fr" ? "Destination" : "جهة التوصيل"} :</span>
-                  <span className="font-semibold text-brand-navy">
+                  <span className="font-semibold text-brand-navy dark:text-zinc-100">
                     {currentWilaya ? (lang === "fr" ? currentWilaya.nameFR : currentWilaya.nameAR) : ""} - {selectedCommune}
                   </span>
                 </div>
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-gray-600 dark:text-zinc-400">
                   <span>{t.formDeliveryMode} :</span>
-                  <span className="font-semibold text-brand-navy">
+                  <span className="font-semibold text-brand-navy dark:text-zinc-100">
                     {deliveryType === "home" ? t.formHome : t.formDesk}
                   </span>
                 </div>
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-gray-600 dark:text-zinc-400">
                   <span>{lang === "fr" ? "Transporteur" : "شركة التوصيل"} :</span>
-                  <span className="font-semibold text-brand-navy font-sans">
+                  <span className="font-semibold text-brand-navy dark:text-zinc-100 font-sans">
                     {couriersList.find(c => c.id === selectedCourier)?.[lang === "fr" ? "nameFR" : "nameAR"]}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm font-black text-brand-navy pt-2 border-t border-gray-100">
+                <div className="flex justify-between text-sm font-black text-brand-navy dark:text-white pt-2 border-t border-gray-100 dark:border-zinc-800">
                   <span>{t.grandTotal} :</span>
                   <span className="text-brand-green text-base font-extrabold">{grandTotal.toLocaleString()} {t.priceCurrency}</span>
                 </div>
@@ -631,7 +631,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] text-white py-3 px-4 text-xs font-bold shadow-md shadow-[#25D366]/20 hover:opacity-95 transition-opacity"
+                  className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] text-white py-3 px-4 text-xs font-bold shadow-md shadow-[#25D366]/20 hover:opacity-95 transition-opacity cursor-pointer"
                   id="whatsapp-confirm-btn"
                 >
                   <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
@@ -642,7 +642,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
 
                 <button
                   onClick={onClose}
-                  className="rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 py-3 px-6 text-xs font-bold transition-all active:scale-95"
+                  className="rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-300 py-3 px-6 text-xs font-bold transition-all active:scale-95 cursor-pointer"
                   id="close-success-btn"
                 >
                   {t.successClose}

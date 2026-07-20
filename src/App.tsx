@@ -17,6 +17,21 @@ export default function App() {
   // Primary Localization State: defaults to French, toggleable to Arabic
   const [lang, setLang] = useState<"fr" | "ar">("fr");
   
+  // Windows OS Dark Theme State
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    const saved = localStorage.getItem("theme");
+    return saved === "dark" ? "dark" : "light";
+  });
+
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
   // Page Routing State: "home" or "products"
   const [view, setView] = useState<"home" | "products">("home");
 
@@ -85,7 +100,10 @@ export default function App() {
   // Handler for hero direct buyout CTA - opens checkout for flagship product
   const handleBuyFlagshipClick = () => {
     if (products.length > 0) {
-      handleOpenCheckout(products[0]);
+      const flagshipProduct = products.find(p => 
+        p.tags?.some(t => (t.slug || "").toLowerCase().includes("hero") || (t.name || "").toLowerCase().includes("hero"))
+      ) || products[0];
+      handleOpenCheckout(flagshipProduct);
     }
   };
 
@@ -97,7 +115,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans text-gray-900 transition-colors duration-300 selection:bg-brand-green/20 selection:text-brand-green">
+    <div className="min-h-screen bg-white dark:bg-[#121212] font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300 selection:bg-brand-green/20 selection:text-brand-green">
       
       {/* 1. Sticky Header */}
       <Header 
@@ -105,6 +123,8 @@ export default function App() {
         setLang={setLang} 
         onOpenShippingModal={() => setIsShippingOpen(true)} 
         onLogoClick={handleLogoClick}
+        theme={theme}
+        setTheme={setTheme}
       />
 
       <main>
@@ -115,6 +135,7 @@ export default function App() {
               lang={lang} 
               onExploreClick={handleExploreClick}
               onBuyFlagshipClick={handleBuyFlagshipClick}
+              products={products}
             />
 
             {/* 3. Brand & Trust Signature Banner */}
@@ -139,7 +160,7 @@ export default function App() {
         ) : (
           <>
             {/* Elegant Breadcrumbs & Navigation Bar for Dedicated Shop Page */}
-            <div className="bg-gray-50 border-b border-gray-100 py-4">
+            <div className="bg-gray-50 dark:bg-[#1a1a1a] border-b border-gray-100 dark:border-[#2a2a2a] py-4">
               <div 
                 className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center justify-between"
                 style={{ direction: lang === "ar" ? "rtl" : "ltr" }}
@@ -147,19 +168,19 @@ export default function App() {
                 <div className="flex items-center gap-2 text-xs font-semibold text-gray-500">
                   <button 
                     onClick={() => setView("home")}
-                    className="hover:text-brand-green transition-colors cursor-pointer"
+                    className="hover:text-brand-green transition-colors cursor-pointer dark:text-zinc-400 dark:hover:text-brand-green"
                   >
                     {lang === "ar" ? "الرئيسية" : "Accueil"}
                   </button>
                   <span className="text-gray-300">/</span>
-                  <span className="text-brand-navy font-bold font-arabic">
+                  <span className="text-brand-navy dark:text-white font-bold font-arabic">
                     {lang === "ar" ? "متجر تيكاتكوم" : "Boutique TIKATKOM"}
                   </span>
                 </div>
 
                 <button 
                   onClick={() => setView("home")}
-                  className="flex items-center gap-1 text-xs font-bold text-brand-navy hover:text-brand-green transition-colors cursor-pointer"
+                  className="flex items-center gap-1 text-xs font-bold text-brand-navy dark:text-zinc-200 hover:text-brand-green dark:hover:text-brand-green transition-colors cursor-pointer"
                 >
                   {lang === "ar" ? (
                     <>

@@ -8,7 +8,7 @@ export default function Footer({ lang }: FooterProps) {
   const isRTL = lang === "ar";
   
   return (
-    <footer className="w-full bg-brand-navy border-t border-brand-navy-light py-6 text-gray-400">
+    <footer className="w-full bg-brand-navy dark:bg-[#121212] border-t border-brand-navy-light dark:border-[#2a2a2a] py-6 text-gray-400">
       <div 
         className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-medium"
         style={{ direction: isRTL ? "rtl" : "ltr" }}

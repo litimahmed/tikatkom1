@@ -29,16 +29,16 @@ export default function ProductsGrid({
     : products;
 
   return (
-    <section className="bg-gray-50/50 py-16 sm:py-20 lg:py-24" id="products-section">
+    <section className="bg-gray-50/50 dark:bg-[#121212] py-16 sm:py-20 lg:py-24" id="products-section">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
         <div className={`mb-10 text-center ${isRTL ? "rtl" : "ltr"}`} style={{ direction: isRTL ? "rtl" : "ltr" }}>
-          <h2 className="font-display text-3xl font-extrabold tracking-tight text-brand-navy sm:text-4xl">
+          <h2 className="font-display text-3xl font-extrabold tracking-tight text-brand-navy dark:text-white sm:text-4xl">
             {t.featHeader}
           </h2>
           <div className="mx-auto mt-3 h-1 w-12 rounded-full bg-brand-green"></div>
-          <p className="mx-auto mt-4 max-w-2xl text-sm text-gray-500 sm:text-base">
+          <p className="mx-auto mt-4 max-w-2xl text-sm text-gray-500 dark:text-zinc-400 sm:text-base">
             {t.featSub}
           </p>
         </div>
@@ -47,10 +47,10 @@ export default function ProductsGrid({
         <div className="mb-12 flex flex-wrap justify-center gap-2" style={{ direction: isRTL ? "rtl" : "ltr" }}>
           <button
             onClick={() => setSelectedCategory(null)}
-            className={`rounded-xl px-5 py-2.5 text-xs font-bold transition-all duration-200 active:scale-95 ${
+            className={`rounded-xl px-5 py-2.5 text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer ${
               selectedCategory === null
-                ? "bg-brand-navy text-white shadow-md shadow-brand-navy/10"
-                : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
+                ? "bg-brand-navy dark:bg-[#262626] text-white shadow-md shadow-brand-navy/10"
+                : "bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-[#262626] hover:border-gray-300 dark:hover:border-[#333333]"
             }`}
             id="filter-all-btn"
           >
@@ -65,10 +65,10 @@ export default function ProductsGrid({
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`rounded-xl px-5 py-2.5 text-xs font-bold transition-all duration-200 active:scale-95 ${
+                className={`rounded-xl px-5 py-2.5 text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer ${
                   isSelected
-                    ? "bg-brand-navy text-white shadow-md shadow-brand-navy/10"
-                    : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
+                    ? "bg-brand-navy dark:bg-[#262626] text-white shadow-md shadow-brand-navy/10"
+                    : "bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-[#262626] hover:border-gray-300 dark:hover:border-[#333333]"
                 }`}
                 id={`filter-btn-${cat.id}`}
               >
@@ -88,11 +88,11 @@ export default function ProductsGrid({
             return (
               <div
                 key={product.id}
-                className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+                className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-gray-100 dark:border-[#2a2a2a] bg-white dark:bg-[#1a1a1a] shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
                 id={`product-card-${product.id}`}
               >
                 {/* Image Section */}
-                <div className="relative aspect-square overflow-hidden bg-gray-50">
+                <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-[#1e1e1e]">
                   <img
                     src={product.image}
                     alt={title}
@@ -111,8 +111,8 @@ export default function ProductsGrid({
                   <span
                     className={`absolute bottom-4 ${isRTL ? "left-4" : "right-4"} rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
                       product.stockStatus === "in_stock"
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
-                        : "bg-amber-50 text-amber-700 border border-amber-100"
+                        ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30"
+                        : "bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-900/30"
                     }`}
                   >
                     {product.stockStatus === "in_stock" ? t.stockIn : t.stockLow}
@@ -132,18 +132,18 @@ export default function ProductsGrid({
                     
                     <div className="flex items-center gap-1 text-amber-400">
                       <Star className="h-3.5 w-3.5 fill-current" />
-                      <span className="text-xs font-bold text-gray-700">{product.rating}</span>
-                      <span className="text-[10px] text-gray-400 font-medium">({product.reviewsCount})</span>
+                      <span className="text-xs font-bold text-gray-700 dark:text-zinc-300">{product.rating}</span>
+                      <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-medium">({product.reviewsCount})</span>
                     </div>
                   </div>
 
                   {/* Title */}
-                  <h3 className="font-display text-lg font-extrabold text-brand-navy tracking-tight group-hover:text-brand-green transition-colors line-clamp-2">
+                  <h3 className="font-display text-lg font-extrabold text-brand-navy dark:text-zinc-100 tracking-tight group-hover:text-brand-green transition-colors line-clamp-2">
                     {title}
                   </h3>
 
                   {/* Description */}
-                  <p className="mt-2 text-xs leading-relaxed text-gray-500 line-clamp-3">
+                  <p className="mt-2 text-xs leading-relaxed text-gray-500 dark:text-zinc-400 line-clamp-3">
                     {description}
                   </p>
 
@@ -153,7 +153,7 @@ export default function ProductsGrid({
                       {product.price.toLocaleString()} {t.priceCurrency}
                     </span>
                     {product.oldPrice && (
-                      <span className="text-xs text-gray-400 line-through">
+                      <span className="text-xs text-gray-400 dark:text-zinc-500 line-through">
                         {product.oldPrice.toLocaleString()} {t.priceCurrency}
                       </span>
                     )}
@@ -162,7 +162,7 @@ export default function ProductsGrid({
                   {/* Button Action */}
                   <button
                     onClick={() => onBuyClick(product)}
-                    className="mt-6 w-full rounded-xl bg-brand-navy py-3 px-4 text-xs font-bold text-white transition-all duration-200 hover:bg-brand-green hover:shadow-md hover:shadow-brand-green/20 active:scale-[0.98]"
+                    className="mt-6 w-full rounded-xl bg-brand-navy dark:bg-[#262626] py-3 px-4 text-xs font-bold text-white transition-all duration-200 hover:bg-brand-green hover:shadow-md hover:shadow-brand-green/20 active:scale-[0.98] cursor-pointer"
                     id={`buy-btn-${product.id}`}
                   >
                     {t.buyNow}

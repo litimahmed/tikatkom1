@@ -79,18 +79,18 @@ export default function CategoriesGrid({ lang, onCategoryClick, categories }: Ca
   const isSlider = categories.length > 3;
 
   return (
-    <section className="bg-white py-12 sm:py-16 overflow-hidden" id="categories-section">
+    <section className="bg-white dark:bg-[#0f0f10] py-12 sm:py-16 overflow-hidden" id="categories-section">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div 
-          className="mb-8 flex flex-col justify-between border-b border-gray-100 pb-4 md:flex-row md:items-end gap-4"
+          className="mb-8 flex flex-col justify-between border-b border-gray-100 dark:border-zinc-800 pb-4 md:flex-row md:items-end gap-4"
           style={{ direction: isRTL ? "rtl" : "ltr" }}
         >
           <div className={isRTL ? "text-right" : "text-left"}>
             <p className="font-sans text-[10px] font-black uppercase tracking-widest text-brand-green sm:text-xs">
               {lang === "fr" ? "NOS CATÉGORIES" : "تصفح أقسامنا"}
             </p>
-            <h3 className="font-arabic text-2xl font-black text-brand-navy tracking-tight sm:text-3xl mt-1">
+            <h3 className="font-arabic text-2xl font-black text-brand-navy dark:text-white tracking-tight sm:text-3xl mt-1">
               {lang === "fr" ? "Découvrez Nos Univers" : "منتجات مختارة بجودة مضمونة"}
             </h3>
           </div>
@@ -101,7 +101,7 @@ export default function CategoriesGrid({ lang, onCategoryClick, categories }: Ca
               <button
                 onClick={() => scroll("prev")}
                 disabled={isRTL ? !showRightArrow : !showLeftArrow}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-brand-navy shadow-sm transition-all hover:bg-gray-50 hover:border-brand-green disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-brand-navy dark:text-zinc-200 shadow-sm transition-all hover:bg-gray-50 dark:hover:bg-zinc-850 hover:border-brand-green disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                 aria-label="Previous Category"
               >
                 {isRTL ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
@@ -109,7 +109,7 @@ export default function CategoriesGrid({ lang, onCategoryClick, categories }: Ca
               <button
                 onClick={() => scroll("next")}
                 disabled={isRTL ? !showLeftArrow : !showRightArrow}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-brand-navy shadow-sm transition-all hover:bg-gray-50 hover:border-brand-green disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-brand-navy dark:text-zinc-200 shadow-sm transition-all hover:bg-gray-50 dark:hover:bg-zinc-850 hover:border-brand-green disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                 aria-label="Next Category"
               >
                 {isRTL ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
@@ -133,7 +133,7 @@ export default function CategoriesGrid({ lang, onCategoryClick, categories }: Ca
                 <motion.div
                   key={category.id}
                   onClick={() => onCategoryClick(category.id)}
-                  className="category-card-item group relative aspect-[4/5] w-[280px] sm:w-[320px] lg:w-[360px] shrink-0 snap-start cursor-pointer overflow-hidden rounded-[24px] bg-gray-50 transition-all duration-500 hover:shadow-xl hover:-translate-y-1"
+                  className="category-card-item group relative aspect-[4/5] w-[280px] sm:w-[320px] lg:w-[360px] shrink-0 snap-start cursor-pointer overflow-hidden rounded-[24px] bg-gray-50 dark:bg-[#1e1e1e] transition-all duration-500 hover:shadow-xl hover:-translate-y-1"
                   id={`cat-card-${category.id}`}
                   whileHover={{ y: -4 }}
                   initial={{ opacity: 0, y: 20 }}
@@ -162,7 +162,7 @@ export default function CategoriesGrid({ lang, onCategoryClick, categories }: Ca
                       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
                         isFirst 
                           ? "bg-brand-green text-white group-hover:bg-brand-green-dark" 
-                          : "bg-white text-brand-navy group-hover:bg-brand-green group-hover:text-white"
+                          : "bg-white dark:bg-[#1e1e1e] text-brand-navy dark:text-zinc-100 group-hover:bg-brand-green group-hover:text-white"
                       }`}
                     >
                       {isRTL ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
@@ -186,7 +186,7 @@ export default function CategoriesGrid({ lang, onCategoryClick, categories }: Ca
                 <div
                   key={category.id}
                   onClick={() => onCategoryClick(category.id)}
-                  className="group relative aspect-[4/5] w-full cursor-pointer overflow-hidden rounded-[24px] bg-gray-50 transition-all duration-500 hover:shadow-xl hover:-translate-y-1"
+                  className="group relative aspect-[4/5] w-full cursor-pointer overflow-hidden rounded-[24px] bg-gray-50 dark:bg-[#1e1e1e] transition-all duration-500 hover:shadow-xl hover:-translate-y-1"
                   id={`cat-card-${category.id}`}
                 >
                   {/* Background Image */}
@@ -210,7 +210,7 @@ export default function CategoriesGrid({ lang, onCategoryClick, categories }: Ca
                       className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
                         isFirst 
                           ? "bg-brand-green text-white group-hover:bg-brand-green-dark" 
-                          : "bg-white text-brand-navy group-hover:bg-brand-green group-hover:text-white"
+                          : "bg-white dark:bg-[#1e1e1e] text-brand-navy dark:text-zinc-100 group-hover:bg-brand-green group-hover:text-white"
                       }`}
                     >
                       {isRTL ? <ArrowLeft className="h-5 w-5" /> : <ArrowRight className="h-5 w-5" />}

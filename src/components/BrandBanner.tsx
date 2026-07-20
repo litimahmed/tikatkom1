@@ -10,14 +10,14 @@ export default function BrandBanner({ lang }: BrandBannerProps) {
   const t = translations[lang];
 
   return (
-    <section className="bg-white py-12 sm:py-16 my-8 border-y border-gray-100">
+    <section className="bg-white dark:bg-[#1a1b1e]/40 py-12 sm:py-16 my-8 border-y border-gray-100 dark:border-zinc-800">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div 
           className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16 justify-between"
           style={{ direction: isRTL ? "rtl" : "ltr" }}
         >
           {/* Left Side: Elegant Logo Frame (Tikatkom logo) */}
-          <div className="flex shrink-0 items-center justify-center bg-white p-4 rounded-3xl shadow-md border border-gray-100 max-w-[240px] sm:max-w-[280px] hover:shadow-lg transition-shadow duration-300">
+          <div className="flex shrink-0 items-center justify-center bg-white dark:bg-zinc-900 p-4 rounded-3xl shadow-md border border-gray-100 dark:border-zinc-800 max-w-[240px] sm:max-w-[280px] hover:shadow-lg transition-shadow duration-300">
             <img 
               src="/src/assets/images/tikatkom_brand_logo_1784439572660.jpg" 
               alt="Tikatkom Logo" 
@@ -32,7 +32,7 @@ export default function BrandBanner({ lang }: BrandBannerProps) {
             {/* Signature text hierarchy */}
             <div className="space-y-3">
               {/* TIKATKOM.COM Brand Link */}
-              <h4 className="text-3xl sm:text-4xl font-black tracking-tight text-brand-navy font-sans">
+              <h4 className="text-3xl sm:text-4xl font-black tracking-tight text-brand-navy dark:text-white font-sans">
                 TIKATKOM<span className="text-brand-green">.COM</span>
               </h4>
 
@@ -46,14 +46,14 @@ export default function BrandBanner({ lang }: BrandBannerProps) {
               </div>
 
               {/* Wording "منتجات مختارة... جودة مضمونة" */}
-              <p className={`text-gray-500 text-sm sm:text-base font-bold tracking-wide ${isRTL ? "font-arabic" : "font-sans uppercase"}`}>
+              <p className={`text-gray-500 dark:text-zinc-400 text-sm sm:text-base font-bold tracking-wide ${isRTL ? "font-arabic" : "font-sans uppercase"}`}>
                 {lang === "fr" ? "PRODUITS SÉLECTIONNÉS... QUALITÉ GARANTIE" : "منتجات مختارة... جودة مضمونة"}
               </p>
             </div>
 
             {/* Row of 4 beautiful boxes styled EXACTLY like the signature image green-border row */}
             <div className="pt-2 w-full max-w-3xl">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-0 rounded-2xl sm:rounded-full border border-brand-green/30 bg-emerald-50/15 p-2 text-brand-navy">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-0 rounded-2xl sm:rounded-full border border-brand-green/30 bg-emerald-50/15 dark:bg-emerald-950/10 p-2 text-brand-navy dark:text-zinc-100">
                 {/* Pillar 1: Quality */}
                 <div className={`flex flex-col sm:flex-row items-center justify-center gap-2 py-3 px-2 sm:border-r border-brand-green/20 last:border-r-0 ${isRTL ? "sm:border-r-0 sm:border-l" : ""}`}>
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-green text-white">
@@ -97,7 +97,7 @@ export default function BrandBanner({ lang }: BrandBannerProps) {
             </div>
 
             {/* Extra reassurance text */}
-            <p className={`text-xs text-gray-400 font-semibold max-w-2xl ${isRTL ? "lg:text-right" : "lg:text-left"}`}>
+            <p className={`text-xs text-gray-400 dark:text-zinc-500 font-semibold max-w-2xl ${isRTL ? "lg:text-right" : "lg:text-left"}`}>
               {isRTL 
                 ? "جميع منتجاتنا مستوردة وتخضع لرقابة جودة صارمة لضمان حصولكم على الأفضل دائمًا. ثقتكم هي رأسمالنا."
                 : "Tous nos articles sont importés et subissent un contrôle de qualité strict. Votre confiance est notre plus grande réussite."

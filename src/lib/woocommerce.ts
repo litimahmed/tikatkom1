@@ -331,6 +331,16 @@ export function getProductsForSection(
   }
 
   // High-fidelity fallback presets if no custom tag overrides are uploaded yet
+  // If we are on live WooCommerce data, we must be very selective to avoid showing irrelevant products.
+  const isMockData = allProducts.length > 0 && allProducts.every(p => ["1", "2", "3", "4", "5", "6", "7", "8"].includes(p.id));
+
+  if (!isMockData) {
+    // If we are on live WooCommerce data, we must be strictly selective.
+    // If no tags matched in previous checks, do not leak general products.
+    return [];
+  }
+
+  // Static mock fallback behavior
   if (sectionId === "most_requested") {
     return allProducts.slice(0, 4);
   } else if (sectionId === "new_arrivals") {
@@ -338,7 +348,7 @@ export function getProductsForSection(
   } else if (sectionId === "best_sellers") {
     return allProducts.filter(p => p.oldPrice !== undefined).slice(0, 4);
   } else {
-    // flash_deals
+    // flash_deals mock fallback
     return allProducts.filter(p => p.stockStatus === "low_stock").concat(allProducts).slice(0, 4);
   }
 }

@@ -51,6 +51,8 @@ export default function HomeSections({ lang, onBuyClick, onViewAllClick, product
         // Find products belonging to this section using our high-fidelity WooCommerce tags filter
         const secProducts = getProductsForSection(products, sec.id);
 
+        if (secProducts.length === 0) return null;
+
         return (
           <section 
             key={sec.id} 
@@ -58,7 +60,7 @@ export default function HomeSections({ lang, onBuyClick, onViewAllClick, product
             style={{ direction: isRTL ? "rtl" : "ltr" }}
           >
             {/* Section Title Bar */}
-            <div className="flex items-end justify-between border-b border-gray-100 pb-4 mb-8">
+            <div className="flex items-end justify-between border-b border-gray-100 dark:border-zinc-800 pb-4 mb-8">
               <div className="flex flex-col gap-y-2">
                 {/* French or Arabic Subtitle */}
                 {isRTL ? (
@@ -72,7 +74,7 @@ export default function HomeSections({ lang, onBuyClick, onViewAllClick, product
                 )}
                 
                 {/* Bold Arabic Main Heading */}
-                <h3 className={`text-brand-navy tracking-tight text-3xl sm:text-4xl ${isRTL ? "font-arabic font-black" : "font-sans font-black"}`}>
+                <h3 className={`text-brand-navy dark:text-white tracking-tight text-3xl sm:text-4xl ${isRTL ? "font-arabic font-black" : "font-sans font-black"}`}>
                   {isRTL ? sec.titleAR : sec.titleFR}
                 </h3>
               </div>
@@ -80,7 +82,7 @@ export default function HomeSections({ lang, onBuyClick, onViewAllClick, product
               {/* Voir Tout Link */}
               <button
                 onClick={() => onViewAllClick(sec.targetCategory)}
-                className="group flex items-center gap-1.5 text-xs font-black text-brand-navy hover:text-brand-green transition-colors focus:outline-none cursor-pointer"
+                className="group flex items-center gap-1.5 text-xs font-black text-brand-navy dark:text-zinc-200 hover:text-brand-green transition-colors focus:outline-none cursor-pointer"
               >
                 <span>{lang === "fr" ? "Voir tout" : "عرض الكل"}</span>
                 {isRTL ? (
@@ -100,11 +102,11 @@ export default function HomeSections({ lang, onBuyClick, onViewAllClick, product
                 return (
                   <div
                     key={product.id}
-                    className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-gray-100 bg-white p-3 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
+                    className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-gray-100 dark:border-[#2a2a2a] bg-white dark:bg-[#1a1a1a] p-3 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
                     id={`home-product-card-${sec.id}-${product.id}`}
                   >
                     {/* Image Section */}
-                    <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-50">
+                    <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-50 dark:bg-[#262626]">
                       <img
                         src={product.image}
                         alt={title}
@@ -134,7 +136,7 @@ export default function HomeSections({ lang, onBuyClick, onViewAllClick, product
                         </div>
 
                         {/* Product Title */}
-                        <h4 className="font-arabic font-extrabold text-xs text-brand-navy mt-1.5 leading-snug line-clamp-2 group-hover:text-brand-green transition-colors sm:text-sm">
+                        <h4 className="font-arabic font-extrabold text-xs text-brand-navy dark:text-zinc-100 mt-1.5 leading-snug line-clamp-2 group-hover:text-brand-green transition-colors sm:text-sm">
                           {title}
                         </h4>
                       </div>
@@ -146,7 +148,7 @@ export default function HomeSections({ lang, onBuyClick, onViewAllClick, product
                             {product.price.toLocaleString()} {lang === "fr" ? "DA" : "دج"}
                           </span>
                           {product.oldPrice && (
-                            <span className="text-[10px] text-gray-400 line-through">
+                            <span className="text-[10px] text-gray-400 dark:text-zinc-500 line-through">
                               {product.oldPrice.toLocaleString()}
                             </span>
                           )}
@@ -155,7 +157,7 @@ export default function HomeSections({ lang, onBuyClick, onViewAllClick, product
                         {/* CTA Order Button */}
                         <button
                           onClick={() => onBuyClick(product)}
-                          className="mt-3 w-full rounded-full bg-brand-navy py-2.5 px-4 text-[10px] font-bold text-white transition-all duration-200 hover:bg-brand-green hover:shadow-sm active:scale-[0.98] cursor-pointer"
+                          className="mt-3 w-full rounded-full bg-brand-navy dark:bg-[#262626] py-2.5 px-4 text-[10px] font-bold text-white transition-all duration-200 hover:bg-brand-green dark:hover:bg-brand-green hover:shadow-sm active:scale-[0.98] cursor-pointer"
                           id={`home-buy-btn-${sec.id}-${product.id}`}
                         >
                           {lang === "fr" ? "Acheter Maintenant" : "اشتري الآن"}
