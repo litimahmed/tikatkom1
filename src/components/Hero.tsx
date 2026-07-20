@@ -68,30 +68,6 @@ export default function Hero({ lang, onExploreClick, onBuyFlagshipClick, product
                 {lang === "fr" ? "Profiter de l'offre" : "استفد من العرض"}
               </button>
             </div>
-
-            {/* Micro Trust Indicators below CTA */}
-            {isRTL ? (
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-2 text-sm font-arabic font-bold text-gray-600 dark:text-zinc-400 pt-4">
-                <span>الدفع عند الاستلام</span>
-                <span className="h-1.5 w-1.5 rounded-full bg-brand-green/75"></span>
-                <span>التوصيل لـ 58 ولاية عبر ياليدين</span>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center lg:justify-start gap-6 pt-4 text-xs text-gray-500 dark:text-zinc-400 font-semibold">
-                <div className="flex items-center gap-1.5">
-                  <svg className="h-4 w-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>COD - الدفع عند الاستلام</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <svg className="h-4 w-4 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Yalidine 58 Wilayas</span>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Large Showcase Image container */}

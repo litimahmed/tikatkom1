@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { X, Check, ShoppingBag, Phone, MapPin, Truck, AlertCircle, Plus, Minus, Landmark } from "lucide-react";
 import { Product, OrderForm, Wilaya } from "../types";
 import { AlgerianWilayas, translations } from "../data";
+import { syncProductToCoCart, syncCustomerToCoCart, submitWooCommerceOrder } from "../lib/wordpressSync";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -94,25 +95,70 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
     return Object.keys(newErrors).length === 0;
   };
 
+  // Sync selected product and quantity to WooCommerce/CoCart session
+  useEffect(() => {
+    if (isOpen && product) {
+      syncProductToCoCart(product.id, quantity);
+    }
+  }, [isOpen, product?.id, quantity]);
+
+  // Real-time Lead capture for CartBounty and CoCart (Debounced)
+  useEffect(() => {
+    if (!isOpen || !fullName.trim() || !phone.trim() || !product) return;
+
+    const timer = setTimeout(() => {
+      syncCustomerToCoCart({
+        fullName,
+        phone,
+        wilayaCode: selectedWilayaCode,
+        commune: selectedCommune,
+        address,
+        notes
+      });
+    }, 1200); // 1.2-second debounce to capture leads without stressing the server
+
+    return () => clearTimeout(timer);
+  }, [fullName, phone, selectedWilayaCode, selectedCommune, address, notes, isOpen, product]);
+
   // Submit Handler
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
-      // Scroll to first error or shake form
       return;
     }
 
     setIsSubmitting(true);
 
-    // Simulate WordPress/WooCommerce REST API response delay (1.5 seconds)
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSuccess(true);
-      // Generate random high-conversion order number (e.g., TKT-18492)
+    const customerData = {
+      fullName,
+      phone,
+      wilayaCode: selectedWilayaCode,
+      commune: selectedCommune,
+      address,
+      notes
+    };
+
+    // Place the order directly in WooCommerce
+    const wooOrderId = await submitWooCommerceOrder(
+      product.id,
+      quantity,
+      customerData,
+      deliveryType,
+      shippingFee
+    );
+
+    setIsSubmitting(false);
+    setIsSuccess(true);
+
+    if (wooOrderId) {
+      // Use the actual WooCommerce order reference
+      setOrderReference(wooOrderId);
+    } else {
+      // Offline fallback reference
       const randomRef = `TKT-${Math.floor(10000 + Math.random() * 90000)}`;
       setOrderReference(randomRef);
-    }, 1500);
+    }
   };
 
   // Reset Form states on close or reopen
@@ -148,8 +194,6 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
         style={{ direction: isRTL ? "rtl" : "ltr" }}
         id="checkout-modal-container"
       >
-        {/* Top brand indicator */}
-        <div className="bg-gradient-to-r from-brand-green to-emerald-600 h-2 w-full shrink-0"></div>
 
         {/* Modal Close Button */}
         <button
@@ -227,14 +271,13 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                 
                 {/* Left Col: Customer Information */}
                 <div className="space-y-4">
-                  <h5 className="text-xs font-black uppercase tracking-wider text-brand-navy dark:text-zinc-200 flex items-center gap-1.5 border-b border-gray-100 dark:border-[#2a2a2a] pb-2">
-                    <Phone className="h-3.5 w-3.5 text-brand-green" />
+                  <h5 className={`text-xs font-black uppercase tracking-wider text-brand-navy dark:text-zinc-200 border-b border-gray-100 dark:border-[#2a2a2a] pb-2 ${isRTL ? "text-right" : "text-left"}`}>
                     <span>{lang === "fr" ? "Coordonnées de livraison" : "معلومات المشتري والاتصال"}</span>
                   </h5>
 
                   {/* Name field */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                    <label className={`block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1 ${isRTL ? "text-right" : "text-left"}`}>
                       {t.formName} <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -242,7 +285,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder={lang === "fr" ? "Ex: Mohamed Amine" : "مثال: محمد أمين"}
-                      className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 dark:bg-[#262626] dark:text-white ${
+                      className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 dark:bg-[#262626] dark:text-white ${isRTL ? "text-right placeholder:text-right" : "text-left placeholder:text-left"} ${
                         errors.fullName 
                           ? "border-red-300 dark:border-red-900/30 focus:ring-red-100 dark:focus:ring-red-900/10" 
                           : "border-gray-200 dark:border-[#2a2a2a] focus:border-brand-green focus:ring-brand-green/10"
@@ -250,8 +293,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                       id="input-fullname"
                     />
                     {errors.fullName && (
-                      <p className="mt-1 flex items-center gap-1 text-[11px] text-red-500 font-medium">
-                        <AlertCircle className="h-3 w-3" />
+                      <p className={`mt-1 flex items-center gap-1 text-[11px] text-red-500 font-medium ${isRTL ? "justify-end text-right" : "justify-start text-left"}`}>
                         <span>{errors.fullName}</span>
                       </p>
                     )}
@@ -259,7 +301,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
 
                   {/* Phone field */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                    <label className={`block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1 ${isRTL ? "text-right" : "text-left"}`}>
                       {t.formPhone} <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -267,17 +309,15 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder={lang === "fr" ? "Ex: 0550 12 34 56" : "مثال: 0550123456"}
-                      className={`w-full rounded-xl border px-4 py-3 text-sm text-left focus:outline-none focus:ring-2 dark:bg-[#262626] dark:text-white ${
+                      className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 dark:bg-[#262626] dark:text-white ${isRTL ? "text-right placeholder:text-right" : "text-left placeholder:text-left"} ${
                         errors.phone 
                           ? "border-red-300 dark:border-red-900/30 focus:ring-red-100 dark:focus:ring-red-900/10" 
                           : "border-gray-200 dark:border-[#2a2a2a] focus:border-brand-green focus:ring-brand-green/10"
                       }`}
-                      style={{ direction: "ltr" }}
                       id="input-phone"
                     />
                     {errors.phone && (
-                      <p className="mt-1 flex items-center gap-1 text-[11px] text-red-500 font-medium">
-                        <AlertCircle className="h-3 w-3" />
+                      <p className={`mt-1 flex items-center gap-1 text-[11px] text-red-500 font-medium ${isRTL ? "justify-end text-right" : "justify-start text-left"}`}>
                         <span>{errors.phone}</span>
                       </p>
                     )}
@@ -285,7 +325,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
 
                   {/* Special Notes */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                    <label className={`block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1 ${isRTL ? "text-right" : "text-left"}`}>
                       {t.formNotes}
                     </label>
                     <textarea
@@ -293,7 +333,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder={t.formNotesPlaceholder}
                       rows={2}
-                      className="w-full rounded-xl border border-gray-200 dark:border-[#2a2a2a] px-4 py-3 text-sm focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/10 dark:bg-[#262626] dark:text-white"
+                      className={`w-full rounded-xl border border-gray-200 dark:border-[#2a2a2a] px-4 py-3 text-sm focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/10 dark:bg-[#262626] dark:text-white ${isRTL ? "text-right placeholder:text-right" : "text-left placeholder:text-left"}`}
                       id="input-notes"
                     />
                   </div>
@@ -301,20 +341,19 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
 
                 {/* Right Col: Location & Delivery Details */}
                 <div className="space-y-4">
-                  <h5 className="text-xs font-black uppercase tracking-wider text-brand-navy dark:text-zinc-200 flex items-center gap-1.5 border-b border-gray-100 dark:border-[#2a2a2a] pb-2">
-                    <MapPin className="h-3.5 w-3.5 text-brand-green" />
+                  <h5 className={`text-xs font-black uppercase tracking-wider text-brand-navy dark:text-zinc-200 border-b border-gray-100 dark:border-[#2a2a2a] pb-2 ${isRTL ? "text-right" : "text-left"}`}>
                     <span>{lang === "fr" ? "Détails d'adresse" : "تفاصيل التوصيل والموقع"}</span>
                   </h5>
 
                   {/* Wilaya Selection */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                    <label className={`block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1 ${isRTL ? "text-right" : "text-left"}`}>
                       {t.formWilaya} <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={selectedWilayaCode}
                       onChange={(e) => setSelectedWilayaCode(e.target.value)}
-                      className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 dark:bg-[#262626] dark:text-white ${
+                      className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 dark:bg-[#262626] dark:text-white ${isRTL ? "text-right" : "text-left"} ${
                         errors.wilayaCode 
                           ? "border-red-300 dark:border-red-900/30 focus:ring-red-100 dark:focus:ring-red-900/10" 
                           : "border-gray-200 dark:border-[#2a2a2a] focus:border-brand-green focus:ring-brand-green/10"
@@ -329,8 +368,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                       ))}
                     </select>
                     {errors.wilayaCode && (
-                      <p className="mt-1 flex items-center gap-1 text-[11px] text-red-500 font-medium">
-                        <AlertCircle className="h-3 w-3" />
+                      <p className={`mt-1 flex items-center gap-1 text-[11px] text-red-500 font-medium ${isRTL ? "justify-end text-right" : "justify-start text-left"}`}>
                         <span>{errors.wilayaCode}</span>
                       </p>
                     )}
@@ -338,14 +376,14 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
 
                   {/* Commune Selection (depends on Wilaya) */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                    <label className={`block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1 ${isRTL ? "text-right" : "text-left"}`}>
                       {t.formCommune} <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={selectedCommune}
                       onChange={(e) => setSelectedCommune(e.target.value)}
                       disabled={!selectedWilayaCode}
-                      className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 dark:bg-[#262626] dark:text-white ${
+                      className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 dark:bg-[#262626] dark:text-white ${isRTL ? "text-right" : "text-left"} ${
                         errors.commune 
                           ? "border-red-300 dark:border-red-900/30 focus:ring-red-100 dark:focus:ring-red-900/10" 
                           : "border-gray-200 dark:border-[#2a2a2a] focus:border-brand-green focus:ring-brand-green/10"
@@ -363,8 +401,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                       )}
                     </select>
                     {errors.commune && (
-                      <p className="mt-1 flex items-center gap-1 text-[11px] text-red-500 font-medium">
-                        <AlertCircle className="h-3 w-3" />
+                      <p className={`mt-1 flex items-center gap-1 text-[11px] text-red-500 font-medium ${isRTL ? "justify-end text-right" : "justify-start text-left"}`}>
                         <span>{errors.commune}</span>
                       </p>
                     )}
@@ -372,7 +409,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
 
                   {/* Detailed Address field */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                    <label className={`block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1 ${isRTL ? "text-right" : "text-left"}`}>
                       {t.formAddress}
                     </label>
                     <input
@@ -380,7 +417,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       placeholder={lang === "fr" ? "Nom de rue, numéro de maison, quartier..." : "اسم الشارع، رقم المنزل، الحي..."}
-                      className="w-full rounded-xl border border-gray-200 dark:border-[#2a2a2a] px-4 py-3 text-sm focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/10 dark:bg-[#262626] dark:text-white"
+                      className={`w-full rounded-xl border border-gray-200 dark:border-[#2a2a2a] px-4 py-3 text-sm focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/10 dark:bg-[#262626] dark:text-white ${isRTL ? "text-right placeholder:text-right" : "text-left placeholder:text-left"}`}
                       id="input-address"
                     />
                   </div>
@@ -388,115 +425,59 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
 
               </div>
 
-              {/* Courier Service Selection Grid */}
-              <div className="space-y-3">
-                <label className="block text-xs font-black uppercase tracking-wider text-brand-navy dark:text-zinc-200">
-                  {lang === "fr" ? "Service de Courrier" : "شركة التوصيل المفضلة"}
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                  {couriersList.map((c) => {
-                    const isSelected = selectedCourier === c.id;
-                    return (
-                      <div
-                        key={c.id}
-                        onClick={() => setSelectedCourier(c.id)}
-                        className={`cursor-pointer rounded-xl border p-2.5 text-center transition-all duration-200 flex flex-col items-center justify-between gap-1.5 min-h-[72px] ${
-                          isSelected
-                            ? "border-brand-green bg-brand-green/5 shadow-sm"
-                            : "border-gray-100 dark:border-[#2a2a2a] bg-white dark:bg-[#262626]/40 hover:border-gray-200 dark:hover:border-[#333333]"
-                        }`}
-                      >
-                        <span className="text-[10px] font-bold text-brand-navy dark:text-zinc-200 leading-tight">
-                          {lang === "fr" ? c.nameFR : c.nameAR}
-                        </span>
-                        <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full ${
-                          isSelected 
-                            ? "bg-brand-green text-white" 
-                            : "bg-gray-100 dark:bg-[#1a1a1a] text-gray-400 dark:text-zinc-500"
-                        }`}>
-                          {c.badge}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Delivery Type Switcher (Card styling for beautiful UI) */}
-              <div className="space-y-3">
-                <label className="block text-xs font-black uppercase tracking-wider text-brand-navy dark:text-zinc-200">
+              {/* Delivery Type Switcher (Simple Radio Options) */}
+              <div className="space-y-2">
+                <label className={`block text-xs font-bold text-gray-700 dark:text-zinc-300 ${isRTL ? "text-right" : "text-left"}`}>
                   {t.formDeliveryMode}
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  
-                  {/* Home Delivery Card */}
-                  <div
-                    onClick={() => setDeliveryType("home")}
-                    className={`relative flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all duration-200 ${
-                      deliveryType === "home"
-                        ? "border-brand-green bg-brand-green/5 shadow-sm"
-                        : "border-gray-100 dark:border-[#2a2a2a] bg-white dark:bg-[#262626]/40 hover:border-gray-200 dark:hover:border-[#333333]"
-                    }`}
-                    id="delivery-home-card"
-                  >
-                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${
-                      deliveryType === "home" ? "bg-brand-green text-white" : "bg-gray-100 dark:bg-[#1a1a1a] text-gray-500 dark:text-zinc-400"
-                    }`}>
-                      <Truck className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h6 className="text-xs font-bold text-brand-navy dark:text-white">{t.formHome}</h6>
-                      <p className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5">
-                        {selectedWilayaCode 
-                          ? `${lang === "fr" ? "Livraison" : "شحن"} : ${currentWilaya?.homePrice} DA` 
-                          : (lang === "fr" ? "Tarif à domicile selon Wilaya" : "سعر التوصيل لباب البيت حسب الولاية")
-                        }
-                      </p>
-                    </div>
-                    {deliveryType === "home" && (
-                      <span className={`absolute top-3 ${isRTL ? "left-3" : "right-3"} flex h-5 w-5 items-center justify-center rounded-full bg-brand-green text-white text-[10px]`}>
-                        <Check className="h-3 w-3 stroke-[3]" />
+                <div className="flex flex-col sm:flex-row gap-4 pt-1">
+                  {/* Home Delivery Radio */}
+                  <label className={`flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700 dark:text-zinc-300 ${isRTL ? "flex-row-reverse text-right" : "flex-row text-left"}`}>
+                    <input
+                      type="radio"
+                      name="deliveryType"
+                      value="home"
+                      checked={deliveryType === "home"}
+                      onChange={() => setDeliveryType("home")}
+                      className="h-4 w-4 accent-brand-green cursor-pointer"
+                    />
+                    <span>
+                      {t.formHome}
+                      <span className="text-gray-400 font-normal ml-1.5 mr-1.5">
+                        ({selectedWilayaCode 
+                          ? `${currentWilaya?.homePrice} DA` 
+                          : (lang === "fr" ? "Tarif à domicile selon Wilaya" : "حسب الولاية")
+                        })
                       </span>
-                    )}
-                  </div>
+                    </span>
+                  </label>
 
-                  {/* Desk Delivery Card (Yalidine Office Pick-up) */}
-                  <div
-                    onClick={() => setDeliveryType("desk")}
-                    className={`relative flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all duration-200 ${
-                      deliveryType === "desk"
-                        ? "border-brand-green bg-brand-green/5 shadow-sm"
-                        : "border-gray-100 dark:border-[#2a2a2a] bg-white dark:bg-[#262626]/40 hover:border-gray-200 dark:hover:border-[#333333]"
-                    }`}
-                    id="delivery-desk-card"
-                  >
-                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${
-                      deliveryType === "desk" ? "bg-brand-green text-white" : "bg-gray-100 dark:bg-[#1a1a1a] text-gray-500 dark:text-zinc-400"
-                    }`}>
-                      <Landmark className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h6 className="text-xs font-bold text-brand-navy dark:text-white">{t.formDesk}</h6>
-                      <p className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5">
-                        {selectedWilayaCode 
-                          ? `${lang === "fr" ? "Livraison" : "شحن"} : ${currentWilaya?.deskPrice} DA` 
-                          : (lang === "fr" ? "Tarif bureau selon Wilaya" : "سعر الاستلام من المكتب حسب الولاية")
-                        }
-                      </p>
-                    </div>
-                    {deliveryType === "desk" && (
-                      <span className={`absolute top-3 ${isRTL ? "left-3" : "right-3"} flex h-5 w-5 items-center justify-center rounded-full bg-brand-green text-white text-[10px]`}>
-                        <Check className="h-3 w-3 stroke-[3]" />
+                  {/* Desk Delivery Radio */}
+                  <label className={`flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700 dark:text-zinc-300 ${isRTL ? "flex-row-reverse text-right" : "flex-row text-left"}`}>
+                    <input
+                      type="radio"
+                      name="deliveryType"
+                      value="desk"
+                      checked={deliveryType === "desk"}
+                      onChange={() => setDeliveryType("desk")}
+                      className="h-4 w-4 accent-brand-green cursor-pointer"
+                    />
+                    <span>
+                      {t.formDesk}
+                      <span className="text-gray-400 font-normal ml-1.5 mr-1.5">
+                        ({selectedWilayaCode 
+                          ? `${currentWilaya?.deskPrice} DA` 
+                          : (lang === "fr" ? "Tarif bureau selon Wilaya" : "حسب الولاية")
+                        })
                       </span>
-                    )}
-                  </div>
-
+                    </span>
+                  </label>
                 </div>
               </div>
 
               {/* Order Invoice/Total summary box */}
               <div className="rounded-2xl border border-gray-100 dark:border-[#2a2a2a] bg-gray-50 dark:bg-[#262626]/30 p-5 space-y-3">
-                <h5 className="text-xs font-black uppercase tracking-wider text-brand-navy dark:text-zinc-100 pb-2 border-b border-gray-200/50 dark:border-[#2a2a2a]/80">
+                <h5 className={`text-xs font-black uppercase tracking-wider text-brand-navy dark:text-zinc-100 pb-2 border-b border-gray-200/50 dark:border-[#2a2a2a]/80 ${isRTL ? "text-right" : "text-left"}`}>
                   {t.orderSummary}
                 </h5>
                 <div className="space-y-2 text-xs">
@@ -524,8 +505,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
               </div>
 
               {/* Trust disclaimer */}
-              <p className="text-[10px] text-center text-gray-400 dark:text-zinc-500 font-semibold flex justify-center items-center gap-1">
-                <Check className="h-3.5 w-3.5 text-brand-green stroke-[3]" />
+              <p className="text-[10px] text-center text-gray-400 dark:text-zinc-500 font-semibold">
                 <span>{t.orderSecure}</span>
               </p>
 

@@ -8,32 +8,75 @@ import ProductsGrid from "./components/ProductsGrid";
 import Footer from "./components/Footer";
 import ShippingModal from "./components/ShippingModal";
 import CheckoutModal from "./components/CheckoutModal";
+import FloatingContact from "./components/FloatingContact";
 import { Product, Category } from "./types";
 import { products as staticProducts, categories as staticCategories } from "./data";
 import { ChevronRight, ChevronLeft } from "lucide-react";
-import { getWooCategories, getWooProducts } from "./lib/woocommerce";
+import { getWooCategories, getWooProducts, detectWordPressBaseUrl } from "./lib/woocommerce";
+
+// Clean navigation helpers for traditional page reloads (hard loading)
+export function getStorePageUrl(categoryId?: string | null): string {
+  const baseUrl = detectWordPressBaseUrl();
+  const currentUrl = new URL(window.location.href);
+
+  // If in AI Studio Preview or standalone port 3000 local dev, keep same page but append params
+  if (currentUrl.hostname.includes("run.app") || currentUrl.port === "3000" || currentUrl.hostname === "localhost") {
+    const target = new URL(window.location.pathname, window.location.origin);
+    target.searchParams.set("view", "products");
+    if (categoryId) {
+      target.searchParams.set("category", categoryId);
+    }
+    return target.toString();
+  }
+
+  // In production WordPress site, hard load to /shop/ page with any selected category filter
+  const cleanBase = baseUrl.replace(/\/$/, "");
+  let url = `${cleanBase}/shop/`;
+  if (categoryId) {
+    url += `?category=${encodeURIComponent(categoryId)}`;
+  }
+  return url;
+}
+
+export function getHomePageUrl(): string {
+  const baseUrl = detectWordPressBaseUrl();
+  const currentUrl = new URL(window.location.href);
+
+  // In preview/dev container, go to current page path without params
+  if (currentUrl.hostname.includes("run.app") || currentUrl.port === "3000" || currentUrl.hostname === "localhost") {
+    return new URL(window.location.pathname, window.location.origin).toString();
+  }
+
+  return baseUrl;
+}
 
 export default function App() {
-  // Primary Localization State: defaults to French, toggleable to Arabic
-  const [lang, setLang] = useState<"fr" | "ar">("fr");
-  
-  // Windows OS Dark Theme State
-  const [theme, setTheme] = useState<"light" | "dark">(() => {
-    const saved = localStorage.getItem("theme");
-    return saved === "dark" ? "dark" : "light";
+  // Primary Localization State: read from localStorage for persistent traditional hard reload behavior
+  const [lang, setLang] = useState<"fr" | "ar">(() => {
+    const saved = localStorage.getItem("lang");
+    return (saved === "ar" || saved === "fr") ? saved : "fr";
   });
-
+  
+  // Ensure dark mode is completely removed from document element and localStorage
   useEffect(() => {
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-    localStorage.setItem("theme", theme);
-  }, [theme]);
+    document.documentElement.classList.remove("dark");
+    localStorage.removeItem("theme");
+  }, []);
 
   // Page Routing State: "home" or "products"
-  const [view, setView] = useState<"home" | "products">("home");
+  const [view, setView] = useState<"home" | "products">(() => {
+    const currentPath = window.location.pathname;
+    const params = new URLSearchParams(window.location.search);
+    if (
+      currentPath.includes("/shop") || 
+      currentPath.includes("/catalog") || 
+      params.get("view") === "products" ||
+      params.get("category") !== null
+    ) {
+      return "products";
+    }
+    return "home";
+  });
 
   // Dynamic Catalog States: preloaded with high-fidelity local static arrays for instant paint
   const [products, setProducts] = useState<Product[]>(staticProducts);
@@ -45,7 +88,10 @@ export default function App() {
   const [checkoutProduct, setCheckoutProduct] = useState<Product | null>(null);
 
   // Active Category Filter
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("category");
+  });
 
   // Fetch from live WooCommerce backend on mount
   useEffect(() => {
@@ -78,23 +124,17 @@ export default function App() {
 
   // Handler when clicking categories - sets view to products page and selects category filter
   const handleCategoryClick = (categoryId: string) => {
-    setSelectedCategory(categoryId);
-    setView("products");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.location.href = getStorePageUrl(categoryId);
   };
 
   // Handler for homepage section view all - goes to products page with category selected
   const handleViewAllClick = (categoryId: string | null) => {
-    setSelectedCategory(categoryId);
-    setView("products");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.location.href = getStorePageUrl(categoryId);
   };
 
   // Handler for hero exploratory CTA - goes to products page
   const handleExploreClick = () => {
-    setSelectedCategory(null);
-    setView("products");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.location.href = getStorePageUrl(null);
   };
 
   // Handler for hero direct buyout CTA - opens checkout for flagship product
@@ -109,9 +149,7 @@ export default function App() {
 
   // Handle Logo click - goes back home and resets filters
   const handleLogoClick = () => {
-    setView("home");
-    setSelectedCategory(null);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.location.href = getHomePageUrl();
   };
 
   return (
@@ -123,8 +161,6 @@ export default function App() {
         setLang={setLang} 
         onOpenShippingModal={() => setIsShippingOpen(true)} 
         onLogoClick={handleLogoClick}
-        theme={theme}
-        setTheme={setTheme}
       />
 
       <main>
@@ -167,7 +203,7 @@ export default function App() {
               >
                 <div className="flex items-center gap-2 text-xs font-semibold text-gray-500">
                   <button 
-                    onClick={() => setView("home")}
+                    onClick={handleLogoClick}
                     className="hover:text-brand-green transition-colors cursor-pointer dark:text-zinc-400 dark:hover:text-brand-green"
                   >
                     {lang === "ar" ? "الرئيسية" : "Accueil"}
@@ -177,23 +213,6 @@ export default function App() {
                     {lang === "ar" ? "متجر تيكاتكوم" : "Boutique TIKATKOM"}
                   </span>
                 </div>
-
-                <button 
-                  onClick={() => setView("home")}
-                  className="flex items-center gap-1 text-xs font-bold text-brand-navy dark:text-zinc-200 hover:text-brand-green dark:hover:text-brand-green transition-colors cursor-pointer"
-                >
-                  {lang === "ar" ? (
-                    <>
-                      <span>العودة للرئيسية</span>
-                      <ChevronLeft className="h-4 w-4" />
-                    </>
-                  ) : (
-                    <>
-                      <ChevronLeft className="h-4 w-4" />
-                      <span>Retour</span>
-                    </>
-                  )}
-                </button>
               </div>
             </div>
 
@@ -227,6 +246,9 @@ export default function App() {
         product={checkoutProduct} 
         lang={lang} 
       />
+
+      {/* Floating Modern Contact Elements (WhatsApp & Email) */}
+      <FloatingContact lang={lang} />
 
     </div>
   );
