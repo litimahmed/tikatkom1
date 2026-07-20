@@ -165,6 +165,9 @@ export async function syncCustomerToCoCart(data: CustomerData): Promise<boolean>
   const lastName = nameParts.slice(1).join(" ") || "";
   const placeholderEmail = `${data.phone.replace(/[^0-9]/g, "") || "customer"}@tikatkom-lead.com`;
 
+  // Ensure the state code has the DZ- prefix for Algeria (e.g. DZ-47) as required by WooCommerce
+  const stateCode = data.wilayaCode ? (data.wilayaCode.startsWith("DZ-") ? data.wilayaCode : `DZ-${data.wilayaCode}`) : "";
+
   // Ensure WooCommerce Store API session is initialized
   if (!storeApiNonce) {
     await initWooCommerceStoreSession();
@@ -185,7 +188,7 @@ export async function syncCustomerToCoCart(data: CustomerData): Promise<boolean>
           first_name: firstName,
           last_name: lastName,
           phone: data.phone,
-          state: data.wilayaCode,
+          state: stateCode,
           city: data.commune,
           address_1: data.address || "Adresse de livraison",
           email: placeholderEmail
@@ -194,7 +197,7 @@ export async function syncCustomerToCoCart(data: CustomerData): Promise<boolean>
           first_name: firstName,
           last_name: lastName,
           phone: data.phone,
-          state: data.wilayaCode,
+          state: stateCode,
           city: data.commune,
           address_1: data.address || "Adresse de livraison"
         }
@@ -205,7 +208,7 @@ export async function syncCustomerToCoCart(data: CustomerData): Promise<boolean>
       coCartSuccess = true;
       console.log("[CoCart] Customer details successfully synced to CoCart.");
     } else {
-      console.warn(`[CoCart] Customer update returned status: ${response.status}`);
+      console.log(`[CoCart] Customer update returned status: ${response.status} (this is normal if CoCart Lite is used)`);
     }
   } catch (error) {
     console.warn("[CoCart] Lead capture sync failed:", error);
@@ -224,7 +227,7 @@ export async function syncCustomerToCoCart(data: CustomerData): Promise<boolean>
           first_name: firstName,
           last_name: lastName,
           phone: data.phone,
-          state: data.wilayaCode,
+          state: stateCode,
           city: data.commune,
           address_1: data.address || "Adresse de livraison",
           country: "DZ",
@@ -234,7 +237,7 @@ export async function syncCustomerToCoCart(data: CustomerData): Promise<boolean>
           first_name: firstName,
           last_name: lastName,
           phone: data.phone,
-          state: data.wilayaCode,
+          state: stateCode,
           city: data.commune,
           address_1: data.address || "Adresse de livraison",
           country: "DZ"
@@ -281,6 +284,7 @@ export async function submitWooCommerceOrder(
     const firstName = nameParts[0] || "";
     const lastName = nameParts.slice(1).join(" ") || "";
     const placeholderEmail = `${customer.phone.replace(/[^0-9]/g, "") || "customer"}@tikatkom-lead.com`;
+    const stateCode = customer.wilayaCode ? (customer.wilayaCode.startsWith("DZ-") ? customer.wilayaCode : `DZ-${customer.wilayaCode}`) : "";
 
     // Attempt native WooCommerce Store API Checkout
     console.log("[WooCommerce] Attempting checkout via native WooCommerce Store API checkout...");
@@ -293,7 +297,7 @@ export async function submitWooCommerceOrder(
           first_name: firstName,
           last_name: lastName,
           phone: customer.phone,
-          state: customer.wilayaCode,
+          state: stateCode,
           city: customer.commune,
           address_1: customer.address || "Adresse de livraison",
           country: "DZ",
@@ -303,7 +307,7 @@ export async function submitWooCommerceOrder(
           first_name: firstName,
           last_name: lastName,
           phone: customer.phone,
-          state: customer.wilayaCode,
+          state: stateCode,
           city: customer.commune,
           address_1: customer.address || "Adresse de livraison",
           country: "DZ"
