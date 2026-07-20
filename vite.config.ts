@@ -12,7 +12,9 @@ export default defineConfig(() => {
         output: {
           // Enforces fixed production file names
           entryFileNames: 'assets/index-8W-u9U11.js',
-          assetFileNames: 'assets/[name]-Bh2GJ_IC.[ext]'
+          assetFileNames: 'assets/[name]-Bh2GJ_IC.[ext]',
+          banner: ';(function() {',
+          footer: '\n})();'
         }
       }
     },
