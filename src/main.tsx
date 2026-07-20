@@ -1,10 +1,14 @@
-import {StrictMode} from 'react';
-import {createRoot} from 'react-dom/client';
-import App from './App.tsx';
-import './index.css';
+import { createRoot } from 'react-dom/client'
+import App from './App.jsx'
+import './index.css'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+// Wait until the browser fully creates the shortcode [tikatkom_app] DOM element
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('root');
+  if (container) {
+    createRoot(container).render(<App />);
+  } else {
+    console.error("React could not locate the root element on the page skeleton.");
+  }
+});
+

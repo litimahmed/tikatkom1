@@ -54,7 +54,7 @@ export default function Hero({ lang, onExploreClick, onBuyFlagshipClick, product
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2 w-full">
               <button
                 onClick={onExploreClick}
-                className="w-full sm:w-auto rounded-xl bg-brand-green px-8 py-4 text-base font-bold text-white shadow-lg shadow-brand-green/30 transition-all duration-200 hover:bg-brand-green-hover hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                className="w-full sm:w-auto rounded-xl bg-brand-green px-8 py-4 text-base font-bold text-white   transition-all duration-200 hover:bg-brand-green-hover hover:-translate-y-0.5 active:scale-95 cursor-pointer"
                 id="hero-cta-explore"
               >
                 {t.heroCTA}
@@ -101,7 +101,7 @@ export default function Hero({ lang, onExploreClick, onBuyFlagshipClick, product
             
             <div 
               onClick={onBuyFlagshipClick}
-              className="relative group overflow-hidden rounded-3xl bg-white dark:bg-zinc-900 shadow-2xl border border-gray-100 dark:border-zinc-800 transition-transform duration-500 hover:scale-[1.02] cursor-pointer"
+              className="relative group overflow-hidden rounded-3xl bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 transition-transform duration-500 hover:scale-[1.02] cursor-pointer"
               id="hero-product-card"
               title={lang === "fr" ? "Cliquez pour commander !" : "اضغط للطلب الآن !"}
             >

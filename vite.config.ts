@@ -6,6 +6,16 @@ import {defineConfig} from 'vite';
 export default defineConfig(() => {
   return {
     plugins: [react(), tailwindcss()],
+    base: './',
+    build: {
+      rollupOptions: {
+        output: {
+          // Enforces fixed production file names
+          entryFileNames: 'assets/index-8W-u9U11.js',
+          assetFileNames: 'assets/[name]-Bh2GJ_IC.[ext]'
+        }
+      }
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

@@ -17,9 +17,9 @@ export default function BrandBanner({ lang }: BrandBannerProps) {
           style={{ direction: isRTL ? "rtl" : "ltr" }}
         >
           {/* Left Side: Elegant Logo Frame (Tikatkom logo) */}
-          <div className="flex shrink-0 items-center justify-center bg-white dark:bg-zinc-900 p-4 rounded-3xl shadow-md border border-gray-100 dark:border-zinc-800 max-w-[240px] sm:max-w-[280px] hover:shadow-lg transition-shadow duration-300">
+          <div className="flex shrink-0 items-center justify-center bg-white dark:bg-zinc-900 p-4 rounded-3xl  border border-gray-100 dark:border-zinc-800 max-w-[240px] sm:max-w-[280px]  duration-300">
             <img 
-              src="/src/assets/images/tikatkom_brand_logo_1784439572660.jpg" 
+              src="/src/assets/images/tikatkom_logo.png"
               alt="Tikatkom Logo" 
               className="w-full h-auto object-contain rounded-2xl"
               referrerPolicy="no-referrer"
