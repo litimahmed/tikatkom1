@@ -78,9 +78,10 @@ export default function App() {
     return "home";
   });
 
-  // Dynamic Catalog States: preloaded with high-fidelity local static arrays for instant paint
-  const [products, setProducts] = useState<Product[]>(staticProducts);
-  const [categories, setCategories] = useState<Category[]>(staticCategories);
+  // Dynamic Catalog States: initialized empty to prevent flashing of hardcoded data
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Modals Visibility State
   const [isShippingOpen, setIsShippingOpen] = useState<boolean>(false);
@@ -96,15 +97,30 @@ export default function App() {
   // Fetch from live WooCommerce backend on mount
   useEffect(() => {
     async function loadWooCommerceData() {
+      setIsLoading(true);
       try {
         const [wooCats, wooProds] = await Promise.all([
           getWooCategories(),
           getWooProducts()
         ]);
-        setCategories(wooCats);
-        setProducts(wooProds);
+        
+        if (wooCats && wooCats.length > 0) {
+          setCategories(wooCats);
+        } else {
+          setCategories(staticCategories);
+        }
+
+        if (wooProds && wooProds.length > 0) {
+          setProducts(wooProds);
+        } else {
+          setProducts(staticProducts);
+        }
       } catch (error) {
         console.warn("Could not load live WooCommerce data, keeping local high-fidelity mock data.", error);
+        setCategories(staticCategories);
+        setProducts(staticProducts);
+      } finally {
+        setIsLoading(false);
       }
     }
     loadWooCommerceData();
@@ -164,7 +180,19 @@ export default function App() {
       />
 
       <main>
-        {view === "home" ? (
+        {isLoading ? (
+          <div className="min-h-[60vh] flex flex-col items-center justify-center p-8">
+            <div className="relative flex items-center justify-center">
+              <div className="h-16 w-16 animate-spin rounded-full border-4 border-emerald-500/10 border-t-emerald-500"></div>
+              <div className="absolute font-black text-emerald-600 text-xs uppercase tracking-widest font-sans animate-pulse">
+                T
+              </div>
+            </div>
+            <p className="text-sm font-bold text-slate-800 dark:text-zinc-200 mt-4 animate-pulse">
+              {lang === "ar" ? "جاري تحميل المتجر..." : "Chargement de la boutique..."}
+            </p>
+          </div>
+        ) : view === "home" ? (
           <>
             {/* 2. Hero Section */}
             <Hero 

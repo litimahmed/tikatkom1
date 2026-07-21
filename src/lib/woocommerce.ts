@@ -249,16 +249,16 @@ export function getProductsForSection(
         const name = (t.name || "").toLowerCase();
         
         if (sectionId === "most_requested") {
-          return slug.includes("most-requested") || name.includes("أكثر طلبا") || name.includes("الأكثر طلبا") || slug.includes("طلب");
+          return slug === "1" || slug === "sec-1" || slug === "section-1" || slug === "section_1" || slug.includes("most-requested") || name.includes("أكثر طلبا") || name.includes("الأكثر طلبا") || slug.includes("طلب");
         }
         if (sectionId === "new_arrivals") {
-          return slug.includes("new-arrivals") || slug.includes("new-in") || name.includes("جديد") || slug.includes("new");
+          return slug === "2" || slug === "sec-2" || slug === "section-2" || slug === "section_2" || slug.includes("new-arrivals") || slug.includes("new-in") || name.includes("جديد") || slug.includes("new");
         }
         if (sectionId === "best_sellers") {
-          return slug.includes("best-sellers") || name.includes("الأكثر مبيعا") || name.includes("أفضل مبيعات") || slug.includes("best");
+          return slug === "3" || slug === "sec-3" || slug === "section-3" || slug === "section_3" || slug.includes("best-sellers") || name.includes("الأكثر مبيعا") || name.includes("أفضل مبيعات") || slug.includes("best");
         }
         if (sectionId === "flash_deals") {
-          return slug.includes("flash-deals") || slug.includes("deals") || name.includes("فلاش") || name.includes("عروض") || slug.includes("flash");
+          return slug === "4" || slug === "sec-4" || slug === "section-4" || slug === "section_4" || slug.includes("flash-deals") || slug.includes("deals") || name.includes("فلاش") || name.includes("عروض") || slug.includes("flash");
         }
         return false;
       });
@@ -279,16 +279,16 @@ export function getProductsForSection(
         const name = (t.name || "").toLowerCase();
         
         if (sectionId === "most_requested") {
-          return slug.includes("most-requested") || name.includes("أكثر طلبا") || name.includes("الأكثر طلبا");
+          return slug === "1" || slug === "sec-1" || slug === "section-1" || slug === "section_1" || slug.includes("most-requested") || name.includes("أكثر طلبا") || name.includes("الأكثر طلبا");
         }
         if (sectionId === "new_arrivals") {
-          return slug.includes("new-arrivals") || slug.includes("new-in") || name.includes("جديد");
+          return slug === "2" || slug === "sec-2" || slug === "section-2" || slug === "section_2" || slug.includes("new-arrivals") || slug.includes("new-in") || name.includes("جديد");
         }
         if (sectionId === "best_sellers") {
-          return slug.includes("best-sellers") || name.includes("الأكثر مبيعا") || name.includes("أفضل مبيعات");
+          return slug === "3" || slug === "sec-3" || slug === "section-3" || slug === "section_3" || slug.includes("best-sellers") || name.includes("الأكثر مبيعا") || name.includes("أفضل مبيعات");
         }
         if (sectionId === "flash_deals") {
-          return slug.includes("flash-deals") || slug.includes("deals") || name.includes("فلاش") || name.includes("عروض");
+          return slug === "4" || slug === "sec-4" || slug === "section-4" || slug === "section_4" || slug.includes("flash-deals") || slug.includes("deals") || name.includes("فلاش") || name.includes("عروض");
         }
         return false;
       });
