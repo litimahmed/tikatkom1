@@ -127,6 +127,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
           productId: product.id,
           quantity,
           price: product.price,
+          shippingFee,
           grandTotal
         })
       });

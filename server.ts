@@ -33,6 +33,7 @@ async function startServer() {
         productId,
         quantity,
         price,
+        shippingFee,
         grandTotal
       } = req.body;
 
@@ -71,6 +72,18 @@ async function startServer() {
         ? []
         : [{ product_id: numericProductId, quantity: parseInt(quantity, 10) || 1 }];
 
+      // Format shipping fee into WooCommerce flat rate lines
+      const parsedShippingFee = parseFloat(shippingFee);
+      const shipping_lines = isNaN(parsedShippingFee) || parsedShippingFee <= 0
+        ? []
+        : [
+            {
+              method_id: "flat_rate",
+              method_title: deliveryType === "home" ? "Livraison à domicile" : "Stop Desk / Point de relais",
+              total: String(parsedShippingFee)
+            }
+          ];
+
       // Build a robust order payload according to standard WooCommerce order schema
       const orderPayload = {
         payment_method: "cod",
@@ -95,6 +108,7 @@ async function startServer() {
           phone: phone
         },
         line_items,
+        shipping_lines,
         customer_note: notes || "",
         meta_data: [
           { key: "_delivery_wilaya_code", value: wilayaCode },
@@ -102,6 +116,7 @@ async function startServer() {
           { key: "_delivery_commune", value: commune },
           { key: "_delivery_courier", value: courier },
           { key: "_delivery_type", value: deliveryType },
+          { key: "_delivery_shipping_fee", value: String(parsedShippingFee || 0) },
           { key: "_delivery_grand_total", value: String(grandTotal) }
         ]
       };

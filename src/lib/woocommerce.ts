@@ -123,11 +123,9 @@ export function mapWooProduct(wpProduct: any): Product {
   const parsePriceValue = (val: any) => {
     if (!val) return 0;
     const num = parseFloat(val);
-    // If it's represented as minor units (e.g. 620000 instead of 6200), scale it down
-    if (num > 150000) {
-      return num / 100;
-    }
-    return num;
+    // WooCommerce Store API returns values in minor units (decimals scaled by 100, e.g. "100000" for 1000.00 DA).
+    // We must always divide by 100 to get the correct decimal-based product price.
+    return num / 100;
   };
 
   if (wpProduct.prices) {
