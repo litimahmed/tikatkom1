@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { X, Check, ShoppingBag, Phone, MapPin, Truck, AlertCircle, Plus, Minus, Landmark } from "lucide-react";
 import { Product, OrderForm, Wilaya } from "../types";
 import { AlgerianWilayas, translations } from "../data";
-import { detectApiBaseUrl } from "../lib/woocommerce";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -108,8 +107,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
     setErrors({});
 
     try {
-      const apiBase = detectApiBaseUrl();
-      const response = await fetch(`${apiBase}/api/checkout`, {
+      const response = await fetch("/api/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

@@ -26,31 +26,6 @@ export function detectWordPressBaseUrl(): string {
   return window.location.origin;
 }
 
-export function detectApiBaseUrl(): string {
-  const envUrl = (import.meta as any).env?.VITE_API_BASE_URL;
-  if (typeof envUrl === "string" && envUrl.trim() !== "") {
-    return envUrl.trim().replace(/\/$/, "");
-  }
-
-  const origin = window.location.origin;
-  const hostname = window.location.hostname;
-  const href = window.location.href;
-
-  // 1. If we are running in the local dev applet (port 3000) or preview (run.app), keep relative
-  if (href.includes("run.app") || href.includes("localhost:3000") || href.includes("127.0.0.1:3000")) {
-    return origin;
-  }
-
-  // 2. If we are embedded inside a local WordPress site running on standard ports (e.g. localhost/tikatkom)
-  // we assume the Express backend is running on local port 3000.
-  if (hostname === "localhost" || hostname === "127.0.0.1") {
-    return "http://localhost:3000";
-  }
-
-  // 3. Fallback to the live deployed container endpoint so that even embedded production sites can reach it
-  return "https://ais-dev-uviy5da7aesvgdhw3ycu3n-73624536291.europe-west2.run.app";
-}
-
 const WP_BASE_URL = detectWordPressBaseUrl();
 
 // Helper to make resilient REST requests trying both Pretty and Plain Permalinks
