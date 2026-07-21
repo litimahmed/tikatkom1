@@ -87,14 +87,8 @@ export default function App() {
   // Modals Visibility State
   const [isShippingOpen, setIsShippingOpen] = useState<boolean>(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
-  const [checkoutProduct, setCheckoutProduct] = useState<Product | null>(null);
   const [isTrackingOpen, setIsTrackingOpen] = useState<boolean>(false);
-  const [trackingInitialCode, setTrackingInitialCode] = useState<string>("");
-
-  const handleOpenTracking = (code: string = "") => {
-    setTrackingInitialCode(code);
-    setIsTrackingOpen(true);
-  };
+  const [checkoutProduct, setCheckoutProduct] = useState<Product | null>(null);
 
   // Active Category Filter
   const [selectedCategory, setSelectedCategory] = useState<string | null>(() => {
@@ -281,19 +275,17 @@ export default function App() {
         onClose={() => setIsCheckoutOpen(false)} 
         product={checkoutProduct} 
         lang={lang} 
-        onTrackOrderClick={handleOpenTracking}
       />
 
-      {/* Beautiful Order Tracking Timeline Modal (ZR Express) */}
+      {/* Floating Modern Contact Elements (WhatsApp & Email) */}
+      <FloatingContact lang={lang} onTrackingClick={() => setIsTrackingOpen(true)} />
+
+      {/* Realtime Express Parcel Tracking Status Modal */}
       <TrackingModal 
-        isOpen={isTrackingOpen}
-        onClose={() => setIsTrackingOpen(false)}
-        lang={lang}
-        initialTrackingCode={trackingInitialCode}
+        isOpen={isTrackingOpen} 
+        onClose={() => setIsTrackingOpen(false)} 
+        lang={lang} 
       />
-
-      {/* Floating Modern Contact Elements (WhatsApp, Email & Tracking) */}
-      <FloatingContact lang={lang} onTrackingClick={() => handleOpenTracking("")} />
 
     </div>
   );

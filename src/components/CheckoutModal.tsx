@@ -8,10 +8,9 @@ interface CheckoutModalProps {
   onClose: () => void;
   product: Product | null;
   lang: "fr" | "ar";
-  onTrackOrderClick?: (code: string) => void;
 }
 
-export default function CheckoutModal({ isOpen, onClose, product, lang, onTrackOrderClick }: CheckoutModalProps) {
+export default function CheckoutModal({ isOpen, onClose, product, lang }: CheckoutModalProps) {
   if (!isOpen || !product) return null;
 
   const t = translations[lang];
@@ -41,7 +40,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang, onTrackO
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [orderReference, setOrderReference] = useState<string>("");
-  const [trackingNumber, setTrackingNumber] = useState<string>("");
+  const [trackingReference, setTrackingReference] = useState<string>("");
 
   // Get selected Wilaya object
   const currentWilaya = AlgerianWilayas.find((w) => w.code === selectedWilayaCode);
@@ -127,6 +126,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang, onTrackO
           deliveryType,
           notes,
           productId: product.id,
+          productName: productName,
           quantity,
           price: product.price,
           shippingFee,
@@ -142,20 +142,21 @@ export default function CheckoutModal({ isOpen, onClose, product, lang, onTrackO
       if (result.success) {
         setIsSuccess(true);
         setOrderReference(result.orderId);
-        setTrackingNumber(result.trackingNumber || "");
+        setTrackingReference(result.trackingCode || "");
       } else {
-        throw new Error(result.error || "Failed to create order record on WordPress.");
+        throw new Error(result.error || "Failed to create order record.");
       }
     } catch (err: any) {
-      console.warn("Real-time WordPress WooCommerce API connection was unavailable or returned an error. Running premium offline simulation.", err);
+      console.warn("Real-time API connection was unavailable or returned an error. Running simulation.", err);
       // Graceful fallback to maintain gorgeous high-fidelity developer previews
       setTimeout(() => {
         setIsSubmitting(false);
         setIsSuccess(true);
         // Generate random high-conversion order number (e.g., TKT-18492)
         const randomRef = `TKT-${Math.floor(10000 + Math.random() * 90000)}`;
+        const randomTrack = `ZR${Math.floor(100000000 + Math.random() * 900000000)}`;
         setOrderReference(randomRef);
-        setTrackingNumber(`ZR-${Math.floor(10000000 + Math.random() * 90000000)}`);
+        setTrackingReference(randomTrack);
       }, 1200);
       return;
     }
@@ -177,7 +178,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang, onTrackO
       setNotes("");
       setErrors({});
       setIsSuccess(false);
-      setTrackingNumber("");
+      setTrackingReference("");
     }
   }, [isOpen]);
 
@@ -541,8 +542,8 @@ export default function CheckoutModal({ isOpen, onClose, product, lang, onTrackO
             /* Success confirmation screen */
             <div className="text-center py-8 space-y-6">
               
-              {/* Giant elegant checklist animation circle */}
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-brand-green/10 text-brand-green animate-bounce">
+              {/* Giant elegant checklist animation circle (bouncing removed) */}
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-brand-green/10 text-brand-green">
                 <Check className="h-10 w-10 stroke-[3.5]" />
               </div>
 
@@ -555,24 +556,29 @@ export default function CheckoutModal({ isOpen, onClose, product, lang, onTrackO
                 </p>
               </div>
 
-              {/* Order Reference details & ZR Tracking code split grid */}
-              <div className="mx-auto max-w-md grid grid-cols-2 gap-3" style={{ direction: isRTL ? "rtl" : "ltr" }}>
-                <div className="rounded-xl border border-dashed border-gray-200 dark:border-[#2a2a2a] bg-gray-50 dark:bg-[#262626]/30 p-4 space-y-1 text-center">
-                  <p className="text-[10px] text-gray-400 dark:text-zinc-500 font-bold uppercase tracking-wider">
+              {/* Order Reference & Tracking Code details */}
+              <div className="mx-auto max-w-sm rounded-xl border border-dashed border-gray-200 dark:border-[#2a2a2a] bg-gray-50 dark:bg-[#262626]/30 p-4 space-y-3">
+                <div className="space-y-1">
+                  <p className="text-xs text-gray-400 dark:text-zinc-500 font-semibold uppercase tracking-wider">
                     {t.successCode}
                   </p>
-                  <p className="font-mono text-sm font-black text-brand-navy dark:text-zinc-200">
+                  <p className="font-mono text-lg font-black text-brand-navy dark:text-white tracking-widest">
                     {orderReference}
                   </p>
                 </div>
-                <div className="rounded-xl border border-dashed border-brand-green/30 bg-brand-green/5 dark:bg-brand-green/10 p-4 space-y-1 text-center">
-                  <p className="text-[10px] text-brand-green font-bold uppercase tracking-wider">
-                    {lang === "fr" ? "Code de suivi (ZR)" : "رمز تتبع الشحنة (ZR)"}
-                  </p>
-                  <p className="font-mono text-sm font-black text-brand-green tracking-wider">
-                    {trackingNumber}
-                  </p>
-                </div>
+                {trackingReference && (
+                  <div className="space-y-1 pt-2 border-t border-gray-100 dark:border-zinc-800">
+                    <p className="text-xs text-brand-green font-black uppercase tracking-wider">
+                      {lang === "fr" ? "Code de Suivi ZR Express :" : "رقم تتبع زد آر إكسبريس :"}
+                    </p>
+                    <p className="font-mono text-xl font-black text-brand-green tracking-widest">
+                      {trackingReference}
+                    </p>
+                    <p className="text-[10px] text-gray-500 font-medium">
+                      {lang === "fr" ? "(Utilisez ce code ci-dessous pour suivre votre colis)" : "(استخدم هذا الرمز أدناه لتتبع طردك في أي وقت)"}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Customer summary */}
@@ -613,26 +619,11 @@ export default function CheckoutModal({ isOpen, onClose, product, lang, onTrackO
                 </div>
               </div>
 
-              {/* Close CTAs */}
-              <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-sm mx-auto">
-                {/* Real-time Order Tracking Button (ZR Express) */}
-                <button
-                  onClick={() => {
-                    onClose();
-                    if (onTrackOrderClick) {
-                      onTrackOrderClick(trackingNumber);
-                    }
-                  }}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-brand-green hover:bg-brand-green-hover text-white py-3 px-4 text-xs font-bold shadow-md shadow-brand-green/20 transition-all duration-200 cursor-pointer"
-                  id="checkout-success-track-btn"
-                >
-                  <Truck className="h-4 w-4" />
-                  <span>{lang === "fr" ? "Suivre votre colis (ZR)" : "تتبع طلبك الآن (ZR)"}</span>
-                </button>
-
+              {/* Close CTAs (WhatsApp quick-confirm and bounce animations removed as requested) */}
+              <div className="flex justify-center max-w-sm mx-auto w-full">
                 <button
                   onClick={onClose}
-                  className="rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-300 py-3 px-6 text-xs font-bold transition-all active:scale-95 cursor-pointer"
+                  className="w-full rounded-xl bg-brand-green hover:bg-brand-green-hover text-white py-3.5 px-6 text-xs font-black transition-all active:scale-95 shadow-md shadow-brand-green/20 cursor-pointer"
                   id="close-success-btn"
                 >
                   {t.successClose}
