@@ -84,7 +84,7 @@ export default function Hero({ lang, onExploreClick, onBuyFlagshipClick, product
               {/* Product Card Container */}
               <div className="relative overflow-hidden rounded-3xl bg-white dark:bg-zinc-900">
                 <img
-                  src={flagshipProduct?.image || "/src/assets/images/placeholder.jpg"}
+                  src={flagshipProduct?.image || "https://placehold.co/600x600/png?text=Tikatkom"}
                   alt={isRTL ? flagshipProduct?.titleAR : flagshipProduct?.titleFR}
                   className="h-[320px] w-[320px] object-cover sm:h-[380px] sm:w-[380px] transition-transform duration-700 group-hover:scale-105"
                   referrerPolicy="no-referrer"

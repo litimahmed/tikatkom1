@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
+import cors from "cors";
 
 // Load environment variables
 dotenv.config();
@@ -9,6 +10,9 @@ dotenv.config();
 async function startServer() {
   const app = express();
   const PORT = 3000;
+
+  // Enable CORS for all routes (necessary for local XAMPP/WordPress integration on different origins)
+  app.use(cors());
 
   // Support JSON payload decoding
   app.use(express.json());

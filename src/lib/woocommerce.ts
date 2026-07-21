@@ -104,7 +104,7 @@ export function mapWooCategory(wpCat: any): Category {
     id: wpCat.slug || String(wpCat.id),
     nameFR: nameInfo.fr || wpCat.name,
     nameAR: nameInfo.ar || wpCat.name,
-    image: wpCat.image?.src || "/src/assets/images/placeholder.jpg",
+    image: wpCat.image?.src || "https://placehold.co/600x400/png?text=Tikatkom",
     count: wpCat.count || 0
   };
 }
@@ -194,7 +194,7 @@ export function mapWooProduct(wpProduct: any): Product {
     descriptionAR: descInfo.ar || "",
     price: priceParsed,
     oldPrice: oldPriceParsed,
-    image: wpProduct.images && wpProduct.images.length > 0 ? wpProduct.images[0].src : "/src/assets/images/placeholder.jpg",
+    image: wpProduct.images && wpProduct.images.length > 0 ? wpProduct.images[0].src : "https://placehold.co/600x400/png?text=Tikatkom",
     category: categorySlug,
     badgeFR,
     badgeAR,
