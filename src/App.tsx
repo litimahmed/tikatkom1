@@ -12,8 +12,9 @@ import TrackingModal from "./components/TrackingModal";
 import FloatingContact from "./components/FloatingContact";
 import { Product, Category } from "./types";
 import { products as staticProducts, categories as staticCategories } from "./data";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft, Globe } from "lucide-react";
 import { getWooCategories, getWooProducts, detectWordPressBaseUrl } from "./lib/woocommerce";
+import { getUserCountryCode } from "./lib/geo";
 
 // Clean navigation helpers for traditional page reloads (hard loading)
 export function getStorePageUrl(categoryId?: string | null): string {
@@ -57,12 +58,70 @@ export default function App() {
     const saved = localStorage.getItem("lang");
     return (saved === "ar" || saved === "fr") ? saved : "fr";
   });
+
+  // Geolocation & Mode state: DZ (Algeria COD Mode) or International (Traditional Checkout/Cart)
+  const [isAlgerian, setIsAlgerian] = useState<boolean>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const modeParam = params.get("mode");
+    if (modeParam === "intl") {
+      localStorage.setItem("tikatkom_force_mode", "intl");
+      return false;
+    } else if (modeParam === "dz") {
+      localStorage.setItem("tikatkom_force_mode", "dz");
+      return true;
+    }
+
+    const savedMode = localStorage.getItem("tikatkom_force_mode");
+    if (savedMode === "intl") return false;
+    if (savedMode === "dz") return true;
+
+    // Default to true (Algeria) while loading to avoid flash
+    return true;
+  });
+
+  const [detectedCountry, setDetectedCountry] = useState<string>("");
+  const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
+  const [redirectProduct, setRedirectProduct] = useState<Product | null>(null);
   
   // Ensure dark mode is completely removed from document element and localStorage
   useEffect(() => {
     document.documentElement.classList.remove("dark");
     localStorage.removeItem("theme");
   }, []);
+
+  // Detect Country on mount
+  useEffect(() => {
+    const savedMode = localStorage.getItem("tikatkom_force_mode");
+    const params = new URLSearchParams(window.location.search);
+    if (savedMode || params.get("mode")) {
+      setDetectedCountry(savedMode === "intl" ? "International Mode" : "Algeria Mode");
+      return;
+    }
+
+    async function detectGeo() {
+      try {
+        const country = await getUserCountryCode();
+        setDetectedCountry(country);
+        if (country !== "DZ") {
+          setIsAlgerian(false);
+        } else {
+          setIsAlgerian(true);
+        }
+      } catch (err) {
+        console.error("Failed to detect user country, keeping default (Algeria).", err);
+      }
+    }
+    detectGeo();
+  }, []);
+
+  // Toggle mode manually for store owners to preview both
+  const handleToggleMode = () => {
+    const nextMode = isAlgerian ? "intl" : "dz";
+    localStorage.setItem("tikatkom_force_mode", nextMode);
+    setIsAlgerian(!isAlgerian);
+    // Reload page to apply clean filters
+    window.location.reload();
+  };
 
   // Page Routing State: "home" or "products"
   const [view, setView] = useState<"home" | "products">(() => {
@@ -136,6 +195,21 @@ export default function App() {
 
   // Handler to open order form for a selected product
   const handleOpenCheckout = (product: Product) => {
+    if (!isAlgerian) {
+      // International Mode: Redirect directly to the WooCommerce checkout page
+      const baseUrl = detectWordPressBaseUrl();
+      const redirectUrl = `${baseUrl}/checkout/?add-to-cart=${product.id}&quantity=1`;
+      console.log(`[Geo Router] Redirecting international visitor to WooCommerce: ${redirectUrl}`);
+      
+      setRedirectProduct(product);
+      setIsRedirecting(true);
+      
+      setTimeout(() => {
+        window.location.href = redirectUrl;
+      }, 1500); // 1.5s professional delay with high-end overlay transition
+      return;
+    }
+
     setCheckoutProduct(product);
     setIsCheckoutOpen(true);
   };
@@ -286,6 +360,33 @@ export default function App() {
         onClose={() => setIsTrackingOpen(false)} 
         lang={lang} 
       />
+
+      {/* Premium Redirecting Overlay for International Customers */}
+      {isRedirecting && redirectProduct && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/95 dark:bg-zinc-950/95 backdrop-blur-sm">
+          <div className="max-w-md p-6 text-center">
+            <div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-brand-green/10">
+              <div className="h-14 w-14 animate-spin rounded-full border-4 border-brand-green/10 border-t-brand-green"></div>
+              <svg xmlns="http://www.w3.org/2000/svg" className="absolute h-6 w-6 text-brand-green animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-brand-navy dark:text-white mb-2">
+              {lang === "fr" ? "Redirection Sécurisée..." : "جاري توجيهك بأمان..."}
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-zinc-400 mb-4">
+              {lang === "fr" 
+                ? `Nous vous redirigeons vers notre passerelle de paiement internationale pour finaliser l'achat de : ${redirectProduct.titleFR}`
+                : `نقوم بتوجيهك الآن إلى بوابة الدفع الدولية الآمنة لإتمام شراء: ${redirectProduct.titleAR}`
+              }
+            </p>
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 dark:bg-zinc-900 px-3 py-1 text-xs text-gray-500 dark:text-zinc-400">
+              <span className="h-2 w-2 rounded-full bg-brand-green animate-pulse"></span>
+              <span>Visa, MasterCard, PayPal, Amex</span>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
