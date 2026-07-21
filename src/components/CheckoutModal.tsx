@@ -8,9 +8,10 @@ interface CheckoutModalProps {
   onClose: () => void;
   product: Product | null;
   lang: "fr" | "ar";
+  onTrackOrderClick?: (code: string) => void;
 }
 
-export default function CheckoutModal({ isOpen, onClose, product, lang }: CheckoutModalProps) {
+export default function CheckoutModal({ isOpen, onClose, product, lang, onTrackOrderClick }: CheckoutModalProps) {
   if (!isOpen || !product) return null;
 
   const t = translations[lang];
@@ -40,6 +41,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [orderReference, setOrderReference] = useState<string>("");
+  const [trackingNumber, setTrackingNumber] = useState<string>("");
 
   // Get selected Wilaya object
   const currentWilaya = AlgerianWilayas.find((w) => w.code === selectedWilayaCode);
@@ -140,6 +142,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
       if (result.success) {
         setIsSuccess(true);
         setOrderReference(result.orderId);
+        setTrackingNumber(result.trackingNumber || "");
       } else {
         throw new Error(result.error || "Failed to create order record on WordPress.");
       }
@@ -152,6 +155,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
         // Generate random high-conversion order number (e.g., TKT-18492)
         const randomRef = `TKT-${Math.floor(10000 + Math.random() * 90000)}`;
         setOrderReference(randomRef);
+        setTrackingNumber(`ZR-${Math.floor(10000000 + Math.random() * 90000000)}`);
       }, 1200);
       return;
     }
@@ -173,6 +177,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
       setNotes("");
       setErrors({});
       setIsSuccess(false);
+      setTrackingNumber("");
     }
   }, [isOpen]);
 
@@ -550,14 +555,24 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                 </p>
               </div>
 
-              {/* Order Reference details */}
-              <div className="mx-auto max-w-sm rounded-xl border border-dashed border-gray-200 dark:border-[#2a2a2a] bg-gray-50 dark:bg-[#262626]/30 p-4 space-y-1">
-                <p className="text-xs text-gray-400 dark:text-zinc-500 font-semibold uppercase tracking-wider">
-                  {t.successCode}
-                </p>
-                <p className="font-mono text-lg font-black text-brand-green tracking-widest">
-                  {orderReference}
-                </p>
+              {/* Order Reference details & ZR Tracking code split grid */}
+              <div className="mx-auto max-w-md grid grid-cols-2 gap-3" style={{ direction: isRTL ? "rtl" : "ltr" }}>
+                <div className="rounded-xl border border-dashed border-gray-200 dark:border-[#2a2a2a] bg-gray-50 dark:bg-[#262626]/30 p-4 space-y-1 text-center">
+                  <p className="text-[10px] text-gray-400 dark:text-zinc-500 font-bold uppercase tracking-wider">
+                    {t.successCode}
+                  </p>
+                  <p className="font-mono text-sm font-black text-brand-navy dark:text-zinc-200">
+                    {orderReference}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-dashed border-brand-green/30 bg-brand-green/5 dark:bg-brand-green/10 p-4 space-y-1 text-center">
+                  <p className="text-[10px] text-brand-green font-bold uppercase tracking-wider">
+                    {lang === "fr" ? "Code de suivi (ZR)" : "رمز تتبع الشحنة (ZR)"}
+                  </p>
+                  <p className="font-mono text-sm font-black text-brand-green tracking-wider">
+                    {trackingNumber}
+                  </p>
+                </div>
               </div>
 
               {/* Customer summary */}
@@ -600,23 +615,20 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
 
               {/* Close CTAs */}
               <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-sm mx-auto">
-                {/* Whatsapp instant speed-up order helper (High conversion feature in Algeria) */}
-                <a
-                  href={`https://wa.me/${((import.meta as any).env?.VITE_MERCHANT_WHATSAPP || "+213781913776").replace(/\s+/g, "")}?text=${encodeURIComponent(
-                    lang === "fr"
-                      ? `Bonjour, je viens de passer commande pour le produit ${productName} (Réf: ${orderReference}). Transporteur: ${couriersList.find(c => c.id === selectedCourier)?.nameFR}, Mode: ${deliveryType === "home" ? "Domicile" : "Bureau"}. Merci de valider.`
-                      : `مرحباً، لقد قمت للتو بطلب المنتج ${productName} (المرجع: ${orderReference}). شركة التوصيل: ${couriersList.find(c => c.id === selectedCourier)?.nameAR}، طريقة الاستلام: ${deliveryType === "home" ? "باب المنزل" : "مكتب التوصيل"}. يرجى تأكيد الطلب.`
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] text-white py-3 px-4 text-xs font-bold shadow-md shadow-[#25D366]/20 hover:opacity-95 transition-opacity cursor-pointer"
-                  id="whatsapp-confirm-btn"
+                {/* Real-time Order Tracking Button (ZR Express) */}
+                <button
+                  onClick={() => {
+                    onClose();
+                    if (onTrackOrderClick) {
+                      onTrackOrderClick(trackingNumber);
+                    }
+                  }}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-brand-green hover:bg-brand-green-hover text-white py-3 px-4 text-xs font-bold shadow-md shadow-brand-green/20 transition-all duration-200 cursor-pointer"
+                  id="checkout-success-track-btn"
                 >
-                  <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.963C16.588 1.981 14.117 1.05 11.487 1.05c-5.43 0-9.85 4.37-9.854 9.799 0 1.834.49 3.626 1.419 5.212l-.93 3.393 3.493-.916z"/>
-                  </svg>
-                  <span>{lang === "fr" ? "Accélérer via WhatsApp" : "تأكيد فوري عبر واتساب"}</span>
-                </a>
+                  <Truck className="h-4 w-4" />
+                  <span>{lang === "fr" ? "Suivre votre colis (ZR)" : "تتبع طلبك الآن (ZR)"}</span>
+                </button>
 
                 <button
                   onClick={onClose}

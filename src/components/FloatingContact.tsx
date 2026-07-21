@@ -1,11 +1,12 @@
 import { motion } from "motion/react";
-import { Mail } from "lucide-react";
+import { Mail, Truck } from "lucide-react";
 
 interface FloatingContactProps {
   lang: "fr" | "ar";
+  onTrackingClick: () => void;
 }
 
-export default function FloatingContact({ lang }: FloatingContactProps) {
+export default function FloatingContact({ lang, onTrackingClick }: FloatingContactProps) {
   // Read WhatsApp and Email from environment variables with safe defaults
   const whatsappNumber = ((import.meta as any).env?.VITE_MERCHANT_WHATSAPP || "+213781913776").replace(/\s+/g, "");
   const merchantEmail = (import.meta as any).env?.VITE_MERCHANT_EMAIL || "litimahmed67@gmail.com";
@@ -23,9 +24,34 @@ export default function FloatingContact({ lang }: FloatingContactProps) {
   // Labels for tooltips
   const whatsappTooltip = lang === "ar" ? "تواصل معنا عبر واتساب" : "Contactez-nous sur WhatsApp";
   const emailTooltip = lang === "ar" ? "أرسل لنا بريداً إلكترونياً" : "Envoyez-nous un e-mail";
+  const trackingTooltip = lang === "ar" ? "تتبع طلبك (ZR Express)" : "Suivre votre colis (ZR)";
 
   return (
     <div className="fixed bottom-6 left-6 z-40 flex flex-col gap-3.5 items-center select-none" id="floating-contact-container">
+      {/* Tracking Button */}
+      <div className="group relative">
+        {/* Tooltip */}
+        <span 
+          className={`absolute left-14 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-gray-900/90 dark:bg-zinc-800/90 px-3 py-1.5 text-[11px] font-bold text-white shadow-md backdrop-blur-sm opacity-0 scale-95 transition-all duration-200 origin-left pointer-events-none group-hover:opacity-100 group-hover:scale-100 font-sans ${
+            lang === "ar" ? "font-arabic" : ""
+          }`}
+        >
+          {trackingTooltip}
+        </span>
+        
+        {/* Floating Button Action */}
+        <motion.button
+          onClick={onTrackingClick}
+          whileHover={{ scale: 1.1, y: -2 }}
+          whileTap={{ scale: 0.95 }}
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-green text-white shadow-lg shadow-brand-green/20 hover:shadow-brand-green/30 transition-shadow duration-200 border border-emerald-400/20 cursor-pointer"
+          id="btn-tracking-floating"
+          aria-label="Track Order"
+        >
+          <Truck className="h-5 w-5 stroke-[2.5]" />
+        </motion.button>
+      </div>
+
       {/* WhatsApp Button */}
       <div className="group relative">
         {/* Tooltip */}

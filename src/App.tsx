@@ -8,6 +8,7 @@ import ProductsGrid from "./components/ProductsGrid";
 import Footer from "./components/Footer";
 import ShippingModal from "./components/ShippingModal";
 import CheckoutModal from "./components/CheckoutModal";
+import TrackingModal from "./components/TrackingModal";
 import FloatingContact from "./components/FloatingContact";
 import { Product, Category } from "./types";
 import { products as staticProducts, categories as staticCategories } from "./data";
@@ -87,6 +88,13 @@ export default function App() {
   const [isShippingOpen, setIsShippingOpen] = useState<boolean>(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
   const [checkoutProduct, setCheckoutProduct] = useState<Product | null>(null);
+  const [isTrackingOpen, setIsTrackingOpen] = useState<boolean>(false);
+  const [trackingInitialCode, setTrackingInitialCode] = useState<string>("");
+
+  const handleOpenTracking = (code: string = "") => {
+    setTrackingInitialCode(code);
+    setIsTrackingOpen(true);
+  };
 
   // Active Category Filter
   const [selectedCategory, setSelectedCategory] = useState<string | null>(() => {
@@ -273,10 +281,19 @@ export default function App() {
         onClose={() => setIsCheckoutOpen(false)} 
         product={checkoutProduct} 
         lang={lang} 
+        onTrackOrderClick={handleOpenTracking}
       />
 
-      {/* Floating Modern Contact Elements (WhatsApp & Email) */}
-      <FloatingContact lang={lang} />
+      {/* Beautiful Order Tracking Timeline Modal (ZR Express) */}
+      <TrackingModal 
+        isOpen={isTrackingOpen}
+        onClose={() => setIsTrackingOpen(false)}
+        lang={lang}
+        initialTrackingCode={trackingInitialCode}
+      />
+
+      {/* Floating Modern Contact Elements (WhatsApp, Email & Tracking) */}
+      <FloatingContact lang={lang} onTrackingClick={() => handleOpenTracking("")} />
 
     </div>
   );
