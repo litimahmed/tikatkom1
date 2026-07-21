@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown, Shield } from "lucide-react";
+import { ChevronDown, Shield, ShoppingBag } from "lucide-react";
 import { translations } from "../data";
 
 interface HeaderProps {
@@ -7,9 +7,19 @@ interface HeaderProps {
   setLang: (lang: "fr" | "ar") => void;
   onOpenShippingModal: () => void;
   onLogoClick: () => void;
+  isAlgerian: boolean;
+  onOpenCart?: () => void;
+  cartCount?: number;
 }
 
-export default function Header({ lang, onOpenShippingModal, onLogoClick }: HeaderProps) {
+export default function Header({
+  lang,
+  onOpenShippingModal,
+  onLogoClick,
+  isAlgerian,
+  onOpenCart,
+  cartCount = 0,
+}: HeaderProps) {
   const t = translations[lang];
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false); // 1. Track scroll state
@@ -68,21 +78,39 @@ export default function Header({ lang, onOpenShippingModal, onLogoClick }: Heade
             </button>
           </div>
 
-          {/* Right Side: Flex Container for ZR Express Courier Logo & Lang Switcher */}
+          {/* Right Side: Flex Container for Cart, ZR Express Courier Logo & Lang Switcher */}
           <div className="flex items-center gap-3">
-            {/* ZR Express Courier Logo Placeholder */}
-            <div className="flex items-center select-none">
-              <img
-                  src="/src/assets/images/zrexpressLogo.jpg"
-                  alt="ZR Express"
-                  className="h-8 relative left-[30px] w-auto object-contain"
-                  referrerPolicy="no-referrer"
-                  onError={(e) => {
-                    // Hide the broken image icon gracefully if the file is not yet uploaded
-                    e.currentTarget.style.display = "none";
-                  }}
-              />
-            </div>
+            {/* Cart Button for International clients */}
+            {!isAlgerian && onOpenCart && (
+              <button
+                onClick={onOpenCart}
+                className="relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all cursor-pointer"
+                title={lang === "fr" ? "Mon Panier" : "حقيبة التسوق"}
+              >
+                <ShoppingBag className="h-5 w-5" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-brand-green text-[10px] font-black text-white ring-2 ring-white dark:ring-zinc-900 animate-scaleIn">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+            )}
+
+            {/* ZR Express Courier Logo Placeholder - only for Algeria COD mode */}
+            {isAlgerian && (
+              <div className="flex items-center select-none">
+                <img
+                    src="/src/assets/images/zrexpressLogo.jpg"
+                    alt="ZR Express"
+                    className="h-8 relative left-[30px] w-auto object-contain"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      // Hide the broken image icon gracefully if the file is not yet uploaded
+                      e.currentTarget.style.display = "none";
+                    }}
+                />
+              </div>
+            )}
 
             {/* Language Switcher Dropdown */}
             <div className="relative inline-block" ref={langDropdownRef}>

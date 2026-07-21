@@ -45,3 +45,8 @@ export interface OrderForm {
   notes?: string;
   quantity: number;
 }
+
+export interface CartItem {
+  product: Product;
+  quantity: number;
+}

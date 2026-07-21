@@ -10,11 +10,13 @@ import ShippingModal from "./components/ShippingModal";
 import CheckoutModal from "./components/CheckoutModal";
 import TrackingModal from "./components/TrackingModal";
 import FloatingContact from "./components/FloatingContact";
-import { Product, Category } from "./types";
+import { Product, Category, CartItem } from "./types";
 import { products as staticProducts, categories as staticCategories } from "./data";
 import { ChevronRight, ChevronLeft, Globe } from "lucide-react";
 import { getWooCategories, getWooProducts, detectWordPressBaseUrl } from "./lib/woocommerce";
 import { getUserCountryCode } from "./lib/geo";
+import CartDrawer from "./components/CartDrawer";
+import InternationalCheckout from "./components/InternationalCheckout";
 
 // Clean navigation helpers for traditional page reloads (hard loading)
 export function getStorePageUrl(categoryId?: string | null): string {
@@ -80,8 +82,24 @@ export default function App() {
   });
 
   const [detectedCountry, setDetectedCountry] = useState<string>("");
-  const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
-  const [redirectProduct, setRedirectProduct] = useState<Product | null>(null);
+  
+  // Headless Cart & Checkout States for International users
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    try {
+      const saved = localStorage.getItem("tikatkom_cart");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
+  const [isIntlCheckoutOpen, setIsIntlCheckoutOpen] = useState<boolean>(false);
+  const [successReceipt, setSuccessReceipt] = useState<{ orderId: string; trackingCode: string; grandTotal: number } | null>(null);
+
+  // Synchronize cart state to localStorage for persistence
+  useEffect(() => {
+    localStorage.setItem("tikatkom_cart", JSON.stringify(cartItems));
+  }, [cartItems]);
   
   // Ensure dark mode is completely removed from document element and localStorage
   useEffect(() => {
@@ -194,19 +212,51 @@ export default function App() {
   }, [lang]);
 
   // Handler to open order form for a selected product
+  // Helper to add item to Cart
+  const handleAddToCart = (product: Product) => {
+    setCartItems((prev) => {
+      const existingIndex = prev.findIndex((item) => item.product.id === product.id);
+      if (existingIndex > -1) {
+        const nextCart = [...prev];
+        nextCart[existingIndex] = {
+          ...nextCart[existingIndex],
+          quantity: nextCart[existingIndex].quantity + 1,
+        };
+        return nextCart;
+      }
+      return [...prev, { product, quantity: 1 }];
+    });
+    // Open Cart Drawer
+    setIsCartOpen(true);
+  };
+
+  const handleUpdateCartQuantity = (productId: string, quantity: number) => {
+    setCartItems((prev) =>
+      prev.map((item) => (item.product.id === productId ? { ...item, quantity } : item))
+    );
+  };
+
+  const handleRemoveFromCart = (productId: string) => {
+    setCartItems((prev) => prev.filter((item) => item.product.id !== productId));
+  };
+
+  const handleProceedToCheckout = () => {
+    setIsCartOpen(false);
+    setIsIntlCheckoutOpen(true);
+  };
+
+  const handleOrderSuccess = (receipt: { orderId: string; trackingCode: string; grandTotal: number }) => {
+    setCartItems([]);
+    localStorage.removeItem("tikatkom_cart");
+    setIsIntlCheckoutOpen(false);
+    setSuccessReceipt(receipt);
+  };
+
+  // Handler to open order form for a selected product
   const handleOpenCheckout = (product: Product) => {
     if (!isAlgerian) {
-      // International Mode: Redirect directly to the WooCommerce checkout page
-      const baseUrl = detectWordPressBaseUrl();
-      const redirectUrl = `${baseUrl}/checkout/?add-to-cart=${product.id}&quantity=1`;
-      console.log(`[Geo Router] Redirecting international visitor to WooCommerce: ${redirectUrl}`);
-      
-      setRedirectProduct(product);
-      setIsRedirecting(true);
-      
-      setTimeout(() => {
-        window.location.href = redirectUrl;
-      }, 1500); // 1.5s professional delay with high-end overlay transition
+      // International Mode: Add to local headless cart & open drawer
+      handleAddToCart(product);
       return;
     }
 
@@ -253,6 +303,9 @@ export default function App() {
         setLang={setLang} 
         onOpenShippingModal={() => setIsShippingOpen(true)} 
         onLogoClick={handleLogoClick}
+        isAlgerian={isAlgerian}
+        onOpenCart={() => setIsCartOpen(true)}
+        cartCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
       />
 
       <main>
@@ -361,29 +414,69 @@ export default function App() {
         lang={lang} 
       />
 
-      {/* Premium Redirecting Overlay for International Customers */}
-      {isRedirecting && redirectProduct && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/95 dark:bg-zinc-950/95 backdrop-blur-sm">
-          <div className="max-w-md p-6 text-center">
-            <div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-brand-green/10">
-              <div className="h-14 w-14 animate-spin rounded-full border-4 border-brand-green/10 border-t-brand-green"></div>
-              <svg xmlns="http://www.w3.org/2000/svg" className="absolute h-6 w-6 text-brand-green animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+      {/* Modern, Headless Cart Drawer for International Clients */}
+      <CartDrawer
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cartItems={cartItems}
+        onUpdateQuantity={handleUpdateCartQuantity}
+        onRemoveItem={handleRemoveFromCart}
+        onProceedToCheckout={handleProceedToCheckout}
+        lang={lang}
+      />
+
+      {/* Headless Custom Checkout Page for International Clients */}
+      <InternationalCheckout
+        isOpen={isIntlCheckoutOpen}
+        onClose={() => setIsIntlCheckoutOpen(false)}
+        cartItems={cartItems}
+        lang={lang}
+        onOrderSuccess={handleOrderSuccess}
+      />
+
+      {/* Premium Order Success Receipt Modal */}
+      {successReceipt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-3xl border border-gray-100 dark:border-zinc-800 p-6 text-center shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-brand-green to-emerald-500"></div>
+            
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/20 text-emerald-500">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-brand-navy dark:text-white mb-2">
-              {lang === "fr" ? "Redirection Sécurisée..." : "جاري توجيهك بأمان..."}
+
+            <h3 className="text-xl font-black text-brand-navy dark:text-white mb-2 font-arabic">
+              {lang === "fr" ? "Commande Confirmée !" : "تم تأكيد طلبك بنجاح !"}
             </h3>
-            <p className="text-sm text-gray-500 dark:text-zinc-400 mb-4">
-              {lang === "fr" 
-                ? `Nous vous redirigeons vers notre passerelle de paiement internationale pour finaliser l'achat de : ${redirectProduct.titleFR}`
-                : `نقوم بتوجيهك الآن إلى بوابة الدفع الدولية الآمنة لإتمام شراء: ${redirectProduct.titleAR}`
-              }
+            
+            <p className="text-xs text-gray-500 dark:text-zinc-400 mb-6 font-arabic">
+              {lang === "fr"
+                ? "Merci pour votre confiance ! Votre commande a été transmise à notre équipe."
+                : "شكرًا لثقتكم بنا ! تم تسجيل طلبكم بنجاح وجاري العمل على معالجته."}
             </p>
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 dark:bg-zinc-900 px-3 py-1 text-xs text-gray-500 dark:text-zinc-400">
-              <span className="h-2 w-2 rounded-full bg-brand-green animate-pulse"></span>
-              <span>Visa, MasterCard, PayPal, Amex</span>
+
+            <div className="bg-gray-50 dark:bg-zinc-950/50 rounded-2xl p-4 text-left text-xs space-y-2.5 border border-gray-100 dark:border-zinc-800/80 mb-6 font-semibold text-gray-600 dark:text-zinc-400" style={{ direction: "ltr" }}>
+              <div className="flex justify-between">
+                <span>{lang === "fr" ? "ID de la Commande" : "رقم الطلب"} :</span>
+                <span className="font-extrabold text-brand-navy dark:text-white">{successReceipt.orderId}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>{lang === "fr" ? "Numéro de Suivi (DHL)" : "رقم تتبع الشحنة (DHL)"} :</span>
+                <span className="font-mono font-extrabold text-brand-green">{successReceipt.trackingCode}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>{lang === "fr" ? "Total payé" : "المبلغ الإجمالي المدفوع"} :</span>
+                <span className="font-extrabold text-brand-navy dark:text-white">{successReceipt.grandTotal.toLocaleString()} DA</span>
+              </div>
             </div>
+
+            <button
+              onClick={() => setSuccessReceipt(null)}
+              className="w-full rounded-full bg-brand-green hover:bg-brand-green-dark py-3 text-xs sm:text-sm font-black text-white shadow-md transition-all active:scale-95 cursor-pointer"
+            >
+              {lang === "fr" ? "Continuer" : "متابعة"}
+            </button>
           </div>
         </div>
       )}
