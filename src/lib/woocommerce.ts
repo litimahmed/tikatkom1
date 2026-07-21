@@ -28,7 +28,9 @@ export function detectWordPressBaseUrl(): string {
 
 export function detectApiBaseUrl(): string {
   const envUrl = (import.meta as any).env?.VITE_API_BASE_URL;
-  if (envUrl) return envUrl.replace(/\/$/, "");
+  if (typeof envUrl === "string" && envUrl.trim() !== "") {
+    return envUrl.trim().replace(/\/$/, "");
+  }
 
   const origin = window.location.origin;
   const hostname = window.location.hostname;
