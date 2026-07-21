@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
+import cors from "cors";
 
 // Load environment variables
 dotenv.config();
@@ -12,6 +13,9 @@ async function startServer() {
 
   // Support JSON payload decoding
   app.use(express.json());
+
+  // Enable CORS for all origins to accept checkout orders from embedded WordPress clients
+  app.use(cors());
 
   // 1. Order Checkout / Save Client Record API Route
   app.post("/api/checkout", async (req, res) => {
