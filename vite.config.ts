@@ -8,6 +8,12 @@ export default defineConfig(() => {
     plugins: [react(), tailwindcss()],
     base: './',
     build: {
+      minify: 'terser' as const,
+      terserOptions: {
+        mangle: {
+          reserved: ['wp']
+        }
+      },
       rollupOptions: {
         output: {
           // Enforces fixed production file names

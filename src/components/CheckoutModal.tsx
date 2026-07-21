@@ -108,9 +108,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
     setErrors({});
 
     try {
-      const metaEnv = (import.meta as any).env;
-      const apiBase = (metaEnv && metaEnv.VITE_API_URL) || "";
-      const response = await fetch(`${apiBase}/api/checkout`, {
+      const response = await fetch(`/api/checkout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
