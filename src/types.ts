@@ -18,6 +18,7 @@ export interface Product {
   featuresAR: string[];
   tags?: Array<{ id: number; name: string; slug: string }>;
   lemonSqueezyUrl?: string;
+  permalink?: string;
 }
 
 export interface Category {

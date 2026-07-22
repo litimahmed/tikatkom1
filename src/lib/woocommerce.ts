@@ -7,23 +7,44 @@ import { products as mockProducts, categories as mockCategories } from "../data"
 // 2. Otherwise, we detect if the app is served inside WordPress by parsing script tags
 // 3. Fall back to current origin.
 export function detectWordPressBaseUrl(): string {
-  const envUrl = (import.meta as any).env?.VITE_WORDPRESS_URL || "http://localhost/tikatkom";
-  if (envUrl) return envUrl.replace(/\/$/, "");
-
-  // Search script tags to find the WordPress base path (in case of subdirectory install)
-  const scripts = Array.from(document.querySelectorAll('script'));
-  for (const script of scripts) {
-    const src = script.src;
-    if (src && (src.includes('/wp-content/') || src.includes('/wp-includes/'))) {
-      const match = src.match(/^(https?:\/\/[^\/]+(?:\/[^\/]+)*?)\/(?:wp-content|wp-includes)\//);
-      if (match && match[1]) {
-        return match[1];
-      }
-    }
+  // 1. Explicit environment variable override
+  const envUrl = (import.meta as any).env?.VITE_WORDPRESS_URL;
+  if (envUrl && typeof envUrl === "string" && envUrl.trim() !== "") {
+    return envUrl.trim().replace(/\/$/, "");
   }
 
-  // Fallback to origin
-  return window.location.origin;
+  if (typeof window !== "undefined") {
+    // 2. Search script tags to find the WordPress base path (in case of subdirectory install e.g. /wordpress/)
+    const scripts = Array.from(document.querySelectorAll('script'));
+    for (const script of scripts) {
+      const src = script.src;
+      if (src && (src.includes('/wp-content/') || src.includes('/wp-includes/'))) {
+        const match = src.match(/^(https?:\/\/[^\/]+(?:\/[^\/]+)*?)\/(?:wp-content|wp-includes)\//);
+        if (match && match[1]) {
+          return match[1].replace(/\/$/, "");
+        }
+      }
+    }
+
+    // 3. Fallback to current window origin + pathname
+    const origin = window.location.origin;
+    const pathname = window.location.pathname;
+    const isDevPreview =
+      window.location.port === "3000" ||
+      origin.includes("run.app") ||
+      origin.includes("ais-dev") ||
+      origin.includes("ais-pre");
+
+    if (isDevPreview) {
+      return origin;
+    }
+
+    // On XAMPP or live WordPress server, preserve current subdirectory path and strip index.php/filename
+    const cleanPath = pathname.replace(/\/[^/]+\.[a-z0-9]+$/i, "").replace(/\/$/, "");
+    return `${origin}${cleanPath}`;
+  }
+
+  return "http://localhost";
 }
 
 const WP_BASE_URL = detectWordPressBaseUrl();
@@ -254,7 +275,8 @@ export function mapWooProduct(wpProduct: any): Product {
     featuresFR,
     featuresAR,
     tags: wpProduct.tags ? wpProduct.tags.map((t: any) => ({ id: t.id, name: t.name, slug: t.slug })) : undefined,
-    lemonSqueezyUrl
+    lemonSqueezyUrl,
+    permalink: wpProduct.permalink || undefined
   };
 }
 

@@ -24,7 +24,13 @@ export function getStorePageUrl(categoryId?: string | null): string {
   const currentUrl = new URL(window.location.href);
 
   // If in AI Studio Preview or standalone port 3000 local dev, keep same page but append params
-  if (currentUrl.hostname.includes("run.app") || currentUrl.port === "3000" || currentUrl.hostname === "localhost") {
+  const isDevPreview =
+    currentUrl.port === "3000" ||
+    currentUrl.hostname.includes("run.app") ||
+    currentUrl.hostname.includes("ais-dev") ||
+    currentUrl.hostname.includes("ais-pre");
+
+  if (isDevPreview) {
     const target = new URL(window.location.pathname, window.location.origin);
     target.searchParams.set("view", "products");
     if (categoryId) {
@@ -46,8 +52,13 @@ export function getHomePageUrl(): string {
   const baseUrl = detectWordPressBaseUrl();
   const currentUrl = new URL(window.location.href);
 
-  // In preview/dev container, go to current page path without params
-  if (currentUrl.hostname.includes("run.app") || currentUrl.port === "3000" || currentUrl.hostname === "localhost") {
+  const isDevPreview =
+    currentUrl.port === "3000" ||
+    currentUrl.hostname.includes("run.app") ||
+    currentUrl.hostname.includes("ais-dev") ||
+    currentUrl.hostname.includes("ais-pre");
+
+  if (isDevPreview) {
     return new URL(window.location.pathname, window.location.origin).toString();
   }
 
@@ -309,7 +320,26 @@ export default function App() {
     setCheckoutItems([{ product, quantity: 1 }]);
     if (isAlgerian) {
       // Direct hard load to standalone product page
-      window.location.href = `/?product=${encodeURIComponent(product.id)}`;
+      if (product.permalink) {
+        window.location.href = product.permalink;
+        return;
+      }
+      const wpBase = detectWordPressBaseUrl();
+      const currentUrl = new URL(window.location.href);
+      const isDevPreview =
+        currentUrl.port === "3000" ||
+        currentUrl.hostname.includes("run.app") ||
+        currentUrl.hostname.includes("ais-dev") ||
+        currentUrl.hostname.includes("ais-pre");
+
+      if (isDevPreview) {
+        const target = new URL(window.location.pathname, window.location.origin);
+        target.searchParams.set("product", product.id);
+        window.location.href = target.toString();
+      } else {
+        const cleanBase = wpBase.replace(/\/$/, "");
+        window.location.href = `${cleanBase}/?product=${encodeURIComponent(product.id)}`;
+      }
     } else {
       // Direct international buyer to product Lemon Squeezy hosted checkout page
       const env = (import.meta as any).env || {};
@@ -320,7 +350,7 @@ export default function App() {
   };
 
   const handleBackFromProductPage = () => {
-    window.location.href = window.location.pathname;
+    window.location.href = getHomePageUrl();
   };
 
   // Handler when clicking categories - sets view to products page and selects category filter
