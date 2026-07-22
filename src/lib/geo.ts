@@ -9,25 +9,23 @@ const CACHE_TIME_KEY = "tikatkom_user_country_timestamp";
 const ONE_DAY_MS = 24 * 60 * 60 * 1000; // Cache for 24 hours
 
 export async function getUserCountryCode(): Promise<string> {
-  // 1. Check local storage cache
-  try {
-    const cachedCountry = localStorage.getItem(CACHE_KEY);
-    const cachedTimestamp = localStorage.getItem(CACHE_TIME_KEY);
-    if (cachedCountry && cachedTimestamp) {
-      const parsedTime = parseInt(cachedTimestamp, 10);
-      if (Date.now() - parsedTime < ONE_DAY_MS) {
-        return cachedCountry.toUpperCase();
-      }
+  // 1. Check URL query parameter overrides for quick testing
+  if (typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get("mode");
+    if (mode === "intl") {
+      return "US"; // Non-Algerian international code
     }
-  } catch (err) {
-    console.warn("Could not read country cache", err);
+    if (mode === "dz") {
+      return "DZ"; // Forced Algerian code
+    }
   }
 
-  // 2. Query Geolocation Services sequentially
+  // 2. Fetch live country code from HTTPS IP Geolocation Services sequentially
   const services = [
-    // Service 1: ipapi.co (Highly reliable HTTPS API)
+    // Service 1: ipapi.co (HTTPS)
     async () => {
-      const res = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(3500) });
+      const res = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(3000) });
       if (!res.ok) throw new Error(`ipapi status ${res.status}`);
       const data = await res.json();
       if (data && typeof data.country_code === "string") {
@@ -35,9 +33,9 @@ export async function getUserCountryCode(): Promise<string> {
       }
       throw new Error("Invalid response schema from ipapi");
     },
-    // Service 2: freeipapi.com (Reliable, high-speed public API)
+    // Service 2: freeipapi.com (HTTPS)
     async () => {
-      const res = await fetch("https://freeipapi.com/api/json", { signal: AbortSignal.timeout(3500) });
+      const res = await fetch("https://freeipapi.com/api/json", { signal: AbortSignal.timeout(3000) });
       if (!res.ok) throw new Error(`freeipapi status ${res.status}`);
       const data = await res.json();
       if (data && typeof data.countryCode === "string") {
@@ -45,9 +43,9 @@ export async function getUserCountryCode(): Promise<string> {
       }
       throw new Error("Invalid response schema from freeipapi");
     },
-    // Service 3: ipinfo.io (Simple JSON API)
+    // Service 3: ipinfo.io (HTTPS)
     async () => {
-      const res = await fetch("https://ipinfo.io/json", { signal: AbortSignal.timeout(3500) });
+      const res = await fetch("https://ipinfo.io/json", { signal: AbortSignal.timeout(3000) });
       if (!res.ok) throw new Error(`ipinfo status ${res.status}`);
       const data = await res.json();
       if (data && typeof data.country === "string") {
@@ -61,14 +59,7 @@ export async function getUserCountryCode(): Promise<string> {
     try {
       const countryCode = await service();
       if (countryCode && countryCode.length === 2) {
-        console.log(`[Geo API] Detected Country: ${countryCode}`);
-        // Cache result
-        try {
-          localStorage.setItem(CACHE_KEY, countryCode);
-          localStorage.setItem(CACHE_TIME_KEY, String(Date.now()));
-        } catch (e) {
-          console.warn("Could not save country cache", e);
-        }
+        console.log(`[Geo API] Live Detected Country: ${countryCode}`);
         return countryCode;
       }
     } catch (error) {
@@ -76,7 +67,7 @@ export async function getUserCountryCode(): Promise<string> {
     }
   }
 
-  // Final fallback to DZ (Algeria) if all APIs are down or blocked
+  // Fallback to DZ (Algeria) if all IP APIs fail
   console.warn("[Geo API] All geolocation APIs failed. Defaulting to Algeria (DZ).");
   return "DZ";
 }

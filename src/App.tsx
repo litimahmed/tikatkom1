@@ -74,21 +74,21 @@ export default function App() {
 
   // Geolocation & Mode state: DZ (Algeria COD Mode) or International (Traditional Checkout/Cart)
   const [isAlgerian, setIsAlgerian] = useState<boolean>(() => {
-    const params = new URLSearchParams(window.location.search);
-    const modeParam = params.get("mode");
-    if (modeParam === "intl") {
-      localStorage.setItem("tikatkom_force_mode", "intl");
-      return false;
-    } else if (modeParam === "dz") {
-      localStorage.setItem("tikatkom_force_mode", "dz");
-      return true;
+    // Clear any stale local storage locks from previous runs
+    try {
+      localStorage.removeItem("tikatkom_force_mode");
+      localStorage.removeItem("tikatkom_user_country");
+      localStorage.removeItem("tikatkom_user_country_timestamp");
+    } catch {
+      // ignore
     }
 
-    const savedMode = localStorage.getItem("tikatkom_force_mode");
-    if (savedMode === "intl") return false;
-    if (savedMode === "dz") return true;
+    const params = new URLSearchParams(window.location.search);
+    const modeParam = params.get("mode");
+    if (modeParam === "intl") return false;
+    if (modeParam === "dz") return true;
 
-    // Default to true (Algeria) while loading to avoid flash
+    // Default to true (Algeria) while live IP check finishes to avoid layout flash
     return true;
   });
 
@@ -118,10 +118,16 @@ export default function App() {
 
   // Detect Country on mount
   useEffect(() => {
-    const savedMode = localStorage.getItem("tikatkom_force_mode");
     const params = new URLSearchParams(window.location.search);
-    if (savedMode || params.get("mode")) {
-      setDetectedCountry(savedMode === "intl" ? "International Mode" : "Algeria Mode");
+    const modeParam = params.get("mode");
+
+    if (modeParam === "intl") {
+      setIsAlgerian(false);
+      setDetectedCountry("International Mode (?mode=intl)");
+      return;
+    } else if (modeParam === "dz") {
+      setIsAlgerian(true);
+      setDetectedCountry("Algeria Mode (?mode=dz)");
       return;
     }
 
@@ -129,11 +135,7 @@ export default function App() {
       try {
         const country = await getUserCountryCode();
         setDetectedCountry(country);
-        if (country !== "DZ") {
-          setIsAlgerian(false);
-        } else {
-          setIsAlgerian(true);
-        }
+        setIsAlgerian(country === "DZ");
       } catch (err) {
         console.error("Failed to detect user country, keeping default (Algeria).", err);
       }
