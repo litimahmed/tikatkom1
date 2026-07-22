@@ -141,8 +141,8 @@ export default function App() {
     window.location.reload();
   };
 
-  // Page Routing State: "home" or "products"
-  const [view, setView] = useState<"home" | "products">(() => {
+  // Page Routing State: "home" | "products"
+  const [view, setView] = useState<"home" | "products">((): "home" | "products" => {
     const currentPath = window.location.pathname;
     const params = new URLSearchParams(window.location.search);
     if (
@@ -242,7 +242,14 @@ export default function App() {
 
   const handleProceedToCheckout = () => {
     setIsCartOpen(false);
-    setIsIntlCheckoutOpen(true);
+    if (isAlgerian) {
+      if (cartItems.length > 0) {
+        setCheckoutProduct(cartItems[0].product);
+      }
+      setIsCheckoutOpen(true);
+    } else {
+      setIsIntlCheckoutOpen(true);
+    }
   };
 
   const handleOrderSuccess = (receipt: { orderId: string; trackingCode: string; grandTotal: number }) => {
@@ -254,14 +261,16 @@ export default function App() {
 
   // Handler to open order form for a selected product
   const handleOpenCheckout = (product: Product) => {
-    if (!isAlgerian) {
-      // International Mode: Add to local headless cart & open drawer
-      handleAddToCart(product);
-      return;
-    }
-
     setCheckoutProduct(product);
-    setIsCheckoutOpen(true);
+    if (isAlgerian) {
+      setIsCheckoutOpen(true);
+    } else {
+      setCartItems((prev) => {
+        if (prev.some((item) => item.product.id === product.id)) return prev;
+        return [{ product, quantity: 1 }, ...prev];
+      });
+      setIsIntlCheckoutOpen(true);
+    }
   };
 
   // Handler when clicking categories - sets view to products page and selects category filter
