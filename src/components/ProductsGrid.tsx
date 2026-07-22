@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { translations } from "../data";
 import { Product, Category } from "../types";
-import { Star } from "lucide-react";
+import { Star, ShoppingBag, Plus } from "lucide-react";
 
 interface ProductsGridProps {
   lang: "fr" | "ar";
   onBuyClick: (product: Product) => void;
+  onAddToCart?: (product: Product) => void;
   selectedCategory: string | null;
   setSelectedCategory: (catId: string | null) => void;
   products: Product[];
@@ -15,6 +16,7 @@ interface ProductsGridProps {
 export default function ProductsGrid({
   lang,
   onBuyClick,
+  onAddToCart,
   selectedCategory,
   setSelectedCategory,
   products,
@@ -160,13 +162,27 @@ export default function ProductsGrid({
                   </div>
 
                   {/* Button Action */}
-                  <button
-                    onClick={() => onBuyClick(product)}
-                    className="mt-6 w-full rounded-xl bg-brand-navy dark:bg-[#262626] py-3 px-4 text-xs font-bold text-white transition-all duration-200 hover:bg-brand-green hover:shadow-md hover:shadow-brand-green/20 active:scale-[0.98] cursor-pointer"
-                    id={`buy-btn-${product.id}`}
-                  >
-                    {t.buyNow}
-                  </button>
+                  <div className="mt-6 flex items-center gap-2">
+                    <button
+                      onClick={() => onBuyClick(product)}
+                      className="flex-1 rounded-xl bg-brand-navy dark:bg-[#262626] py-3 px-3 text-xs font-bold text-white transition-all duration-200 hover:bg-brand-green hover:shadow-md hover:shadow-brand-green/20 active:scale-[0.98] cursor-pointer text-center"
+                      id={`buy-btn-${product.id}`}
+                    >
+                      {t.buyNow}
+                    </button>
+
+                    {onAddToCart && (
+                      <button
+                        onClick={() => onAddToCart(product)}
+                        className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-[#222] py-3 px-3 text-xs font-bold text-brand-navy dark:text-zinc-200 transition-all duration-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:border-emerald-300 hover:text-emerald-600 active:scale-95 cursor-pointer shadow-xs"
+                        title={lang === "fr" ? "Ajouter au panier (+1)" : "أضف إلى السلة (+1)"}
+                        id={`add-cart-btn-${product.id}`}
+                      >
+                        <ShoppingBag className="h-3.5 w-3.5" />
+                        <span className="text-[11px] font-extrabold">+1</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );

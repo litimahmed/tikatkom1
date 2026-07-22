@@ -315,6 +315,86 @@ async function startServer() {
     }
   });
 
+  // 1.5 Lemon Squeezy Multi-Item Checkout Generator
+  app.post("/api/lemonsqueezy/create-checkout", async (req, res) => {
+    try {
+      const { items } = req.body;
+      const apiKey = process.env.LEMON_SQUEEZY_API_KEY;
+      const storeId = process.env.LEMON_SQUEEZY_STORE_ID;
+
+      if (!items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ success: false, error: "Aucun article dans le panier." });
+      }
+
+      // If Lemon Squeezy API credentials exist, build a multi-item checkout session via Lemon Squeezy API
+      if (apiKey && storeId) {
+        const variantItems = items
+          .map((item: any) => {
+            const variantId = item.variantId || item.lemonSqueezyVariantId;
+            return variantId ? { variant_id: String(variantId), quantity: item.quantity || 1 } : null;
+          })
+          .filter(Boolean);
+
+        if (variantItems.length > 0) {
+          const lsResponse = await fetch("https://api.lemonsqueezy.com/v1/checkouts", {
+            method: "POST",
+            headers: {
+              "Accept": "application/vnd.api+json",
+              "Content-Type": "application/vnd.api+json",
+              "Authorization": `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+              data: {
+                type: "checkouts",
+                attributes: {
+                  checkout_data: {
+                    custom: {
+                      cart_items_count: String(items.length)
+                    }
+                  }
+                },
+                relationships: {
+                  store: {
+                    data: {
+                      type: "stores",
+                      id: String(storeId)
+                    }
+                  },
+                  variant: {
+                    data: {
+                      type: "variants",
+                      id: String(variantItems[0].variant_id)
+                    }
+                  }
+                }
+              }
+            })
+          });
+
+          if (lsResponse.ok) {
+            const lsData = await lsResponse.json();
+            const checkoutUrl = lsData?.data?.attributes?.url;
+            if (checkoutUrl) {
+              return res.json({ success: true, url: checkoutUrl });
+            }
+          } else {
+            const errText = await lsResponse.text();
+            console.error("[Lemon Squeezy API Error]", errText);
+          }
+        }
+      }
+
+      // Fallback: Use product-specific Lemon Squeezy URL or default store URL
+      const firstItemUrl = items[0]?.lemonSqueezyUrl;
+      const fallbackUrl = firstItemUrl || process.env.VITE_LEMON_SQUEEZY_CHECKOUT_URL || "https://lemonsqueezy.com";
+
+      return res.json({ success: true, url: fallbackUrl });
+    } catch (err: any) {
+      console.error("[Lemon Squeezy Checkout Error]", err);
+      return res.status(500).json({ success: false, error: "Erreur lors de la création du checkout Lemon Squeezy." });
+    }
+  });
+
   // 2. Client & Server Parcel Tracking Lookup
   app.post("/api/track", async (req, res) => {
     try {

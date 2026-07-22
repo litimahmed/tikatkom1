@@ -16,6 +16,7 @@ export interface Product {
   featuresFR: string[];
   featuresAR: string[];
   tags?: Array<{ id: number; name: string; slug: string }>;
+  lemonSqueezyUrl?: string;
 }
 
 export interface Category {

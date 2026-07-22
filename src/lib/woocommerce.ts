@@ -184,6 +184,15 @@ export function mapWooProduct(wpProduct: any): Product {
     badgeAR = tagInfo.ar;
   }
 
+  // Extract custom Lemon Squeezy URL if defined in meta or attributes
+  let lemonSqueezyUrl = undefined;
+  if (wpProduct.meta_data && Array.isArray(wpProduct.meta_data)) {
+    const foundMeta = wpProduct.meta_data.find((m: any) => 
+      m.key === "lemon_squeezy_url" || m.key === "lemonsqueezy_url" || m.key === "checkout_url"
+    );
+    if (foundMeta) lemonSqueezyUrl = foundMeta.value;
+  }
+
   return {
     id: String(wpProduct.id),
     titleFR: titleInfo.fr || wpProduct.name,
@@ -201,7 +210,8 @@ export function mapWooProduct(wpProduct: any): Product {
     stockStatus,
     featuresFR,
     featuresAR,
-    tags: wpProduct.tags ? wpProduct.tags.map((t: any) => ({ id: t.id, name: t.name, slug: t.slug })) : undefined
+    tags: wpProduct.tags ? wpProduct.tags.map((t: any) => ({ id: t.id, name: t.name, slug: t.slug })) : undefined,
+    lemonSqueezyUrl
   };
 }
 

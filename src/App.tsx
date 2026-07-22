@@ -237,7 +237,7 @@ export default function App() {
     setCartItems((prev) => prev.filter((item) => item.product.id !== productId));
   };
 
-  const handleProceedToCheckout = () => {
+  const handleProceedToCheckout = async () => {
     setIsCartOpen(false);
     if (isAlgerian) {
       if (cartItems.length > 0) {
@@ -245,11 +245,40 @@ export default function App() {
       }
       setIsCheckoutOpen(true);
     } else {
-      // International Lemon Squeezy / Stripe Hosted Checkout Redirect
+      // International Lemon Squeezy Hosted Checkout Redirect
       const env = (import.meta as any).env || {};
-      const lemonSqueezyUrl = env.VITE_LEMON_SQUEEZY_CHECKOUT_URL || "https://lemonsqueezy.com";
-      console.log(`[Lemon Squeezy] Redirecting international buyer to hosted Stripe checkout: ${lemonSqueezyUrl}`);
-      window.location.href = lemonSqueezyUrl;
+      const fallbackUrl =
+        (cartItems.length > 0 && cartItems[0].product.lemonSqueezyUrl) ||
+        env.VITE_LEMON_SQUEEZY_CHECKOUT_URL ||
+        "https://lemonsqueezy.com";
+
+      try {
+        const payload = {
+          items: cartItems.map((item) => ({
+            id: item.product.id,
+            title: lang === "fr" ? item.product.titleFR : item.product.titleAR,
+            price: item.product.price,
+            quantity: item.quantity,
+            lemonSqueezyUrl: item.product.lemonSqueezyUrl,
+          })),
+        };
+
+        const res = await fetch("/api/lemonsqueezy/create-checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        if (data.success && data.url) {
+          window.location.href = data.url;
+          return;
+        }
+      } catch (err) {
+        console.error("[Lemon Squeezy] API checkout call failed, using direct URL", err);
+      }
+
+      window.location.href = fallbackUrl;
     }
   };
 
@@ -261,7 +290,7 @@ export default function App() {
     } else {
       // Direct international buyer to product Lemon Squeezy hosted checkout page
       const env = (import.meta as any).env || {};
-      const lemonUrl = env.VITE_LEMON_SQUEEZY_CHECKOUT_URL || "https://lemonsqueezy.com";
+      const lemonUrl = product.lemonSqueezyUrl || env.VITE_LEMON_SQUEEZY_CHECKOUT_URL || "https://lemonsqueezy.com";
       console.log(`[Lemon Squeezy] Redirecting for product ${product.id} to Lemon Squeezy checkout: ${lemonUrl}`);
       window.location.href = lemonUrl;
     }
@@ -348,6 +377,7 @@ export default function App() {
             <HomeSections 
               lang={lang}
               onBuyClick={handleOpenCheckout}
+              onAddToCart={handleAddToCart}
               onViewAllClick={handleViewAllClick}
               products={products}
               categories={categories}
@@ -380,6 +410,7 @@ export default function App() {
             <ProductsGrid 
               lang={lang} 
               onBuyClick={handleOpenCheckout}
+              onAddToCart={handleAddToCart}
               selectedCategory={selectedCategory}
               setSelectedCategory={setSelectedCategory}
               products={products}

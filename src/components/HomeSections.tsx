@@ -1,4 +1,4 @@
-import { ArrowRight, ArrowLeft } from "lucide-react";
+import { ArrowRight, ArrowLeft, ShoppingBag } from "lucide-react";
 import { getProductsForSection } from "../lib/woocommerce";
 import { Product, Category } from "../types";
 import AutoSlider from "./AutoSlider";
@@ -6,12 +6,13 @@ import AutoSlider from "./AutoSlider";
 interface HomeSectionsProps {
   lang: "fr" | "ar";
   onBuyClick: (product: Product) => void;
+  onAddToCart?: (product: Product) => void;
   onViewAllClick: (categoryId: string | null) => void;
   products: Product[];
   categories: Category[];
 }
 
-export default function HomeSections({ lang, onBuyClick, onViewAllClick, products, categories }: HomeSectionsProps) {
+export default function HomeSections({ lang, onBuyClick, onAddToCart, onViewAllClick, products, categories }: HomeSectionsProps) {
   const isRTL = lang === "ar";
 
   // Select filtered subsets of products for each of the 4 sections
@@ -112,14 +113,28 @@ export default function HomeSections({ lang, onBuyClick, onViewAllClick, product
                     )}
                   </div>
 
-                  {/* CTA Order Button */}
-                  <button
-                    onClick={() => onBuyClick(product)}
-                    className="mt-3 w-full rounded-full bg-brand-navy dark:bg-[#262626] py-2.5 px-4 text-[10px] font-bold text-white transition-all duration-200 hover:bg-brand-green dark:hover:bg-brand-green hover:shadow-sm active:scale-[0.98] cursor-pointer"
-                    id={`home-buy-btn-${sec.id}-${product.id}`}
-                  >
-                    {lang === "fr" ? "Acheter Maintenant" : "اشتري الآن"}
-                  </button>
+                  {/* CTA Order Buttons */}
+                  <div className="mt-3 flex items-center gap-1.5">
+                    <button
+                      onClick={() => onBuyClick(product)}
+                      className="flex-1 rounded-full bg-brand-navy dark:bg-[#262626] py-2.5 px-3 text-[10px] font-bold text-white transition-all duration-200 hover:bg-brand-green dark:hover:bg-brand-green hover:shadow-sm active:scale-[0.98] cursor-pointer text-center"
+                      id={`home-buy-btn-${sec.id}-${product.id}`}
+                    >
+                      {lang === "fr" ? "Acheter Maintenant" : "اشتري الآن"}
+                    </button>
+
+                    {onAddToCart && (
+                      <button
+                        onClick={() => onAddToCart(product)}
+                        className="flex items-center justify-center gap-1 rounded-full border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-[#222] py-2.5 px-2.5 text-[10px] font-bold text-brand-navy dark:text-zinc-200 transition-all duration-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:border-emerald-300 hover:text-emerald-600 active:scale-95 cursor-pointer"
+                        title={lang === "fr" ? "Ajouter au panier (+1)" : "أضف إلى السلة (+1)"}
+                        id={`home-add-cart-btn-${sec.id}-${product.id}`}
+                      >
+                        <ShoppingBag className="h-3 w-3" />
+                        <span className="text-[10px] font-extrabold">+1</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
