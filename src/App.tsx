@@ -319,27 +319,8 @@ export default function App() {
     setCheckoutProduct(product);
     setCheckoutItems([{ product, quantity: 1 }]);
     if (isAlgerian) {
-      // Direct hard load to standalone product page
-      if (product.permalink) {
-        window.location.href = product.permalink;
-        return;
-      }
-      const wpBase = detectWordPressBaseUrl();
-      const currentUrl = new URL(window.location.href);
-      const isDevPreview =
-        currentUrl.port === "3000" ||
-        currentUrl.hostname.includes("run.app") ||
-        currentUrl.hostname.includes("ais-dev") ||
-        currentUrl.hostname.includes("ais-pre");
-
-      if (isDevPreview) {
-        const target = new URL(window.location.pathname, window.location.origin);
-        target.searchParams.set("product", product.id);
-        window.location.href = target.toString();
-      } else {
-        const cleanBase = wpBase.replace(/\/$/, "");
-        window.location.href = `${cleanBase}/?product=${encodeURIComponent(product.id)}`;
-      }
+      // Open the custom tailored Algerian Cash-On-Delivery popup modal
+      setIsCheckoutOpen(true);
     } else {
       // Direct international buyer to product Lemon Squeezy hosted checkout page
       const env = (import.meta as any).env || {};
