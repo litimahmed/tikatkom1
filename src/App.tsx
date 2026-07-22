@@ -308,8 +308,8 @@ export default function App() {
     setCheckoutProduct(product);
     setCheckoutItems([{ product, quantity: 1 }]);
     if (isAlgerian) {
-      // Directly open the checkout modal order form instantly
-      setIsCheckoutOpen(true);
+      // Direct hard load to standalone product page
+      window.location.href = `/?product=${encodeURIComponent(product.id)}`;
     } else {
       // Direct international buyer to product Lemon Squeezy hosted checkout page
       const env = (import.meta as any).env || {};
@@ -320,29 +320,22 @@ export default function App() {
   };
 
   const handleBackFromProductPage = () => {
-    setSelectedProduct(null);
-    setView("home");
-    if (window.history && window.history.pushState) {
-      window.history.pushState({}, "", window.location.pathname);
-    }
+    window.location.href = window.location.pathname;
   };
 
   // Handler when clicking categories - sets view to products page and selects category filter
   const handleCategoryClick = (categoryId: string) => {
-    setSelectedCategory(categoryId);
-    setView("shop");
+    window.location.href = getStorePageUrl(categoryId);
   };
 
   // Handler for homepage section view all - goes to products page with category selected
   const handleViewAllClick = (categoryId: string | null) => {
-    setSelectedCategory(categoryId);
-    setView("shop");
+    window.location.href = getStorePageUrl(categoryId);
   };
 
   // Handler for hero exploratory CTA - goes to products page
   const handleExploreClick = () => {
-    setSelectedCategory(null);
-    setView("shop");
+    window.location.href = getStorePageUrl(null);
   };
 
   // Handler for hero direct buyout CTA - opens checkout for flagship product
@@ -357,12 +350,7 @@ export default function App() {
 
   // Handle Logo click - goes back home and resets filters
   const handleLogoClick = () => {
-    setSelectedProduct(null);
-    setSelectedCategory(null);
-    setView("home");
-    if (window.history && window.history.pushState) {
-      window.history.pushState({}, "", window.location.pathname);
-    }
+    window.location.href = getHomePageUrl();
   };
 
   return (
