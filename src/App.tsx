@@ -16,7 +16,6 @@ import { ChevronRight, ChevronLeft, Globe } from "lucide-react";
 import { getWooCategories, getWooProducts, detectWordPressBaseUrl } from "./lib/woocommerce";
 import { getUserCountryCode } from "./lib/geo";
 import CartDrawer from "./components/CartDrawer";
-import InternationalCheckout from "./components/InternationalCheckout";
 
 // Clean navigation helpers for traditional page reloads (hard loading)
 export function getStorePageUrl(categoryId?: string | null): string {
@@ -83,7 +82,7 @@ export default function App() {
 
   const [detectedCountry, setDetectedCountry] = useState<string>("");
   
-  // Headless Cart & Checkout States for International users
+  // Headless Cart States for International users
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
     try {
       const saved = localStorage.getItem("tikatkom_cart");
@@ -93,8 +92,6 @@ export default function App() {
     }
   });
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
-  const [isIntlCheckoutOpen, setIsIntlCheckoutOpen] = useState<boolean>(false);
-  const [successReceipt, setSuccessReceipt] = useState<{ orderId: string; trackingCode: string; grandTotal: number } | null>(null);
 
   // Synchronize cart state to localStorage for persistence
   useEffect(() => {
@@ -248,15 +245,12 @@ export default function App() {
       }
       setIsCheckoutOpen(true);
     } else {
-      setIsIntlCheckoutOpen(true);
+      // International Lemon Squeezy / Stripe Hosted Checkout Redirect
+      const env = (import.meta as any).env || {};
+      const lemonSqueezyUrl = env.VITE_LEMON_SQUEEZY_CHECKOUT_URL || "https://lemonsqueezy.com";
+      console.log(`[Lemon Squeezy] Redirecting international buyer to hosted Stripe checkout: ${lemonSqueezyUrl}`);
+      window.location.href = lemonSqueezyUrl;
     }
-  };
-
-  const handleOrderSuccess = (receipt: { orderId: string; trackingCode: string; grandTotal: number }) => {
-    setCartItems([]);
-    localStorage.removeItem("tikatkom_cart");
-    setIsIntlCheckoutOpen(false);
-    setSuccessReceipt(receipt);
   };
 
   // Handler to open order form for a selected product
@@ -265,11 +259,11 @@ export default function App() {
     if (isAlgerian) {
       setIsCheckoutOpen(true);
     } else {
-      setCartItems((prev) => {
-        if (prev.some((item) => item.product.id === product.id)) return prev;
-        return [{ product, quantity: 1 }, ...prev];
-      });
-      setIsIntlCheckoutOpen(true);
+      // Direct international buyer to product Lemon Squeezy hosted checkout page
+      const env = (import.meta as any).env || {};
+      const lemonUrl = env.VITE_LEMON_SQUEEZY_CHECKOUT_URL || "https://lemonsqueezy.com";
+      console.log(`[Lemon Squeezy] Redirecting for product ${product.id} to Lemon Squeezy checkout: ${lemonUrl}`);
+      window.location.href = lemonUrl;
     }
   };
 
@@ -433,62 +427,6 @@ export default function App() {
         onProceedToCheckout={handleProceedToCheckout}
         lang={lang}
       />
-
-      {/* Headless Custom Checkout Page for International Clients */}
-      <InternationalCheckout
-        isOpen={isIntlCheckoutOpen}
-        onClose={() => setIsIntlCheckoutOpen(false)}
-        cartItems={cartItems}
-        lang={lang}
-        onOrderSuccess={handleOrderSuccess}
-      />
-
-      {/* Premium Order Success Receipt Modal */}
-      {successReceipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-3xl border border-gray-100 dark:border-zinc-800 p-6 text-center shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-brand-green to-emerald-500"></div>
-            
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/20 text-emerald-500">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-
-            <h3 className="text-xl font-black text-brand-navy dark:text-white mb-2 font-arabic">
-              {lang === "fr" ? "Commande Confirmée !" : "تم تأكيد طلبك بنجاح !"}
-            </h3>
-            
-            <p className="text-xs text-gray-500 dark:text-zinc-400 mb-6 font-arabic">
-              {lang === "fr"
-                ? "Merci pour votre confiance ! Votre commande a été transmise à notre équipe."
-                : "شكرًا لثقتكم بنا ! تم تسجيل طلبكم بنجاح وجاري العمل على معالجته."}
-            </p>
-
-            <div className="bg-gray-50 dark:bg-zinc-950/50 rounded-2xl p-4 text-left text-xs space-y-2.5 border border-gray-100 dark:border-zinc-800/80 mb-6 font-semibold text-gray-600 dark:text-zinc-400" style={{ direction: "ltr" }}>
-              <div className="flex justify-between">
-                <span>{lang === "fr" ? "ID de la Commande" : "رقم الطلب"} :</span>
-                <span className="font-extrabold text-brand-navy dark:text-white">{successReceipt.orderId}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>{lang === "fr" ? "Numéro de Suivi (DHL)" : "رقم تتبع الشحنة (DHL)"} :</span>
-                <span className="font-mono font-extrabold text-brand-green">{successReceipt.trackingCode}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>{lang === "fr" ? "Total payé" : "المبلغ الإجمالي المدفوع"} :</span>
-                <span className="font-extrabold text-brand-navy dark:text-white">{successReceipt.grandTotal.toLocaleString()} DA</span>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setSuccessReceipt(null)}
-              className="w-full rounded-full bg-brand-green hover:bg-brand-green-dark py-3 text-xs sm:text-sm font-black text-white shadow-md transition-all active:scale-95 cursor-pointer"
-            >
-              {lang === "fr" ? "Continuer" : "متابعة"}
-            </button>
-          </div>
-        </div>
-      )}
 
     </div>
   );
