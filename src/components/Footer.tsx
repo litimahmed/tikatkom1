@@ -20,21 +20,19 @@ export default function Footer({ lang }: FooterProps) {
 
         {/* Right Side: Links */}
         <div className="flex items-center gap-6">
-          <a 
-            href="#mentions" 
-            className="hover:text-brand-green transition-colors"
-            onClick={(e) => e.preventDefault()}
+          <button 
+            type="button"
+            className="hover:text-brand-green transition-colors cursor-pointer"
           >
             {lang === "fr" ? "Mentions Légales" : "الشروط القانونية"}
-          </a>
+          </button>
           <span className="text-gray-600">|</span>
-          <a 
-            href="#contact" 
-            className="hover:text-brand-green transition-colors"
-            onClick={(e) => e.preventDefault()}
+          <button 
+            type="button"
+            className="hover:text-brand-green transition-colors cursor-pointer"
           >
             {lang === "fr" ? "Contact & Support" : "اتصل بنا"}
-          </a>
+          </button>
         </div>
       </div>
     </footer>

@@ -308,8 +308,8 @@ export default function App() {
     setCheckoutProduct(product);
     setCheckoutItems([{ product, quantity: 1 }]);
     if (isAlgerian) {
-      // Direct hard load to standalone product page
-      window.location.href = `/?product=${encodeURIComponent(product.id)}`;
+      // Directly open the checkout modal order form instantly
+      setIsCheckoutOpen(true);
     } else {
       // Direct international buyer to product Lemon Squeezy hosted checkout page
       const env = (import.meta as any).env || {};
@@ -320,22 +320,29 @@ export default function App() {
   };
 
   const handleBackFromProductPage = () => {
-    window.location.href = window.location.pathname;
+    setSelectedProduct(null);
+    setView("home");
+    if (window.history && window.history.pushState) {
+      window.history.pushState({}, "", window.location.pathname);
+    }
   };
 
   // Handler when clicking categories - sets view to products page and selects category filter
   const handleCategoryClick = (categoryId: string) => {
-    window.location.href = getStorePageUrl(categoryId);
+    setSelectedCategory(categoryId);
+    setView("shop");
   };
 
   // Handler for homepage section view all - goes to products page with category selected
   const handleViewAllClick = (categoryId: string | null) => {
-    window.location.href = getStorePageUrl(categoryId);
+    setSelectedCategory(categoryId);
+    setView("shop");
   };
 
   // Handler for hero exploratory CTA - goes to products page
   const handleExploreClick = () => {
-    window.location.href = getStorePageUrl(null);
+    setSelectedCategory(null);
+    setView("shop");
   };
 
   // Handler for hero direct buyout CTA - opens checkout for flagship product
@@ -350,7 +357,12 @@ export default function App() {
 
   // Handle Logo click - goes back home and resets filters
   const handleLogoClick = () => {
-    window.location.href = getHomePageUrl();
+    setSelectedProduct(null);
+    setSelectedCategory(null);
+    setView("home");
+    if (window.history && window.history.pushState) {
+      window.history.pushState({}, "", window.location.pathname);
+    }
   };
 
   return (
