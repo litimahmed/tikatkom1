@@ -3,9 +3,9 @@ import { Product, Category, Wilaya } from "./types";
 export const translations = {
   fr: {
     logo: "TIKATKOM",
-    shippingPill: "YLD 🚚",
-    shippingTitle: "Livraison Sécurisée via Yalidine Express",
-    shippingDesc: "Livraison ultra-rapide sur les 58 Wilayas d'Algérie. Option de livraison à domicile ou retrait directement dans l'un des bureaux officiels Yalidine.",
+    shippingPill: "ZR Express 🚚",
+    shippingTitle: "Livraison Sécurisée via ZR Express",
+    shippingDesc: "Livraison ultra-rapide sur les 58 Wilayas d'Algérie. Option de livraison à domicile ou retrait directement dans l'un des bureaux officiels ZR Express.",
     shippingClose: "Compris",
     langToggle: "العربية",
     langCode: "ar",
@@ -88,9 +88,9 @@ export const translations = {
   },
   ar: {
     logo: "TIKATKOM",
-    shippingPill: "YLD 🚚",
-    shippingTitle: "شحن آمن وسريع عبر ياليدين إكسبريس",
-    shippingDesc: "توصيل سريع وآمن إلى جميع ولايات الوطن (58 ولاية). يمكنك اختيار التوصيل لباب المنزل مباشرة أو استلام الطرد بنفسك من مكتب ياليدين الأقرب إليك.",
+    shippingPill: "ZR Express 🚚",
+    shippingTitle: "شحن آمن وسريع عبر زد آر إكسبريس",
+    shippingDesc: "توصيل سريع وآمن إلى جميع ولايات الوطن (58 ولاية). يمكنك اختيار التوصيل لباب المنزل مباشرة أو استلام الطرد بنفسك من مكتب زد آر إكسبريس الأقرب إليك.",
     shippingClose: "موافق",
     langToggle: "Français",
     langCode: "fr",
@@ -114,7 +114,7 @@ export const translations = {
       },
       {
         title: "توصيل سريع / Livraison Rapide",
-        desc: "شحن سريع عبر ياليدين إكسبريس إلى جميع ولايات الوطن بأسعار مخفضة."
+        desc: "شحن سريع عبر زد آر إكسبريس إلى جميع ولايات الوطن بأسعار مخفضة."
       },
       {
         title: "جودة مضمونة / Qualité Garantie",
@@ -147,7 +147,7 @@ export const translations = {
     formAddress: "العنوان بالتفصيل (اختياري)",
     formDeliveryMode: "طريقة التوصيل المفضل",
     formHome: "توصيل لباب المنزل مباشرة",
-    formDesk: "الاستلام من مكتب ياليدين إكسبريس",
+    formDesk: "الاستلام من مكتب زد آر إكسبريس",
     formQty: "الكمية المطلوبة",
     formNotes: "ملاحظات إضافية (مثال: وقت التوصيل المفضل، معلم قرب البيت)",
     formNotesPlaceholder: "مثال: يرجى الاتصال بي قبل القدوم...",

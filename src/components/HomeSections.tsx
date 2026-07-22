@@ -48,7 +48,7 @@ export default function HomeSections({ lang, onBuyClick, onAddToCart, onViewAllC
   ];
 
   return (
-    <div className="space-y-16 py-12 lg:py-16">
+    <div className="space-y-10 sm:space-y-16 py-8 sm:py-16">
       {sectionsData.map((sec) => {
         // Find products belonging to this section using our high-fidelity WooCommerce tags filter
         const secProducts = getProductsForSection(products, sec.id);
@@ -65,20 +65,16 @@ export default function HomeSections({ lang, onBuyClick, onAddToCart, onViewAllC
               id={`home-product-card-${sec.id}-${product.id}`}
             >
               {/* Image Section */}
-              <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-50 dark:bg-[#262626]">
+              <div 
+                onClick={() => onBuyClick(product)}
+                className="relative aspect-square overflow-hidden rounded-xl bg-gray-50 dark:bg-[#262626] cursor-pointer"
+              >
                 <img
                   src={product.image}
                   alt={title}
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   referrerPolicy="no-referrer"
                 />
-                
-                {/* Badge overlay */}
-                {badge && (
-                  <span className={`absolute top-2.5 ${isRTL ? "right-2.5" : "left-2.5"} rounded bg-brand-green px-1.5 py-0.5 text-[8px] font-extrabold text-white uppercase tracking-wider`}>
-                    {badge}
-                  </span>
-                )}
               </div>
 
               {/* Info Section */}
@@ -95,7 +91,10 @@ export default function HomeSections({ lang, onBuyClick, onAddToCart, onViewAllC
                   </div>
 
                   {/* Product Title */}
-                  <h4 className="font-arabic font-extrabold text-xs text-brand-navy dark:text-zinc-100 mt-1.5 leading-snug line-clamp-2 group-hover:text-brand-green transition-colors sm:text-sm">
+                  <h4 
+                    onClick={() => onBuyClick(product)}
+                    className="font-arabic font-extrabold text-xs text-brand-navy dark:text-zinc-100 mt-1.5 leading-snug line-clamp-2 group-hover:text-brand-green transition-colors sm:text-sm cursor-pointer"
+                  >
                     {title}
                   </h4>
                 </div>
@@ -146,11 +145,11 @@ export default function HomeSections({ lang, onBuyClick, onAddToCart, onViewAllC
             style={{ direction: isRTL ? "rtl" : "ltr" }}
           >
             {/* Section Title Bar */}
-            <div className="flex items-end justify-between border-b border-gray-100 dark:border-zinc-800 pb-4 mb-8">
-              <div className="flex flex-col gap-y-2">
+            <div className="flex items-end justify-between border-b border-gray-100 dark:border-zinc-800 pb-3 mb-5 sm:pb-4 sm:mb-8">
+              <div className="flex flex-col gap-y-1 sm:gap-y-2">
                 {/* French or Arabic Subtitle */}
                 {isRTL ? (
-                  <p className="font-arabic text-sm font-bold text-brand-green tracking-wide">
+                  <p className="font-arabic text-xs sm:text-sm font-bold text-brand-green tracking-wide">
                     {sec.subtitleAR}
                   </p>
                 ) : (
@@ -160,7 +159,7 @@ export default function HomeSections({ lang, onBuyClick, onAddToCart, onViewAllC
                 )}
                 
                 {/* Bold Arabic Main Heading */}
-                <h3 className={`text-brand-navy dark:text-white tracking-tight text-3xl sm:text-4xl ${isRTL ? "font-arabic font-black" : "font-sans font-black"}`}>
+                <h3 className={`text-brand-navy dark:text-white tracking-tight text-xl sm:text-3xl ${isRTL ? "font-arabic font-black" : "font-sans font-black"}`}>
                   {isRTL ? sec.titleAR : sec.titleFR}
                 </h3>
               </div>

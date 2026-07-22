@@ -5,6 +5,7 @@ import BrandBanner from "./components/BrandBanner";
 import CategoriesGrid from "./components/CategoriesGrid";
 import HomeSections from "./components/HomeSections";
 import ProductsGrid from "./components/ProductsGrid";
+import ProductPage from "./components/ProductPage";
 import Footer from "./components/Footer";
 import ShippingModal from "./components/ShippingModal";
 import CheckoutModal from "./components/CheckoutModal";
@@ -138,10 +139,13 @@ export default function App() {
     window.location.reload();
   };
 
-  // Page Routing State: "home" | "products"
-  const [view, setView] = useState<"home" | "products">((): "home" | "products" => {
+  // Page Routing State: "home" | "products" | "product"
+  const [view, setView] = useState<"home" | "products" | "product">((): "home" | "products" | "product" => {
     const currentPath = window.location.pathname;
     const params = new URLSearchParams(window.location.search);
+    if (params.get("product") || params.get("id")) {
+      return "product";
+    }
     if (
       currentPath.includes("/shop") || 
       currentPath.includes("/catalog") || 
@@ -152,6 +156,9 @@ export default function App() {
     }
     return "home";
   });
+
+  // Selected Product State for dedicated product page view
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   // Dynamic Catalog States: initialized empty to prevent flashing of hardcoded data
   const [products, setProducts] = useState<Product[]>([]);
@@ -170,6 +177,19 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     return params.get("category");
   });
+
+  // Check URL params for direct product linking
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get("product") || params.get("id");
+    if (productId && products.length > 0) {
+      const found = products.find((p) => p.id === productId);
+      if (found) {
+        setSelectedProduct(found);
+        setView("product");
+      }
+    }
+  }, [products]);
 
   // Fetch from live WooCommerce backend on mount
   useEffect(() => {
@@ -284,10 +304,12 @@ export default function App() {
 
   // Handler to open order form for a selected product
   const handleOpenCheckout = (product: Product) => {
+    setSelectedProduct(product);
     setCheckoutProduct(product);
     setCheckoutItems([{ product, quantity: 1 }]);
     if (isAlgerian) {
-      setIsCheckoutOpen(true);
+      // Direct hard load to standalone product page
+      window.location.href = `/?product=${encodeURIComponent(product.id)}`;
     } else {
       // Direct international buyer to product Lemon Squeezy hosted checkout page
       const env = (import.meta as any).env || {};
@@ -295,6 +317,10 @@ export default function App() {
       console.log(`[Lemon Squeezy] Redirecting for product ${product.id} to Lemon Squeezy checkout: ${lemonUrl}`);
       window.location.href = lemonUrl;
     }
+  };
+
+  const handleBackFromProductPage = () => {
+    window.location.href = window.location.pathname;
   };
 
   // Handler when clicking categories - sets view to products page and selects category filter
@@ -339,6 +365,7 @@ export default function App() {
         isAlgerian={isAlgerian}
         onOpenCart={() => setIsCartOpen(true)}
         cartCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
+        onOpenTracking={() => setIsTrackingOpen(true)}
       />
 
       <main>
@@ -354,18 +381,30 @@ export default function App() {
               {lang === "ar" ? "جاري تحميل المتجر..." : "Chargement de la boutique..."}
             </p>
           </div>
+        ) : view === "product" && selectedProduct ? (
+          <ProductPage
+            product={selectedProduct}
+            lang={lang}
+            onBack={handleBackFromProductPage}
+            onAddToCart={handleAddToCart}
+            isAlgerian={isAlgerian}
+          />
         ) : view === "home" ? (
           <>
-            {/* 2. Hero Section */}
-            <Hero 
-              lang={lang} 
-              onExploreClick={handleExploreClick}
-              onBuyFlagshipClick={handleBuyFlagshipClick}
-              products={products}
-            />
+            {/* 2. Hero Section (Hidden on Mobile) */}
+            <div className="hidden sm:block">
+              <Hero 
+                lang={lang} 
+                onExploreClick={handleExploreClick}
+                onBuyFlagshipClick={handleBuyFlagshipClick}
+                products={products}
+              />
+            </div>
 
-            {/* 3. Brand & Trust Signature Banner */}
-            <BrandBanner lang={lang} />
+            {/* 3. Brand & Trust Signature Banner (Second Section - Hidden on Mobile) */}
+            <div className="hidden sm:block">
+              <BrandBanner lang={lang} />
+            </div>
 
             {/* 4. Categories Section */}
             <CategoriesGrid 

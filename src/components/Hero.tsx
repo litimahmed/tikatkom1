@@ -17,44 +17,44 @@ export default function Hero({ lang, onExploreClick, onBuyFlagshipClick, product
   const isRTL = lang === "ar";
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-white via-gray-50/50 to-white dark:from-[#0f0f10] dark:via-zinc-900/50 dark:to-[#0f0f10] py-12 md:py-20 lg:py-24">
+    <section className="relative overflow-hidden bg-gradient-to-b from-white via-gray-50/50 to-white dark:from-[#0f0f10] dark:via-zinc-900/50 dark:to-[#0f0f10] py-8 sm:py-16 lg:py-20">
       {/* Abstract Design Elements */}
       <div className="absolute -top-40 right-0 -z-10 h-96 w-96 rounded-full bg-brand-green/5 blur-3xl"></div>
       <div className="absolute top-1/2 left-0 -z-10 h-72 w-72 rounded-full bg-brand-navy/5 blur-3xl"></div>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div 
-          className={`grid grid-cols-1 items-center gap-12 lg:grid-cols-12`}
+          className={`grid grid-cols-1 items-center gap-8 lg:gap-12 lg:grid-cols-12`}
           style={{ direction: isRTL ? "rtl" : "ltr" }}
         >
           {/* Text Content */}
-          <div className={`lg:col-span-7 flex flex-col justify-center space-y-6 text-center items-center lg:items-start ${isRTL ? "lg:text-right" : "lg:text-left"}`}>
+          <div className={`lg:col-span-7 flex flex-col justify-center space-y-4 sm:space-y-6 text-center items-center lg:items-start ${isRTL ? "lg:text-right" : "lg:text-left"}`}>
             
             {/* Main Bold Arabic Heading */}
-            <h1 className="font-display text-4xl font-extrabold tracking-tight text-brand-navy dark:text-white sm:text-5xl lg:text-6xl lg:leading-[1.15] w-full">
+            <h1 className="font-display text-2xl sm:text-4xl lg:text-6xl font-black tracking-tight text-brand-navy dark:text-white leading-tight sm:leading-tight lg:leading-[1.15] w-full">
               {isRTL ? (
                 <span className="text-brand-navy dark:text-white font-arabic font-black">
-                  منتجات مختارة <br />
+                  منتجات مختارة <br className="hidden sm:inline" />
                   <span className="bg-gradient-to-r from-brand-green to-emerald-600 bg-clip-text text-transparent">بجودة مضمونة</span>
                 </span>
               ) : (
-                <span className="text-brand-navy dark:text-white font-extrabold">
-                  Sélection Premium <br />
+                <span className="text-brand-navy dark:text-white font-black">
+                  Sélection Premium <br className="hidden sm:inline" />
                   <span className="bg-gradient-to-r from-brand-green to-emerald-600 bg-clip-text text-transparent">Qualité Garantie</span>
                 </span>
               )}
             </h1>
 
             {/* Subtitle / Value Proposition */}
-            <p className="text-base leading-relaxed text-gray-600 dark:text-zinc-300 sm:text-lg max-w-2xl">
+            <p className="text-xs sm:text-base leading-relaxed text-gray-600 dark:text-zinc-300 max-w-xl">
               {t.heroSubtitle}
             </p>
 
             {/* CTAs */}
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2 w-full">
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-1 w-full max-w-sm sm:max-w-none">
               <button
                 onClick={onExploreClick}
-                className="w-full sm:w-auto rounded-xl bg-brand-green px-8 py-4 text-base font-bold text-white   transition-all duration-200 hover:bg-brand-green-hover hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                className="w-full sm:w-auto rounded-xl bg-brand-green px-6 py-3.5 sm:px-8 sm:py-4 text-sm sm:text-base font-extrabold text-white transition-all duration-200 hover:bg-brand-green-hover active:scale-95 cursor-pointer shadow-md shadow-brand-green/20"
                 id="hero-cta-explore"
               >
                 {t.heroCTA}
@@ -62,7 +62,7 @@ export default function Hero({ lang, onExploreClick, onBuyFlagshipClick, product
               
               <button
                 onClick={onBuyFlagshipClick}
-                className="w-full sm:w-auto rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-8 py-4 text-base font-bold text-gray-800 dark:text-gray-100 transition-all duration-200 hover:bg-gray-50 dark:hover:bg-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                className="w-full sm:w-auto rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-6 py-3.5 sm:px-8 sm:py-4 text-sm sm:text-base font-extrabold text-gray-800 dark:text-gray-100 transition-all duration-200 hover:bg-gray-50 dark:hover:bg-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 active:scale-95 cursor-pointer shadow-sm"
                 id="hero-cta-buy"
               >
                 {lang === "fr" ? "Profiter de l'offre" : "استفد من العرض"}
@@ -70,46 +70,44 @@ export default function Hero({ lang, onExploreClick, onBuyFlagshipClick, product
             </div>
           </div>
 
-          {/* Large Showcase Image container */}
-          <div className="lg:col-span-5 relative flex justify-center">
+          {/* Showcase Image container */}
+          <div className="lg:col-span-5 relative flex justify-center pt-2 lg:pt-0">
             {/* Soft backdrop radial shadow */}
-            <div className="absolute inset-0 m-auto h-72 w-72 rounded-full bg-brand-green/10 blur-3xl"></div>
+            <div className="absolute inset-0 m-auto h-60 w-60 sm:h-72 sm:w-72 rounded-full bg-brand-green/10 blur-3xl"></div>
             
             <div 
               onClick={onBuyFlagshipClick}
-              className="relative group overflow-hidden rounded-3xl bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 transition-transform duration-500 hover:scale-[1.02] cursor-pointer"
+              className="relative group overflow-hidden rounded-2xl sm:rounded-3xl bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 transition-transform duration-500 hover:scale-[1.02] cursor-pointer w-full max-w-[280px] xs:max-w-[320px] sm:max-w-[380px] shadow-sm"
               id="hero-product-card"
               title={lang === "fr" ? "Cliquez pour commander !" : "اضغط للطلب الآن !"}
             >
               {/* Product Card Container */}
-              <div className="relative overflow-hidden rounded-3xl bg-white dark:bg-zinc-900">
+              <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-white dark:bg-zinc-900">
                 <img
                   src={flagshipProduct?.image || "https://placehold.co/600x600/png?text=Tikatkom"}
                   alt={isRTL ? flagshipProduct?.titleAR : flagshipProduct?.titleFR}
-                  className="h-[320px] w-[320px] object-cover sm:h-[380px] sm:w-[380px] transition-transform duration-700 group-hover:scale-105"
+                  className="h-[260px] xs:h-[290px] sm:h-[360px] w-full object-cover transition-transform duration-700 group-hover:scale-105"
                   referrerPolicy="no-referrer"
                 />
-                
-                {/* Product Image */}
 
                 {/* Micro info bar under the image */}
-                <div className="border-t border-gray-100 dark:border-zinc-800 bg-gray-50/80 dark:bg-zinc-950/80 p-4">
+                <div className="border-t border-gray-100 dark:border-zinc-800 bg-gray-50/80 dark:bg-zinc-950/80 p-3 sm:p-4">
                   <div className="flex items-center justify-between">
                     <div className={isRTL ? "text-right" : "text-left"}>
-                      <p className="text-xs text-gray-500 dark:text-zinc-400 uppercase tracking-wider font-semibold">
+                      <p className="text-[10px] sm:text-xs text-gray-500 dark:text-zinc-400 uppercase tracking-wider font-semibold">
                         {lang === "fr" ? "Style de Vie Premium" : "نمط حياة متميز"}
                       </p>
-                      <h4 className="text-sm font-bold text-brand-navy dark:text-white truncate max-w-[180px]">
+                      <h4 className="text-xs sm:text-sm font-extrabold text-brand-navy dark:text-white truncate max-w-[150px] sm:max-w-[180px]">
                         {isRTL ? flagshipProduct?.titleAR : flagshipProduct?.titleFR}
                       </h4>
                     </div>
                     <div className={isRTL ? "text-left" : "text-right"}>
                       {flagshipProduct?.oldPrice && (
-                        <p className="text-xs text-gray-400 dark:text-zinc-500 line-through">
+                        <p className="text-[10px] sm:text-xs text-gray-400 dark:text-zinc-500 line-through">
                           {(flagshipProduct.oldPrice).toLocaleString()} {lang === "fr" ? "DA" : "دج"}
                         </p>
                       )}
-                      <p className="text-base font-extrabold text-brand-green">
+                      <p className="text-sm sm:text-base font-black text-brand-green">
                         {flagshipProduct ? (flagshipProduct.price).toLocaleString() : 0} {lang === "fr" ? "DA" : "دج"}
                       </p>
                     </div>

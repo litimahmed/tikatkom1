@@ -202,6 +202,9 @@ export function mapWooProduct(wpProduct: any): Product {
     price: priceParsed,
     oldPrice: oldPriceParsed,
     image: wpProduct.images && wpProduct.images.length > 0 ? wpProduct.images[0].src : "https://placehold.co/600x400/png?text=Tikatkom",
+    images: wpProduct.images && Array.isArray(wpProduct.images) && wpProduct.images.length > 0 
+      ? wpProduct.images.map((img: any) => img?.src).filter(Boolean)
+      : undefined,
     category: categorySlug,
     badgeFR,
     badgeAR,

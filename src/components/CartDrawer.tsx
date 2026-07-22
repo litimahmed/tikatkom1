@@ -48,19 +48,28 @@ export default function CartDrawer({
           {/* Header */}
           <div className="px-6 py-5 border-b border-gray-100 dark:border-zinc-800 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-green/10 text-brand-green">
-                <ShoppingBag className="h-5 w-5" />
-              </div>
               <h2 className="text-lg font-black text-brand-navy dark:text-white">
                 {lang === "fr" ? "Mon Panier" : "سلة التسوق"}
               </h2>
             </div>
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-gray-500 dark:hover:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
-            >
-              <X className="h-5 w-5" />
-            </button>
+
+            <div className="flex items-center gap-2">
+              {cartItems.length > 0 && (
+                <button
+                  onClick={() => cartItems.forEach((i) => onRemoveItem(i.product.id))}
+                  className="text-xs font-bold text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+                  title={lang === "fr" ? "Vider tout le panier" : "تفريغ السلة بالكامل"}
+                >
+                  {lang === "fr" ? "Vider le panier" : "تفريغ السلة"}
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-500 dark:hover:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
           </div>
 
           {/* Cart Items Area */}
@@ -112,7 +121,9 @@ export default function CartDrawer({
                           </h4>
                           <button
                             onClick={() => onRemoveItem(item.product.id)}
-                            className="p-1 text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md transition-colors cursor-pointer"
+                            className="p-1.5 text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors cursor-pointer shrink-0"
+                            title={lang === "fr" ? "Supprimer de la commande" : "حذف المنتج من السلة"}
+                            id={`remove-cart-item-${item.product.id}`}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>

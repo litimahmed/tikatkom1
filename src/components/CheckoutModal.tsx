@@ -43,13 +43,12 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
   const [selectedWilayaCode, setSelectedWilayaCode] = useState<string>("");
   const [selectedCommune, setSelectedCommune] = useState<string>("");
   const [address, setAddress] = useState<string>("");
-  const [selectedCourier, setSelectedCourier] = useState<string>("yalidine");
+  const [selectedCourier, setSelectedCourier] = useState<string>("zrexpress");
   const [deliveryType, setDeliveryType] = useState<"home" | "desk">("home");
   const [notes, setNotes] = useState<string>("");
 
   const couriersList = [
-    { id: "yalidine", nameFR: "Yalidine Express", nameAR: "ياليدين إكسبريس", badge: "Populaire" },
-    { id: "zrexpress", nameFR: "ZR Express", nameAR: "زد آر إكسبريس", badge: "Rapide" },
+    { id: "zrexpress", nameFR: "ZR Express", nameAR: "زد آر إكسبريس", badge: "Partenaire Officiel" },
     { id: "maystro", nameFR: "Maystro Delivery", nameAR: "مايسترو دليفري", badge: "Sécurisé" },
     { id: "noest", nameFR: "NOEST Delivery", nameAR: "نويست دليفري", badge: "Fiable" },
     { id: "ecotrack", nameFR: "Ecotrack", nameAR: "إيكوتراك", badge: "Éco" },
@@ -669,29 +668,19 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
                 </p>
               </div>
 
-              {/* Order Reference & Tracking Code details */}
-              <div className="mx-auto max-w-sm rounded-xl border border-dashed border-gray-200 dark:border-[#2a2a2a] bg-gray-50 dark:bg-[#262626]/30 p-4 space-y-3">
-                <div className="space-y-1">
-                  <p className="text-xs text-gray-400 dark:text-zinc-500 font-semibold uppercase tracking-wider">
-                    {t.successCode}
-                  </p>
-                  <p className="font-mono text-lg font-black text-brand-navy dark:text-white tracking-widest">
-                    {orderReference}
-                  </p>
-                </div>
-                {trackingReference && (
-                  <div className="space-y-1 pt-2 border-t border-gray-100 dark:border-zinc-800">
-                    <p className="text-xs text-brand-green font-black uppercase tracking-wider">
-                      {lang === "fr" ? "Code de Suivi ZR Express :" : "رقم تتبع زد آر إكسبريس :"}
-                    </p>
-                    <p className="font-mono text-xl font-black text-brand-green tracking-widest">
-                      {trackingReference}
-                    </p>
-                    <p className="text-[10px] text-gray-500 font-medium">
-                      {lang === "fr" ? "(Utilisez ce code ci-dessous pour suivre votre colis)" : "(استخدم هذا الرمز أدناه لتتبع طردك في أي وقت)"}
-                    </p>
-                  </div>
-                )}
+              {/* Single ZR Express Official Tracking Code details */}
+              <div className="mx-auto max-w-sm rounded-xl border border-dashed border-brand-green/40 dark:border-brand-green/30 bg-brand-green/5 dark:bg-brand-green/10 p-5 space-y-2 text-center">
+                <p className="text-xs text-brand-green font-black uppercase tracking-wider">
+                  {lang === "fr" ? "Code de Suivi Officiel ZR Express :" : "رقم تتبع شحنتك (ZR Express) :"}
+                </p>
+                <p className="font-mono text-2xl font-black text-brand-green tracking-widest select-all">
+                  {trackingReference || orderReference}
+                </p>
+                <p className="text-[11px] text-gray-500 dark:text-zinc-400 font-medium">
+                  {lang === "fr"
+                    ? "Utilisez ce code unique pour suivre votre colis à tout moment."
+                    : "استخدم هذا الرقم الموحد لتتبع حالة طردك لدى شركة زد آر إكسبريس."}
+                </p>
               </div>
 
               {/* Customer summary */}

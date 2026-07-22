@@ -10,18 +10,18 @@ export default function BrandBanner({ lang }: BrandBannerProps) {
   const t = translations[lang];
 
   return (
-    <section className="bg-white dark:bg-[#1a1b1e]/40 py-12 sm:py-16 my-8 border-y border-gray-100 dark:border-zinc-800">
+    <section className="bg-white dark:bg-[#1a1b1e]/40 py-8 sm:py-16 my-4 sm:my-8 border-y border-gray-100 dark:border-zinc-800">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div 
-          className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16 justify-between"
+          className="flex flex-col lg:flex-row items-center gap-6 lg:gap-16 justify-between"
           style={{ direction: isRTL ? "rtl" : "ltr" }}
         >
           {/* Left Side: Elegant Logo Frame (Tikatkom logo) */}
-          <div className="flex shrink-0 items-center justify-center bg-white dark:bg-zinc-900 p-4 rounded-3xl  border border-gray-100 dark:border-zinc-800 max-w-[240px] sm:max-w-[280px]  duration-300">
+          <div className="flex shrink-0 items-center justify-center bg-white dark:bg-zinc-900 p-3 sm:p-4 rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-zinc-800 max-w-[180px] sm:max-w-[280px]">
             <img 
               src="/src/assets/images/tikatkom_logo.png"
               alt="Tikatkom Logo" 
-              className="w-full h-auto object-contain rounded-2xl"
+              className="w-full h-auto object-contain rounded-xl sm:rounded-2xl"
               referrerPolicy="no-referrer"
             />
           </div>

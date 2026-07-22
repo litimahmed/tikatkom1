@@ -31,25 +31,25 @@ export default function ProductsGrid({
     : products;
 
   return (
-    <section className="bg-gray-50/50 dark:bg-[#121212] py-16 sm:py-20 lg:py-24" id="products-section">
+    <section className="bg-gray-50/50 dark:bg-[#121212] py-8 sm:py-16 lg:py-20" id="products-section">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className={`mb-10 text-center ${isRTL ? "rtl" : "ltr"}`} style={{ direction: isRTL ? "rtl" : "ltr" }}>
-          <h2 className="font-display text-3xl font-extrabold tracking-tight text-brand-navy dark:text-white sm:text-4xl">
+        <div className={`mb-6 sm:mb-10 text-center ${isRTL ? "rtl" : "ltr"}`} style={{ direction: isRTL ? "rtl" : "ltr" }}>
+          <h2 className="font-display text-2xl font-black tracking-tight text-brand-navy dark:text-white sm:text-4xl">
             {t.featHeader}
           </h2>
-          <div className="mx-auto mt-3 h-1 w-12 rounded-full bg-brand-green"></div>
-          <p className="mx-auto mt-4 max-w-2xl text-sm text-gray-500 dark:text-zinc-400 sm:text-base">
+          <div className="mx-auto mt-2 sm:mt-3 h-1 w-12 rounded-full bg-brand-green"></div>
+          <p className="mx-auto mt-2 sm:mt-4 max-w-2xl text-xs sm:text-base text-gray-500 dark:text-zinc-400">
             {t.featSub}
           </p>
         </div>
 
         {/* Categories Quick Filter Bar */}
-        <div className="mb-12 flex flex-wrap justify-center gap-2" style={{ direction: isRTL ? "rtl" : "ltr" }}>
+        <div className="mb-6 sm:mb-10 flex items-center justify-start sm:justify-center gap-2 overflow-x-auto pb-2 scrollbar-none" style={{ direction: isRTL ? "rtl" : "ltr" }}>
           <button
             onClick={() => setSelectedCategory(null)}
-            className={`rounded-xl px-5 py-2.5 text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer ${
+            className={`shrink-0 rounded-xl px-4 py-2 sm:px-5 sm:py-2.5 text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer ${
               selectedCategory === null
                 ? "bg-brand-navy dark:bg-[#262626] text-white shadow-md shadow-brand-navy/10"
                 : "bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-[#262626] hover:border-gray-300 dark:hover:border-[#333333]"
@@ -67,7 +67,7 @@ export default function ProductsGrid({
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`rounded-xl px-5 py-2.5 text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer ${
+                className={`shrink-0 rounded-xl px-4 py-2 sm:px-5 sm:py-2.5 text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer ${
                   isSelected
                     ? "bg-brand-navy dark:bg-[#262626] text-white shadow-md shadow-brand-navy/10"
                     : "bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-[#262626] hover:border-gray-300 dark:hover:border-[#333333]"
@@ -81,7 +81,7 @@ export default function ProductsGrid({
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-6">
           {filteredProducts.map((product) => {
             const title = lang === "fr" ? product.titleFR : product.titleAR;
             const description = lang === "fr" ? product.descriptionFR : product.descriptionAR;
@@ -94,24 +94,20 @@ export default function ProductsGrid({
                 id={`product-card-${product.id}`}
               >
                 {/* Image Section */}
-                <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-[#1e1e1e]">
+                <div 
+                  onClick={() => onBuyClick(product)}
+                  className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-[#1e1e1e] cursor-pointer"
+                >
                   <img
                     src={product.image}
                     alt={title}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     referrerPolicy="no-referrer"
                   />
-                  
-                  {/* Badge */}
-                  {badge && (
-                    <span className={`absolute top-4 ${isRTL ? "right-4" : "left-4"} rounded-lg bg-brand-green px-2.5 py-1 text-[10px] font-black text-white uppercase tracking-wider`}>
-                      {badge}
-                    </span>
-                  )}
 
                   {/* Stock Status Pill */}
                   <span
-                    className={`absolute bottom-4 ${isRTL ? "left-4" : "right-4"} rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                    className={`absolute bottom-3 ${isRTL ? "left-3" : "right-3"} rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
                       product.stockStatus === "in_stock"
                         ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30"
                         : "bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-900/30"
@@ -122,7 +118,7 @@ export default function ProductsGrid({
                 </div>
 
                 {/* Info Section */}
-                <div className="flex flex-1 flex-col p-6" style={{ direction: isRTL ? "rtl" : "ltr" }}>
+                <div className="flex flex-1 flex-col p-4 sm:p-6" style={{ direction: isRTL ? "rtl" : "ltr" }}>
                   {/* Category Name & Rating Row */}
                   <div className="flex items-center justify-between gap-2 mb-3">
                     <span className="text-xs font-semibold text-brand-green uppercase tracking-wider">
