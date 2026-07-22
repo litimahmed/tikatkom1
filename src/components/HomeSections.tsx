@@ -114,10 +114,10 @@ export default function HomeSections({ lang, onBuyClick, onAddToCart, onViewAllC
                   </div>
 
                   {/* CTA Order Buttons */}
-                  <div className="mt-3 flex items-center gap-1.5">
+                  <div className="mt-3 space-y-1.5">
                     <button
                       onClick={() => onBuyClick(product)}
-                      className="flex-1 rounded-full bg-brand-navy dark:bg-[#262626] py-2.5 px-3 text-[10px] font-bold text-white transition-all duration-200 hover:bg-brand-green dark:hover:bg-brand-green hover:shadow-sm active:scale-[0.98] cursor-pointer text-center"
+                      className="w-full rounded-full bg-brand-navy dark:bg-[#262626] py-2.5 px-3 text-[11px] font-extrabold text-white transition-all duration-200 hover:bg-brand-green dark:hover:bg-brand-green hover:shadow-sm active:scale-[0.98] cursor-pointer text-center"
                       id={`home-buy-btn-${sec.id}-${product.id}`}
                     >
                       {lang === "fr" ? "Acheter Maintenant" : "اشتري الآن"}
@@ -126,12 +126,11 @@ export default function HomeSections({ lang, onBuyClick, onAddToCart, onViewAllC
                     {onAddToCart && (
                       <button
                         onClick={() => onAddToCart(product)}
-                        className="flex items-center justify-center gap-1 rounded-full border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-[#222] py-2.5 px-2.5 text-[10px] font-bold text-brand-navy dark:text-zinc-200 transition-all duration-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:border-emerald-300 hover:text-emerald-600 active:scale-95 cursor-pointer"
-                        title={lang === "fr" ? "Ajouter au panier (+1)" : "أضف إلى السلة (+1)"}
+                        className="w-full flex items-center justify-center gap-1.5 rounded-full border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/60 py-2 px-3 text-[10px] font-bold text-gray-700 dark:text-zinc-200 transition-all duration-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:border-emerald-300 hover:text-emerald-700 dark:hover:text-emerald-400 active:scale-[0.98] cursor-pointer"
                         id={`home-add-cart-btn-${sec.id}-${product.id}`}
                       >
-                        <ShoppingBag className="h-3 w-3" />
-                        <span className="text-[10px] font-extrabold">+1</span>
+                        <ShoppingBag className="h-3.5 w-3.5 text-brand-green" />
+                        <span>{lang === "fr" ? "Ajouter au Panier" : "أضف إلى السلة"}</span>
                       </button>
                     )}
                   </div>

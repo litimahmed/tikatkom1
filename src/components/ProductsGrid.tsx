@@ -161,11 +161,11 @@ export default function ProductsGrid({
                     )}
                   </div>
 
-                  {/* Button Action */}
-                  <div className="mt-6 flex items-center gap-2">
+                  {/* Button Actions */}
+                  <div className="mt-6 space-y-2">
                     <button
                       onClick={() => onBuyClick(product)}
-                      className="flex-1 rounded-xl bg-brand-navy dark:bg-[#262626] py-3 px-3 text-xs font-bold text-white transition-all duration-200 hover:bg-brand-green hover:shadow-md hover:shadow-brand-green/20 active:scale-[0.98] cursor-pointer text-center"
+                      className="w-full rounded-xl bg-brand-navy dark:bg-[#262626] py-3 px-4 text-xs font-extrabold text-white transition-all duration-200 hover:bg-brand-green hover:shadow-md hover:shadow-brand-green/20 active:scale-[0.98] cursor-pointer text-center"
                       id={`buy-btn-${product.id}`}
                     >
                       {t.buyNow}
@@ -174,12 +174,11 @@ export default function ProductsGrid({
                     {onAddToCart && (
                       <button
                         onClick={() => onAddToCart(product)}
-                        className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-[#222] py-3 px-3 text-xs font-bold text-brand-navy dark:text-zinc-200 transition-all duration-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:border-emerald-300 hover:text-emerald-600 active:scale-95 cursor-pointer shadow-xs"
-                        title={lang === "fr" ? "Ajouter au panier (+1)" : "أضف إلى السلة (+1)"}
+                        className="w-full flex items-center justify-center gap-2 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/60 py-2.5 px-4 text-xs font-bold text-gray-800 dark:text-zinc-200 transition-all duration-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:border-emerald-300 hover:text-emerald-700 dark:hover:text-emerald-400 active:scale-[0.98] cursor-pointer shadow-2xs"
                         id={`add-cart-btn-${product.id}`}
                       >
-                        <ShoppingBag className="h-3.5 w-3.5" />
-                        <span className="text-[11px] font-extrabold">+1</span>
+                        <ShoppingBag className="h-4 w-4 text-brand-green" />
+                        <span>{lang === "fr" ? "Ajouter au Panier" : "أضف إلى السلة"}</span>
                       </button>
                     )}
                   </div>
