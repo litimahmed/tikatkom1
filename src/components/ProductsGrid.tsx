@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { translations } from "../data";
 import { Product, Category } from "../types";
-import { Star, ShoppingBag, Plus } from "lucide-react";
+import { Star } from "lucide-react";
 
 interface ProductsGridProps {
   lang: "fr" | "ar";
@@ -174,11 +174,10 @@ export default function ProductsGrid({
                     {onAddToCart && (
                       <button
                         onClick={() => onAddToCart(product)}
-                        className="w-full flex items-center justify-center gap-2 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/60 py-2.5 px-4 text-xs font-bold text-gray-800 dark:text-zinc-200 transition-all duration-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:border-emerald-300 hover:text-emerald-700 dark:hover:text-emerald-400 active:scale-[0.98] cursor-pointer shadow-2xs"
+                        className="w-full text-center rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 py-2.5 px-4 text-xs font-bold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
                         id={`add-cart-btn-${product.id}`}
                       >
-                        <ShoppingBag className="h-4 w-4 text-brand-green" />
-                        <span>{lang === "fr" ? "Ajouter au Panier" : "أضف إلى السلة"}</span>
+                        {lang === "fr" ? "Ajouter au Panier" : "أضف إلى السلة"}
                       </button>
                     )}
                   </div>
