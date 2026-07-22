@@ -78,6 +78,7 @@ async function startServer() {
         courier,
         deliveryType,
         notes,
+        items,
         productId,
         productName,
         quantity,
@@ -109,12 +110,21 @@ async function startServer() {
         const firstName = nameParts[0] || "";
         const lastName = nameParts.slice(1).join(" ") || "Guest";
 
-        // Map product IDs
-        // Ensure the product ID is parsed into a number for WooCommerce line items
-        const numericProductId = parseInt(productId, 10);
-        const line_items = isNaN(numericProductId)
-          ? []
-          : [{ product_id: numericProductId, quantity: parseInt(quantity, 10) || 1 }];
+        // Map product items to WooCommerce line_items
+        let line_items: any[] = [];
+        if (items && Array.isArray(items) && items.length > 0) {
+          line_items = items.map((item: any) => {
+            const numId = parseInt(item.productId || item.id, 10);
+            return !isNaN(numId) && numId > 0
+              ? { product_id: numId, quantity: parseInt(item.quantity, 10) || 1 }
+              : { name: item.productName || item.title || "Produit", quantity: parseInt(item.quantity, 10) || 1 };
+          });
+        } else {
+          const numericProductId = parseInt(productId, 10);
+          if (!isNaN(numericProductId) && numericProductId > 0) {
+            line_items = [{ product_id: numericProductId, quantity: parseInt(quantity, 10) || 1 }];
+          }
+        }
 
         // Format shipping fee into WooCommerce flat rate lines
         const parsedShippingFee = parseFloat(shippingFee);

@@ -163,6 +163,7 @@ export default function App() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
   const [isTrackingOpen, setIsTrackingOpen] = useState<boolean>(false);
   const [checkoutProduct, setCheckoutProduct] = useState<Product | null>(null);
+  const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]);
 
   // Active Category Filter
   const [selectedCategory, setSelectedCategory] = useState<string | null>(() => {
@@ -241,6 +242,7 @@ export default function App() {
     setIsCartOpen(false);
     if (isAlgerian) {
       if (cartItems.length > 0) {
+        setCheckoutItems(cartItems);
         setCheckoutProduct(cartItems[0].product);
       }
       setIsCheckoutOpen(true);
@@ -285,6 +287,7 @@ export default function App() {
   // Handler to open order form for a selected product
   const handleOpenCheckout = (product: Product) => {
     setCheckoutProduct(product);
+    setCheckoutItems([{ product, quantity: 1 }]);
     if (isAlgerian) {
       setIsCheckoutOpen(true);
     } else {
@@ -435,11 +438,12 @@ export default function App() {
         isOpen={isCheckoutOpen} 
         onClose={() => setIsCheckoutOpen(false)} 
         product={checkoutProduct} 
+        items={checkoutItems}
         lang={lang} 
       />
 
-      {/* Floating Modern Contact Elements (WhatsApp & Email) */}
-      <FloatingContact lang={lang} onTrackingClick={() => setIsTrackingOpen(true)} />
+      {/* Floating Modern Contact Elements (WhatsApp, Email & Algeria Parcel Tracking) */}
+      <FloatingContact lang={lang} isAlgerian={isAlgerian} onTrackingClick={() => setIsTrackingOpen(true)} />
 
       {/* Realtime Express Parcel Tracking Status Modal */}
       <TrackingModal 

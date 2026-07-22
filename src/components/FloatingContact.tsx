@@ -3,10 +3,11 @@ import { Mail, Truck } from "lucide-react";
 
 interface FloatingContactProps {
   lang: "fr" | "ar";
+  isAlgerian?: boolean;
   onTrackingClick: () => void;
 }
 
-export default function FloatingContact({ lang, onTrackingClick }: FloatingContactProps) {
+export default function FloatingContact({ lang, isAlgerian = true, onTrackingClick }: FloatingContactProps) {
   // Read WhatsApp and Email from environment variables with safe defaults
   const whatsappNumber = ((import.meta as any).env?.VITE_MERCHANT_WHATSAPP || "+213781913776").replace(/\s+/g, "");
   const merchantEmail = (import.meta as any).env?.VITE_MERCHANT_EMAIL || "litimahmed67@gmail.com";
@@ -87,24 +88,26 @@ export default function FloatingContact({ lang, onTrackingClick }: FloatingConta
         </div>
       </div>
 
-      {/* RIGHT SIDE: Dedicated Tracking Search Button */}
-      <div className="fixed bottom-6 right-6 z-40 flex flex-col gap-3.5 items-center select-none" id="floating-contact-right-container">
-        <div className="group relative">
-          <motion.button
-            onClick={onTrackingClick}
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex h-12 items-center gap-2 rounded-full bg-brand-green text-white px-4 shadow-lg shadow-brand-green/25 hover:shadow-brand-green/40 transition-all duration-200 border border-brand-green/30 cursor-pointer"
-            id="btn-tracking-floating"
-            aria-label="Track Parcel"
-          >
-            <Truck className="h-5 w-5 stroke-[2.5]" />
-            <span className={`text-xs font-black tracking-wider ${lang === "ar" ? "font-arabic" : ""}`}>
-              {trackingText}
-            </span>
-          </motion.button>
+      {/* RIGHT SIDE: Dedicated Tracking Search Button (Only for Algerian domestic visitors) */}
+      {isAlgerian && (
+        <div className="fixed bottom-6 right-6 z-40 flex flex-col gap-3.5 items-center select-none" id="floating-contact-right-container">
+          <div className="group relative">
+            <motion.button
+              onClick={onTrackingClick}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex h-12 items-center gap-2 rounded-full bg-brand-green text-white px-4 shadow-lg shadow-brand-green/25 hover:shadow-brand-green/40 transition-all duration-200 border border-brand-green/30 cursor-pointer"
+              id="btn-tracking-floating"
+              aria-label="Track Parcel"
+            >
+              <Truck className="h-5 w-5 stroke-[2.5]" />
+              <span className={`text-xs font-black tracking-wider ${lang === "ar" ? "font-arabic" : ""}`}>
+                {trackingText}
+              </span>
+            </motion.button>
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }
