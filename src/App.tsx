@@ -224,8 +224,6 @@ export default function App() {
       }
       return [...prev, { product, quantity: 1 }];
     });
-    // Open Cart Drawer
-    setIsCartOpen(true);
   };
 
   const handleUpdateCartQuantity = (productId: string, quantity: number) => {
@@ -242,10 +240,10 @@ export default function App() {
     setIsCartOpen(false);
     if (isAlgerian) {
       if (cartItems.length > 0) {
-        setCheckoutItems(cartItems);
+        setCheckoutItems([...cartItems]);
         setCheckoutProduct(cartItems[0].product);
+        setIsCheckoutOpen(true);
       }
-      setIsCheckoutOpen(true);
     } else {
       // International Lemon Squeezy Hosted Checkout Redirect
       const env = (import.meta as any).env || {};

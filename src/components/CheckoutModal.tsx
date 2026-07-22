@@ -24,10 +24,15 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
       } else {
         setCheckoutItems([]);
       }
+    } else {
+      setCheckoutItems([]);
     }
   }, [isOpen, items, product]);
 
-  if (!isOpen || checkoutItems.length === 0) return null;
+  // Fallback to items or product if local state hasn't populated yet
+  const displayItems = checkoutItems.length > 0 
+    ? checkoutItems 
+    : (items && items.length > 0 ? items : (product ? [{ product, quantity: 1 }] : []));
 
   const t = translations[lang];
   const isRTL = lang === "ar";
@@ -76,17 +81,18 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
   };
 
   const handleItemQuantityChange = (productId: string, newQty: number) => {
+    const sourceList = checkoutItems.length > 0 ? checkoutItems : displayItems;
     if (newQty <= 0) {
-      setCheckoutItems((prev) => prev.filter((i) => i.product.id !== productId));
+      setCheckoutItems(sourceList.filter((i) => i.product.id !== productId));
     } else {
-      setCheckoutItems((prev) =>
-        prev.map((i) => (i.product.id === productId ? { ...i, quantity: newQty } : i))
+      setCheckoutItems(
+        sourceList.map((i) => (i.product.id === productId ? { ...i, quantity: newQty } : i))
       );
     }
   };
 
-  const subtotal = checkoutItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  const totalQuantity = checkoutItems.reduce((sum, item) => sum + item.quantity, 0);
+  const subtotal = displayItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const totalQuantity = displayItems.reduce((sum, item) => sum + item.quantity, 0);
   const shippingFee = getShippingFee();
   const grandTotal = subtotal + shippingFee;
 
@@ -135,14 +141,14 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
       const metaEnv = (import.meta as any).env;
       const apiBase = (metaEnv && metaEnv.VITE_API_URL) || "";
 
-      const formattedItems = checkoutItems.map((item) => ({
+      const formattedItems = displayItems.map((item) => ({
         productId: item.product.id,
         productName: lang === "fr" ? item.product.titleFR : item.product.titleAR,
         quantity: item.quantity,
         price: item.product.price,
       }));
 
-      const summaryName = checkoutItems
+      const summaryName = displayItems
         .map((item) => `${lang === "fr" ? item.product.titleFR : item.product.titleAR} (x${item.quantity})`)
         .join(", ");
 
@@ -216,6 +222,8 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
     }
   }, [isOpen]);
 
+  if (!isOpen || displayItems.length === 0) return null;
+
   const singleProduct = checkoutItems.length === 1 ? checkoutItems[0] : null;
   const singleProductName = singleProduct
     ? lang === "fr"
@@ -264,11 +272,11 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
               </div>
 
               {/* Order Items Brief Section */}
-              {checkoutItems.length === 1 ? (
+              {displayItems.length === 1 ? (
                 <div className="flex items-center gap-4 rounded-2xl border border-gray-100 dark:border-[#2a2a2a] bg-gray-50/50 dark:bg-[#262626]/30 p-4">
                   <img
-                    src={checkoutItems[0].product.image}
-                    alt={lang === "fr" ? checkoutItems[0].product.titleFR : checkoutItems[0].product.titleAR}
+                    src={displayItems[0].product.image}
+                    alt={lang === "fr" ? displayItems[0].product.titleFR : displayItems[0].product.titleAR}
                     className="h-16 w-16 rounded-xl object-cover border border-gray-100 dark:border-[#2a2a2a] shrink-0"
                     referrerPolicy="no-referrer"
                   />
@@ -277,10 +285,10 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
                       {lang === "fr" ? "Votre produit sélectionné" : "المنتج المحدد حالياً"}
                     </span>
                     <h4 className="font-display text-sm font-extrabold text-brand-navy dark:text-white truncate">
-                      {lang === "fr" ? checkoutItems[0].product.titleFR : checkoutItems[0].product.titleAR}
+                      {lang === "fr" ? displayItems[0].product.titleFR : displayItems[0].product.titleAR}
                     </h4>
                     <p className="text-xs font-black text-brand-green mt-0.5">
-                      {checkoutItems[0].product.price.toLocaleString()} {t.priceCurrency}
+                      {displayItems[0].product.price.toLocaleString()} {t.priceCurrency}
                     </p>
                   </div>
 
@@ -288,7 +296,7 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
                   <div className="flex items-center gap-1 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#2a2a2a] rounded-xl p-1 shrink-0">
                     <button
                       type="button"
-                      onClick={() => handleItemQuantityChange(checkoutItems[0].product.id, checkoutItems[0].quantity - 1)}
+                      onClick={() => handleItemQuantityChange(displayItems[0].product.id, displayItems[0].quantity - 1)}
                       className="p-1 text-gray-500 dark:text-zinc-400 hover:text-brand-green rounded-lg transition-colors active:scale-90 cursor-pointer"
                       aria-label="Decrease quantity"
                       id="quantity-minus-btn"
@@ -296,11 +304,11 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
                       <Minus className="h-3.5 w-3.5" />
                     </button>
                     <span className="w-6 text-center text-xs font-black text-brand-navy dark:text-white">
-                      {checkoutItems[0].quantity}
+                      {displayItems[0].quantity}
                     </span>
                     <button
                       type="button"
-                      onClick={() => handleItemQuantityChange(checkoutItems[0].product.id, checkoutItems[0].quantity + 1)}
+                      onClick={() => handleItemQuantityChange(displayItems[0].product.id, displayItems[0].quantity + 1)}
                       className="p-1 text-gray-500 dark:text-zinc-400 hover:text-brand-green rounded-lg transition-colors active:scale-90 cursor-pointer"
                       aria-label="Increase quantity"
                       id="quantity-plus-btn"
@@ -314,7 +322,7 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
                   <div className="flex items-center justify-between px-1">
                     <span className="text-xs font-black uppercase tracking-wider text-brand-green flex items-center gap-1.5">
                       <ShoppingBag className="h-3.5 w-3.5" />
-                      {lang === "fr" ? `Articles commandés (${checkoutItems.length})` : `المنتجات المحددة (${checkoutItems.length})`}
+                      {lang === "fr" ? `Articles commandés (${displayItems.length})` : `المنتجات المحددة (${displayItems.length})`}
                     </span>
                     <span className="text-xs font-black text-brand-navy dark:text-white">
                       {subtotal.toLocaleString()} {t.priceCurrency}
@@ -323,7 +331,7 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
 
                   {/* Scrollable list of items to prevent UI clutter */}
                   <div className="max-h-48 overflow-y-auto pr-1 space-y-2 scrollbar-thin scrollbar-thumb-gray-200">
-                    {checkoutItems.map((item) => {
+                    {displayItems.map((item) => {
                       const itemTitle = lang === "fr" ? item.product.titleFR : item.product.titleAR;
                       return (
                         <div
