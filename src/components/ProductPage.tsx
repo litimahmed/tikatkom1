@@ -5,8 +5,7 @@ import {
   Check, 
   AlertCircle, 
   Plus, 
-  Minus, 
-  Star 
+  Minus 
 } from "lucide-react";
 import { Product } from "../types";
 import { AlgerianWilayas, translations } from "../data";
@@ -255,18 +254,6 @@ export default function ProductPage({
 
             {/* Product Meta Info */}
             <div className="rounded-2xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 space-y-5 shadow-2xs">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase text-brand-green">
-                  {product.category}
-                </span>
-                <span className="text-gray-300">•</span>
-                <div className="flex items-center gap-1 text-amber-500 text-xs font-bold">
-                  <Star className="h-3.5 w-3.5 fill-amber-500" />
-                  <span>{product.rating}</span>
-                  <span className="text-gray-400">({product.reviewsCount})</span>
-                </div>
-              </div>
-
               {/* Price Row */}
               <div className="flex items-baseline gap-4 p-4 rounded-xl bg-gray-50 dark:bg-zinc-950 border border-gray-100 dark:border-zinc-800">
                 <span className="text-3xl sm:text-4xl font-black text-brand-green">

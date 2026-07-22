@@ -391,8 +391,8 @@ export default function App() {
           />
         ) : view === "home" ? (
           <>
-            {/* 2. Hero Section (Hidden on Mobile) */}
-            <div className="hidden sm:block">
+            {/* 2. Hero Section (Hidden on Mobile and Tablet) */}
+            <div className="hidden lg:block">
               <Hero 
                 lang={lang} 
                 onExploreClick={handleExploreClick}
@@ -401,8 +401,8 @@ export default function App() {
               />
             </div>
 
-            {/* 3. Brand & Trust Signature Banner (Second Section - Hidden on Mobile) */}
-            <div className="hidden sm:block">
+            {/* 3. Brand & Trust Signature Banner (Second Section - Hidden on Mobile and Tablet) */}
+            <div className="hidden lg:block">
               <BrandBanner lang={lang} />
             </div>
 

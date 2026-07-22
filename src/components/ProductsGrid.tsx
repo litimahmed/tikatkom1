@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { translations } from "../data";
 import { Product, Category } from "../types";
-import { Star } from "lucide-react";
 
 interface ProductsGridProps {
   lang: "fr" | "ar";
@@ -119,20 +118,14 @@ export default function ProductsGrid({
 
                 {/* Info Section */}
                 <div className="flex flex-1 flex-col p-4 sm:p-6" style={{ direction: isRTL ? "rtl" : "ltr" }}>
-                  {/* Category Name & Rating Row */}
-                  <div className="flex items-center justify-between gap-2 mb-3">
+                  {/* Category Name Row */}
+                  <div className="mb-2">
                     <span className="text-xs font-semibold text-brand-green uppercase tracking-wider">
                       {lang === "fr" 
                         ? categories.find(c => c.id === product.category)?.nameFR 
                         : categories.find(c => c.id === product.category)?.nameAR
                       }
                     </span>
-                    
-                    <div className="flex items-center gap-1 text-amber-400">
-                      <Star className="h-3.5 w-3.5 fill-current" />
-                      <span className="text-xs font-bold text-gray-700 dark:text-zinc-300">{product.rating}</span>
-                      <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-medium">({product.reviewsCount})</span>
-                    </div>
                   </div>
 
                   {/* Title */}

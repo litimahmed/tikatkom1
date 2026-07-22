@@ -61,17 +61,17 @@ export default function Header({
             <img
               src="/src/assets/images/tikatkom.png"
               alt="Tikatkom Logo"
-              className="h-9 sm:h-12 w-auto object-contain transition-transform hover:scale-105"
+              className="h-9 lg:h-12 w-auto object-contain transition-transform hover:scale-105"
               referrerPolicy="no-referrer"
             />
           </button>
         </div>
 
         {/* Right Side: ZR Express Courier Logo (desktop only), Cart & Lang Switcher & Mobile Hamburger */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
-          {/* ZR Express Courier Logo Placeholder - ONLY visible on desktop screens (hidden on mobile) */}
+        <div className="flex items-center gap-2.5 lg:gap-3">
+          {/* ZR Express Courier Logo Placeholder - ONLY visible on desktop screens (hidden on mobile & tablet) */}
           {isAlgerian && (
-            <div className="hidden md:flex items-center select-none shrink-0">
+            <div className="hidden lg:flex items-center select-none shrink-0">
               <img
                 src="/src/assets/images/zrexpressLogo.jpg"
                 alt="ZR Express"
@@ -88,21 +88,64 @@ export default function Header({
           {onOpenCart && (
             <button
               onClick={onOpenCart}
-              className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all cursor-pointer shrink-0"
+              className="relative flex h-9 w-9 lg:h-10 lg:w-10 items-center justify-center rounded-full border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all cursor-pointer shrink-0"
               title={lang === "fr" ? "Mon Panier" : "حقيبة التسوق"}
               id="header-cart-btn"
             >
-              <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5" />
+              <ShoppingBag className="h-4 w-4 lg:h-5 lg:w-5" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4.5 w-4.5 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-brand-green text-[10px] font-black text-white ring-2 ring-white dark:ring-zinc-900 animate-scaleIn">
+                <span className="absolute -top-1 -right-1 flex h-4.5 w-4.5 lg:h-5 lg:w-5 items-center justify-center rounded-full bg-brand-green text-[10px] font-black text-white ring-2 ring-white dark:ring-zinc-900 animate-scaleIn">
                   {cartCount}
                 </span>
               )}
             </button>
           )}
 
-          {/* Desktop Language Switcher Dropdown */}
-          <div className="relative hidden sm:inline-block" ref={langDropdownRef}>
+          {/* Mobile & Tablet Modern Left-to-Right Language Switcher Toggle */}
+          <button
+            type="button"
+            dir="ltr"
+            onClick={() => {
+              const newLang = lang === "fr" ? "ar" : "fr";
+              localStorage.setItem("lang", newLang);
+              window.location.reload();
+            }}
+            className="lg:hidden relative inline-flex h-9 w-[68px] items-center justify-between rounded-full bg-white dark:bg-zinc-900 p-1 border border-gray-200 dark:border-zinc-800 transition-colors cursor-pointer select-none shrink-0 shadow-2xs"
+            title={lang === "fr" ? "Changer la langue (العربية)" : "تغيير اللغة (Français)"}
+            id="mobile-lang-toggle-btn"
+          >
+            {/* Sliding Active Indicator */}
+            <span
+              className={`absolute top-[3px] left-[3px] h-7 w-7 rounded-full bg-emerald-50 dark:bg-emerald-950/50 border border-brand-green/30 transition-transform duration-300 ease-in-out z-0 ${
+                lang === "ar" ? "translate-x-[32px]" : "translate-x-0"
+              }`}
+            />
+
+            {/* Left Circular French Flag Fill */}
+            <div
+              className={`z-10 h-7 w-7 rounded-full overflow-hidden flex items-center justify-center transition-all duration-300 ${
+                lang === "fr" ? "opacity-100 scale-100" : "opacity-35 scale-90"
+              }`}
+            >
+              <svg viewBox="0 0 30 30" className="w-full h-full object-cover">
+                <rect x="0" y="0" width="10" height="30" fill="#002395" />
+                <rect x="10" y="0" width="10" height="30" fill="#FFFFFF" />
+                <rect x="20" y="0" width="10" height="30" fill="#ED2939" />
+              </svg>
+            </div>
+
+            {/* Right Circular Saudi Flag Fill */}
+            <div
+              className={`z-10 h-7 w-7 rounded-full overflow-hidden flex items-center justify-center bg-[#006C35] transition-all duration-300 ${
+                lang === "ar" ? "opacity-100 scale-100" : "opacity-35 scale-90"
+              }`}
+            >
+              <span className="text-xs text-white font-bold select-none leading-none">🇸🇦</span>
+            </div>
+          </button>
+
+          {/* Desktop Language Switcher Dropdown (lg screens only) */}
+          <div className="relative hidden lg:inline-block" ref={langDropdownRef}>
             <button
               onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
               className="w-full flex items-center justify-between gap-2 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-zinc-200 shadow-xs hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
@@ -152,10 +195,10 @@ export default function Header({
             )}
           </div>
 
-          {/* Mobile Hamburger Button */}
+          {/* Mobile & Tablet Hamburger Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-700 sm:hidden transition-colors cursor-pointer shrink-0"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-700 lg:hidden transition-colors cursor-pointer shrink-0"
             aria-label="Toggle mobile menu"
             id="mobile-menu-toggle-btn"
           >
@@ -164,10 +207,10 @@ export default function Header({
         </div>
       </div>
 
-      {/* Mobile Slide-down Navigation Drawer */}
+      {/* Mobile & Tablet Slide-down Navigation Drawer */}
       {isMobileMenuOpen && (
         <div 
-          className="border-t border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-5 py-4 sm:hidden animate-fadeIn space-y-1"
+          className="border-t border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-5 py-4 lg:hidden animate-fadeIn space-y-1"
           style={{ direction: isRTL ? "rtl" : "ltr" }}
         >
           {/* Main Navigation Links */}
@@ -190,42 +233,6 @@ export default function Header({
           >
             {lang === "fr" ? "Boutique" : "المتجر"}
           </button>
-
-          {/* Standard Mobile Language Switcher */}
-          <div className="pt-3 mt-2 border-t border-gray-100 dark:border-zinc-800 space-y-2">
-            <p className="px-3 text-xs font-semibold text-gray-500 dark:text-zinc-400">
-              {lang === "fr" ? "Langue" : "اللغة"}
-            </p>
-            <div className="grid grid-cols-2 gap-2 px-1">
-              <button
-                onClick={() => {
-                  localStorage.setItem("lang", "fr");
-                  window.location.reload();
-                }}
-                className={`py-2.5 px-3 rounded-xl text-xs font-bold text-center border cursor-pointer transition-all ${
-                  lang === "fr"
-                    ? "bg-brand-navy text-white border-brand-navy shadow-xs"
-                    : "bg-gray-50 text-gray-700 border-gray-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700 hover:bg-gray-100"
-                }`}
-              >
-                🇫🇷 Français
-              </button>
-
-              <button
-                onClick={() => {
-                  localStorage.setItem("lang", "ar");
-                  window.location.reload();
-                }}
-                className={`py-2.5 px-3 rounded-xl text-xs font-bold text-center border cursor-pointer transition-all font-arabic ${
-                  lang === "ar"
-                    ? "bg-brand-navy text-white border-brand-navy shadow-xs"
-                    : "bg-gray-50 text-gray-700 border-gray-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700 hover:bg-gray-100"
-                }`}
-              >
-                🇸🇦 العربية
-              </button>
-            </div>
-          </div>
         </div>
       )}
     </header>
