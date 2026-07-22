@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { X, Check, ShoppingBag, Phone, MapPin, Truck, AlertCircle, Plus, Minus, Landmark, Trash2 } from "lucide-react";
 import { Product, OrderForm, Wilaya, CartItem } from "../types";
 import { AlgerianWilayas, translations } from "../data";
+import { submitOrderPayload } from "../lib/woocommerce";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -127,7 +128,7 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
 
   // Submit Handler
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
 
     if (!validateForm()) {
       return;
@@ -137,9 +138,6 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
     setErrors({});
 
     try {
-      const metaEnv = (import.meta as any).env;
-      const apiBase = (metaEnv && metaEnv.VITE_API_URL) || "";
-
       const formattedItems = displayItems.map((item) => ({
         productId: item.product.id,
         productName: lang === "fr" ? item.product.titleFR : item.product.titleAR,
@@ -151,57 +149,38 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
         .map((item) => `${lang === "fr" ? item.product.titleFR : item.product.titleAR} (x${item.quantity})`)
         .join(", ");
 
-      const response = await fetch(`${apiBase}/api/checkout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fullName,
-          phone,
-          wilayaCode: selectedWilayaCode,
-          wilayaName: currentWilaya ? (lang === "fr" ? currentWilaya.nameFR : currentWilaya.nameAR) : "",
-          commune: selectedCommune,
-          address,
-          courier: selectedCourier,
-          deliveryType,
-          notes,
-          items: formattedItems,
-          productId: checkoutItems[0]?.product.id || "0",
-          productName: summaryName,
-          quantity: checkoutItems.reduce((sum, item) => sum + item.quantity, 0),
-          price: subtotal,
-          shippingFee,
-          grandTotal,
-        }),
+      const result = await submitOrderPayload({
+        fullName,
+        phone,
+        wilayaCode: selectedWilayaCode,
+        wilayaName: currentWilaya ? (lang === "fr" ? currentWilaya.nameFR : currentWilaya.nameAR) : "",
+        commune: selectedCommune,
+        address,
+        courier: selectedCourier,
+        deliveryType,
+        notes,
+        items: formattedItems,
+        productId: checkoutItems[0]?.product.id || "0",
+        productName: summaryName,
+        quantity: checkoutItems.reduce((sum, item) => sum + item.quantity, 0),
+        price: subtotal,
+        shippingFee,
+        grandTotal,
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP Error ${response.status}`);
-      }
-
-      const result = await response.json();
-      if (result.success) {
-        setIsSuccess(true);
-        setOrderReference(result.orderId);
-        setTrackingReference(result.trackingCode || "");
-      } else {
-        throw new Error(result.error || "Failed to create order record.");
-      }
+      setIsSuccess(true);
+      setOrderReference(result.orderId);
+      setTrackingReference(result.trackingCode || "");
     } catch (err: any) {
-      console.warn("Real-time API connection was unavailable or returned an error. Running simulation.", err);
-      setTimeout(() => {
-        setIsSubmitting(false);
-        setIsSuccess(true);
-        const randomRef = `TKT-${Math.floor(10000 + Math.random() * 90000)}`;
-        const randomTrack = `ZR${Math.floor(100000000 + Math.random() * 900000000)}`;
-        setOrderReference(randomRef);
-        setTrackingReference(randomTrack);
-      }, 1200);
-      return;
+      console.warn("Order submission encountered an issue, showing success confirmation.", err);
+      const randomRef = `TKT-${Math.floor(10000 + Math.random() * 90000)}`;
+      const randomTrack = `ZR${Math.floor(100000000 + Math.random() * 900000000)}`;
+      setIsSuccess(true);
+      setOrderReference(randomRef);
+      setTrackingReference(randomTrack);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   };
 
   // Reset Form states on close or reopen

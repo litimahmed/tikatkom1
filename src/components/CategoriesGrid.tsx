@@ -3,6 +3,7 @@ import { translations } from "../data";
 import { Category } from "../types";
 import { motion } from "motion/react";
 import AutoSlider from "./AutoSlider";
+import { isUncategorizedCategory } from "../lib/woocommerce";
 
 interface CategoriesGridProps {
   lang: "fr" | "ar";
@@ -13,6 +14,7 @@ interface CategoriesGridProps {
 export default function CategoriesGrid({ lang, onCategoryClick, categories }: CategoriesGridProps) {
   const t = translations[lang];
   const isRTL = lang === "ar";
+  const displayCategories = categories.filter(c => !isUncategorizedCategory(c));
 
   const renderCategoryCard = (category: Category, index: number) => {
     const name = lang === "fr" ? category.nameFR : category.nameAR;
@@ -76,7 +78,7 @@ export default function CategoriesGrid({ lang, onCategoryClick, categories }: Ca
 
         {/* Realtime Responsive AutoSlider */}
         <AutoSlider
-          items={categories}
+          items={displayCategories}
           renderItem={renderCategoryCard}
           lang={lang}
           idPrefix="categories-slider"

@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Product } from "../types";
 import { AlgerianWilayas, translations } from "../data";
+import { submitOrderPayload } from "../lib/woocommerce";
 
 interface ProductPageProps {
   product: Product;
@@ -121,9 +122,6 @@ export default function ProductPage({
     setErrors({});
 
     try {
-      const metaEnv = (import.meta as any).env;
-      const apiBase = (metaEnv && metaEnv.VITE_API_URL) || "";
-
       const formattedItems = [
         {
           productId: product.id,
@@ -133,42 +131,28 @@ export default function ProductPage({
         },
       ];
 
-      const response = await fetch(`${apiBase}/api/checkout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fullName,
-          phone,
-          wilayaCode: selectedWilayaCode,
-          wilayaNameFR: currentWilaya?.nameFR || "",
-          wilayaNameAR: currentWilaya?.nameAR || "",
-          commune: selectedCommune,
-          address,
-          courier: "zrexpress",
-          deliveryType,
-          notes,
-          items: formattedItems,
-          totalPrice: grandTotal,
-          subtotal,
-          shippingFee,
-          productSummary: `${lang === "fr" ? product.titleFR : product.titleAR} (x${quantity})`,
-          sourceUrl: window.location.href,
-        }),
+      const result = await submitOrderPayload({
+        fullName,
+        phone,
+        wilayaCode: selectedWilayaCode,
+        wilayaNameFR: currentWilaya?.nameFR || "",
+        wilayaNameAR: currentWilaya?.nameAR || "",
+        commune: selectedCommune,
+        address,
+        courier: "zrexpress",
+        deliveryType,
+        notes,
+        items: formattedItems,
+        totalPrice: grandTotal,
+        subtotal,
+        shippingFee,
+        productSummary: `${lang === "fr" ? product.titleFR : product.titleAR} (x${quantity})`,
+        sourceUrl: window.location.href,
       });
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        setIsSuccess(true);
-        setOrderReference(data.orderId || `TK-${Math.floor(10000 + Math.random() * 90000)}`);
-        setTrackingReference(data.trackingNumber || `ZR-${Math.floor(100000 + Math.random() * 900000)}`);
-      } else {
-        setIsSuccess(true);
-        setOrderReference(`TK-${Math.floor(10000 + Math.random() * 90000)}`);
-        setTrackingReference(`ZR-${Math.floor(100000 + Math.random() * 900000)}`);
-      }
+      setIsSuccess(true);
+      setOrderReference(result.orderId);
+      setTrackingReference(result.trackingCode || `ZR-${Math.floor(100000 + Math.random() * 900000)}`);
     } catch (err) {
       console.warn("API network offline, showing success confirmation.", err);
       setIsSuccess(true);

@@ -14,7 +14,7 @@ import FloatingContact from "./components/FloatingContact";
 import { Product, Category, CartItem } from "./types";
 import { products as staticProducts, categories as staticCategories } from "./data";
 import { ChevronRight, ChevronLeft, Globe } from "lucide-react";
-import { getWooCategories, getWooProducts, detectWordPressBaseUrl } from "./lib/woocommerce";
+import { getWooCategories, getWooProducts, detectWordPressBaseUrl, isUncategorizedCategory } from "./lib/woocommerce";
 import { getUserCountryCode } from "./lib/geo";
 import CartDrawer from "./components/CartDrawer";
 
@@ -202,9 +202,9 @@ export default function App() {
         ]);
         
         if (wooCats && wooCats.length > 0) {
-          setCategories(wooCats);
+          setCategories(wooCats.filter(c => !isUncategorizedCategory(c)));
         } else {
-          setCategories(staticCategories);
+          setCategories(staticCategories.filter(c => !isUncategorizedCategory(c)));
         }
 
         if (wooProds && wooProds.length > 0) {
@@ -214,7 +214,7 @@ export default function App() {
         }
       } catch (error) {
         console.warn("Could not load live WooCommerce data, keeping local high-fidelity mock data.", error);
-        setCategories(staticCategories);
+        setCategories(staticCategories.filter(c => !isUncategorizedCategory(c)));
         setProducts(staticProducts);
       } finally {
         setIsLoading(false);

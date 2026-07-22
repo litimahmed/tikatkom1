@@ -1,5 +1,5 @@
 import { ArrowRight, ArrowLeft } from "lucide-react";
-import { getProductsForSection } from "../lib/woocommerce";
+import { getProductsForSection, isUncategorizedCategory } from "../lib/woocommerce";
 import { Product, Category } from "../types";
 import AutoSlider from "./AutoSlider";
 
@@ -83,10 +83,10 @@ export default function HomeSections({ lang, onBuyClick, onAddToCart, onViewAllC
                   {/* Category Row */}
                   <div className="flex items-center justify-between gap-1">
                     <span className="text-[9px] font-bold text-brand-green uppercase tracking-wider">
-                      {lang === "fr" 
-                        ? categories.find(c => c.id === product.category)?.nameFR 
-                        : categories.find(c => c.id === product.category)?.nameAR
-                      }
+                      {(() => {
+                        const matchedCat = categories.find(c => c.id === product.category && !isUncategorizedCategory(c));
+                        return matchedCat ? (lang === "fr" ? matchedCat.nameFR : matchedCat.nameAR) : "";
+                      })()}
                     </span>
                   </div>
 

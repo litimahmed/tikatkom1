@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { translations } from "../data";
 import { Product, Category } from "../types";
+import { isUncategorizedCategory } from "../lib/woocommerce";
 
 interface ProductsGridProps {
   lang: "fr" | "ar";
@@ -58,7 +59,7 @@ export default function ProductsGrid({
             {lang === "fr" ? "Tous les produits" : "جميع المنتجات"}
           </button>
           
-          {categories.map((cat) => {
+          {categories.filter(c => !isUncategorizedCategory(c)).map((cat) => {
             const isSelected = selectedCategory === cat.id;
             const name = lang === "fr" ? cat.nameFR : cat.nameAR;
             
@@ -121,10 +122,10 @@ export default function ProductsGrid({
                   {/* Category Name Row */}
                   <div className="mb-2">
                     <span className="text-xs font-semibold text-brand-green uppercase tracking-wider">
-                      {lang === "fr" 
-                        ? categories.find(c => c.id === product.category)?.nameFR 
-                        : categories.find(c => c.id === product.category)?.nameAR
-                      }
+                      {(() => {
+                        const matchedCat = categories.find(c => c.id === product.category && !isUncategorizedCategory(c));
+                        return matchedCat ? (lang === "fr" ? matchedCat.nameFR : matchedCat.nameAR) : "";
+                      })()}
                     </span>
                   </div>
 
