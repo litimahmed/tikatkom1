@@ -6,6 +6,7 @@ import { isUncategorizedCategory } from "../lib/woocommerce";
 interface ProductsGridProps {
   lang: "fr" | "ar";
   onBuyClick: (product: Product) => void;
+  onSelectProduct?: (product: Product) => void;
   onAddToCart?: (product: Product) => void;
   selectedCategory: string | null;
   setSelectedCategory: (catId: string | null) => void;
@@ -16,6 +17,7 @@ interface ProductsGridProps {
 export default function ProductsGrid({
   lang,
   onBuyClick,
+  onSelectProduct,
   onAddToCart,
   selectedCategory,
   setSelectedCategory,
@@ -25,10 +27,21 @@ export default function ProductsGrid({
   const t = translations[lang];
   const isRTL = lang === "ar";
 
+  const handleCardProductClick = (product: Product) => {
+    if (onSelectProduct) {
+      onSelectProduct(product);
+    } else {
+      onBuyClick(product);
+    }
+  };
+
+  // Filter out digital products for the physical store grid
+  const physicalProducts = products.filter((p) => !p.isDigital && !p.category?.toLowerCase().startsWith("digital"));
+
   // Filter products based on category selection
   const filteredProducts = selectedCategory
-    ? products.filter((p) => p.category === selectedCategory)
-    : products;
+    ? physicalProducts.filter((p) => p.category === selectedCategory)
+    : physicalProducts;
 
   return (
     <section className="bg-gray-50/50 dark:bg-[#121212] py-8 sm:py-16 lg:py-20" id="products-section">
@@ -59,7 +72,7 @@ export default function ProductsGrid({
             {lang === "fr" ? "Tous les produits" : "جميع المنتجات"}
           </button>
           
-          {categories.filter(c => !isUncategorizedCategory(c)).map((cat) => {
+          {categories.filter(c => !isUncategorizedCategory(c) && !c.isDigital && !c.id.toLowerCase().startsWith("digital")).map((cat) => {
             const isSelected = selectedCategory === cat.id;
             const name = lang === "fr" ? cat.nameFR : cat.nameAR;
             
@@ -95,7 +108,7 @@ export default function ProductsGrid({
               >
                 {/* Image Section */}
                 <div 
-                  onClick={() => onBuyClick(product)}
+                  onClick={() => handleCardProductClick(product)}
                   className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-[#1e1e1e] cursor-pointer"
                 >
                   <img
@@ -130,7 +143,10 @@ export default function ProductsGrid({
                   </div>
 
                   {/* Title */}
-                  <h3 className="font-display text-lg font-extrabold text-brand-navy dark:text-zinc-100 tracking-tight group-hover:text-brand-green transition-colors line-clamp-2">
+                  <h3 
+                    onClick={() => handleCardProductClick(product)}
+                    className="font-display text-lg font-extrabold text-brand-navy dark:text-zinc-100 tracking-tight group-hover:text-brand-green transition-colors line-clamp-2 cursor-pointer"
+                  >
                     {title}
                   </h3>
 

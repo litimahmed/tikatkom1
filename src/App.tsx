@@ -2,17 +2,19 @@ import { useState, useEffect } from "react";
 import Header from "./components/Header";
 import Hero from "./components/Hero";
 import BrandBanner from "./components/BrandBanner";
+import DigitalBentoGrid from "./components/DigitalBentoGrid";
 import CategoriesGrid from "./components/CategoriesGrid";
 import HomeSections from "./components/HomeSections";
 import ProductsGrid from "./components/ProductsGrid";
 import ProductPage from "./components/ProductPage";
+import DigitalStorePage from "./components/DigitalStorePage";
 import Footer from "./components/Footer";
 import ShippingModal from "./components/ShippingModal";
 import CheckoutModal from "./components/CheckoutModal";
 import TrackingModal from "./components/TrackingModal";
 import FloatingContact from "./components/FloatingContact";
 import { Product, Category, CartItem } from "./types";
-import { products as staticProducts, categories as staticCategories } from "./data";
+import { products as staticProducts, categories as staticCategories, digitalProducts as staticDigitalProducts } from "./data";
 import { ChevronRight, ChevronLeft, Globe } from "lucide-react";
 import { getWooCategories, getWooProducts, detectWordPressBaseUrl, isUncategorizedCategory } from "./lib/woocommerce";
 import { getUserCountryCode } from "./lib/geo";
@@ -44,6 +46,33 @@ export function getStorePageUrl(categoryId?: string | null): string {
   let url = `${cleanBase}/shop/`;
   if (categoryId) {
     url += `?category=${encodeURIComponent(categoryId)}`;
+  }
+  return url;
+}
+
+export function getDigitalStorePageUrl(subcategoryId?: string | null): string {
+  const baseUrl = detectWordPressBaseUrl();
+  const currentUrl = new URL(window.location.href);
+
+  const isDevPreview =
+    currentUrl.port === "3000" ||
+    currentUrl.hostname.includes("run.app") ||
+    currentUrl.hostname.includes("ais-dev") ||
+    currentUrl.hostname.includes("ais-pre");
+
+  if (isDevPreview) {
+    const target = new URL(window.location.pathname, window.location.origin);
+    target.searchParams.set("view", "digital");
+    if (subcategoryId && subcategoryId !== "all") {
+      target.searchParams.set("digitalCategory", subcategoryId);
+    }
+    return target.toString();
+  }
+
+  const cleanBase = baseUrl.replace(/\/$/, "");
+  let url = `${cleanBase}/digital-store/`;
+  if (subcategoryId && subcategoryId !== "all") {
+    url += `?digitalCategory=${encodeURIComponent(subcategoryId)}`;
   }
   return url;
 }
@@ -152,12 +181,19 @@ export default function App() {
     window.location.reload();
   };
 
-  // Page Routing State: "home" | "products" | "product"
-  const [view, setView] = useState<"home" | "products" | "product">((): "home" | "products" | "product" => {
+  // Page Routing State: "home" | "products" | "product" | "digital"
+  const [view, setView] = useState<"home" | "products" | "product" | "digital">((): "home" | "products" | "product" | "digital" => {
     const currentPath = window.location.pathname;
     const params = new URLSearchParams(window.location.search);
     if (params.get("product") || params.get("id")) {
       return "product";
+    }
+    if (
+      currentPath.includes("/digital") || 
+      params.get("view") === "digital" ||
+      params.get("digitalCategory") !== null
+    ) {
+      return "digital";
     }
     if (
       currentPath.includes("/shop") || 
@@ -172,6 +208,12 @@ export default function App() {
 
   // Selected Product State for dedicated product page view
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  // Selected Digital Subcategory state
+  const [selectedDigitalSubcategory, setSelectedDigitalSubcategory] = useState<string | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("digitalCategory");
+  });
 
   // Dynamic Catalog States: initialized empty to prevent flashing of hardcoded data
   const [products, setProducts] = useState<Product[]>([]);
@@ -315,14 +357,32 @@ export default function App() {
     }
   };
 
+  // Handler to view dedicated Product Page
+  const handleSelectProduct = (product: Product) => {
+    setSelectedProduct(product);
+    setView("product");
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("product", product.id);
+      window.history.pushState({}, "", url.toString());
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   // Handler to open order form for a selected product
   const handleOpenCheckout = (product: Product) => {
     setSelectedProduct(product);
     setCheckoutProduct(product);
     setCheckoutItems([{ product, quantity: 1 }]);
     if (isAlgerian) {
-      // Open the custom tailored Algerian Cash-On-Delivery popup modal
-      setIsCheckoutOpen(true);
+      // On mobile screens (< 768px), point to the dedicated mobile product page view with embedded Algerian COD checkout form
+      const isMobileScreen = typeof window !== "undefined" && window.innerWidth < 768;
+      if (isMobileScreen) {
+        handleSelectProduct(product);
+      } else {
+        // On desktop, open the custom tailored Algerian Cash-On-Delivery popup modal
+        setIsCheckoutOpen(true);
+      }
     } else {
       // Direct international buyer to product Lemon Squeezy hosted checkout page
       const env = (import.meta as any).env || {};
@@ -358,6 +418,24 @@ export default function App() {
         p.tags?.some(t => (t.slug || "").toLowerCase().includes("hero") || (t.name || "").toLowerCase().includes("hero"))
       ) || products[0];
       handleOpenCheckout(flagshipProduct);
+    }
+  };
+
+  // Handler for opening dedicated Digital Store page
+  const handleOpenDigitalStore = (subcategoryId?: string | null) => {
+    const subcat = subcategoryId || "all";
+    setSelectedDigitalSubcategory(subcat);
+    setView("digital");
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("view", "digital");
+      if (subcat && subcat !== "all") {
+        url.searchParams.set("digitalCategory", subcat);
+      } else {
+        url.searchParams.delete("digitalCategory");
+      }
+      window.history.pushState({}, "", url.toString());
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -430,12 +508,33 @@ export default function App() {
             <HomeSections 
               lang={lang}
               onBuyClick={handleOpenCheckout}
+              onSelectProduct={handleSelectProduct}
               onAddToCart={handleAddToCart}
               onViewAllClick={handleViewAllClick}
               products={products}
               categories={categories}
             />
+
+            {/* 6. Digital Bento Grid Section (Placed at last as requested) */}
+            <DigitalBentoGrid 
+              lang={lang}
+              onExploreClick={handleExploreClick}
+              onOpenDigitalStore={handleOpenDigitalStore}
+              onSelectProduct={handleSelectProduct}
+              categories={categories}
+            />
           </>
+        ) : view === "digital" ? (
+          <DigitalStorePage
+            lang={lang}
+            onBackHome={handleLogoClick}
+            onSelectProduct={handleSelectProduct}
+            onBuyClick={handleOpenCheckout}
+            onAddToCart={handleAddToCart}
+            initialSubcategory={selectedDigitalSubcategory}
+            allProducts={products}
+            categories={categories}
+          />
         ) : (
           <>
             {/* Elegant Breadcrumbs & Navigation Bar for Dedicated Shop Page */}
@@ -463,6 +562,7 @@ export default function App() {
             <ProductsGrid 
               lang={lang} 
               onBuyClick={handleOpenCheckout}
+              onSelectProduct={handleSelectProduct}
               onAddToCart={handleAddToCart}
               selectedCategory={selectedCategory}
               setSelectedCategory={setSelectedCategory}

@@ -71,7 +71,7 @@ export const translations = {
     subtotal: "Sous-total",
     shippingFee: "Frais de livraison",
     grandTotal: "Total à payer",
-    submitOrder: "Confirmer ma Commande (Paiement à la livraison)",
+    submitOrder: "Confirmer ma commande",
     submitting: "Traitement en cours...",
     
     requiredError: "Ce champ est obligatoire",
@@ -156,7 +156,7 @@ export const translations = {
     subtotal: "المجموع الفرعي",
     shippingFee: "مصاريف التوصيل",
     grandTotal: "المجموع الإجمالي للدفع",
-    submitOrder: "تأكيد الطلب الآن (الدفع عند الاستلام)",
+    submitOrder: "تأكيد الطلب الآن",
     submitting: "جاري تسجيل طلبك...",
     
     requiredError: "هذا الحقل مطلوب ولا يمكن تركه فارغاً",
@@ -435,6 +435,329 @@ export const products: Product[] = [
       "تتسع لـ 4 جوازات سفر، 8 بطاقات بنكية، وجيب كبير للنقود الورقية",
       "سحاب معدني قوي وناعم جداً من ماركة YKK الشهيرة لمتانة تدوم طويلاً",
       "حجم مدمج وأنيق يسهل حملها باليد أو وضعها في حقيبة السفر"
+    ]
+  }
+];
+
+export const digitalProducts: Product[] = [
+  {
+    id: "dig-1",
+    titleFR: "Abonnement Netflix Premium 4K Ultra HD (12 Mois)",
+    titleAR: "اشتراك نتفليكس بريميوم 4K Ultra HD (12 شهر)",
+    descriptionFR: "Accès garanti à Netflix Premium 4K Ultra HD sur vos écrans. Profil privé sécurisé avec votre propre PIN, qualité vidéo maximale et garantie totale durant toute la durée de l'abonnement.",
+    descriptionAR: "حساب نتفليكس بريميوم رسمي بأعلى دقة 4K Ultra HD. ملف شخصي خاص بك ومحمي برقم سري (PIN)، مشاهدة بدون انقطاع مع ضمان كامل وشامل طيلة فترة الاشتراك.",
+    price: 3200,
+    oldPrice: 5000,
+    image: "/src/assets/images/bento_vip_apps_1784816619708.jpg",
+    category: "digital",
+    isDigital: true,
+    digitalCategory: "vip_subscriptions",
+    badgeFR: "LIVRAISON INSTANTANÉE",
+    badgeAR: "تسليم فوري 24/7",
+    rating: 4.9,
+    reviewsCount: 328,
+    stockStatus: "in_stock",
+    featuresFR: [
+      "Profil privé sécurisé avec votre code PIN personnel",
+      "Résolution 4K Ultra HD + HDR et son Spatial Audio",
+      "Garantie de remplacement automatique 12 mois",
+      "Livraison automatique des identifiants en moins de 5 minutes",
+      "Compatible Smart TV, Téléphone, PC et Tablettes"
+    ],
+    featuresAR: [
+      "بروفايل شخصي خاص بك ومحمي برمز PIN سري",
+      "جودة عرض فائقة 4K Ultra HD مع دعم HDR وصوت سينمائي",
+      "ضمان استبدال مباشر وتلقائي طيلة الـ 12 شهراً",
+      "تسليم فوري لتفاصيل الحساب في أقل من 5 دقائق",
+      "يعمل على التلفزيون الذكي، الهاتف، الكمبيوتر والتابلت"
+    ]
+  },
+  {
+    id: "dig-2",
+    titleFR: "Abonnement Spotify Premium (12 Mois)",
+    titleAR: "اشتراك سبوتيفاي بريميوم (12 شهر)",
+    descriptionFR: "Écoutez toute votre musique préférée sans aucune publicité et hors ligne. Activation directe sur votre propre compte personnel Spotify sans changement d'identifiant.",
+    descriptionAR: "استمع لموسيقاك وبودكاستك المفضل بدون إعلانات وبجودة صوت فائقة مع إمكانية التحميل والاستماع أوفلاين. تفعيل مباشر على حسابك الشخصي الحالي في سبوتيفاي.",
+    price: 2400,
+    oldPrice: 4200,
+    image: "/src/assets/images/bento_vip_apps_1784816619708.jpg",
+    category: "digital",
+    isDigital: true,
+    digitalCategory: "vip_subscriptions",
+    badgeFR: "COMPTE PERSONNEL",
+    badgeAR: "على حسابك الشخصي",
+    rating: 4.8,
+    reviewsCount: 194,
+    stockStatus: "in_stock",
+    featuresFR: [
+      "Activation directe sur votre adresse email personnelle",
+      "Écoute hors ligne (Téléchargement illimité des playlists)",
+      "Qualité audio maximale Très Haute Définition (320 kbps)",
+      "Zéro publicité et zapping illimité",
+      "Garantie officielle 1 an"
+    ],
+    featuresAR: [
+      "تفعيل مباشر رسمي على بريدك الإلكتروني الشخصي",
+      "تحميل الأغاني والبودكاست للاستماع بدون إنترنت",
+      "جودة صوت نقية وفائقة الدقة 320 كيلو بت في الثانية",
+      "بدون إعلانات وتنقل غير محدود بين الأغاني",
+      "ضمان رسمي لمدة سنة كاملة"
+    ]
+  },
+  {
+    id: "dig-3",
+    titleFR: "Abonnement Shahid VIP + Sport (12 Mois)",
+    titleAR: "اشتراك شاهد VIP + الرياضة (12 شهر)",
+    descriptionFR: "Profitez des meilleurs films, séries arabes exclusives et des grands événements sportifs en direct (Roshn Saudi League, Formula 1, Champions League) en HD.",
+    descriptionAR: "استمتع بمشاهدة أحدث الأفلام والمسلسلات العربية الحصرية، بالإضافة إلى البث المباشر لأهم البطولات الرياضية العالمية والدوري السعودي بوضوح عالي HD.",
+    price: 3900,
+    oldPrice: 6500,
+    image: "/src/assets/images/bento_vip_apps_1784816619708.jpg",
+    category: "digital",
+    isDigital: true,
+    digitalCategory: "vip_subscriptions",
+    badgeFR: "INCLUS SPORT HD",
+    badgeAR: "شامل الرياضة والمسلسلات",
+    rating: 4.9,
+    reviewsCount: 215,
+    stockStatus: "in_stock",
+    featuresFR: [
+      "Accès complet aux chaînes Sport HD et événements en direct",
+      "Sans interruption publicitaire et qualité Full HD",
+      "Téléchargement pour visionnage hors ligne",
+      "Garantie continue 12 mois",
+      "Activation rapide"
+    ],
+    featuresAR: [
+      "تغطية كاملة للقنوات الرياضية البث المباشر والمباريات",
+      "مشاهدة بدون فواصل إعلانية وبجودة Full HD",
+      "إمكانية تحميل المحتوى للمشاهدة بدون إنترنت",
+      "ضمان مستمر طوال فترة الاشتراك 12 شهراً",
+      "تفعيل وتكريس سريع ومضمون"
+    ]
+  },
+  {
+    id: "dig-4",
+    titleFR: "Licence Officielle Windows 11 Pro - Clé Retail À Vie",
+    titleAR: "مفتاح تفعيل ويندوز 11 برو الأصلي (مدى الحياة)",
+    descriptionFR: "Clé d'activation officielle Microsoft Windows 11 Professionnel. Activation en ligne immédiate liée à la carte mère de votre PC. Mises à jour officielles garanties à vie.",
+    descriptionAR: "مفتاح تفعيل أصلي ورسمي 100% من مايكروسوفت لويندوز 11 برو. تفعيل أونلاين مباشر يرتبط بلوحة الأم لجهازك، ويضمن لك الحصول على كافة التحديثات الأمنية مدى الحياة.",
+    price: 1800,
+    oldPrice: 3500,
+    image: "/src/assets/images/bento_software_keys_1784816632444.jpg",
+    category: "digital",
+    isDigital: true,
+    digitalCategory: "activation_keys",
+    badgeFR: "CLÉ OFFICIELLE RETAIL",
+    badgeAR: "تفعيل أونلاين مدى الحياة",
+    rating: 5.0,
+    reviewsCount: 412,
+    stockStatus: "in_stock",
+    featuresFR: [
+      "Clé officielle Retail réutilisable sur le même PC",
+      "Activation directe via les paramètres Windows",
+      "Support multilingue (Français, Arabe, Anglais)",
+      "Mises à jour Microsoft garanties à vie",
+      "Envoi immédiat de la clé par SMS et Email"
+    ],
+    featuresAR: [
+      "مفتاح تفعيل أونلاين رسمي Retail يرتبط بجهازك",
+      "تفعيل مباشر وسهل من إعدادات الويندوز في ثوانٍ",
+      "يدعم جميع اللغات (العربية، الفرنسية، الإنجليزية)",
+      "تحديثات أمان مستمرة ومضمونة من مايكروسوفت",
+      "إرسال فوري للمفتاح عبر الرسائل القصيرة والبريد"
+    ]
+  },
+  {
+    id: "dig-5",
+    titleFR: "Microsoft Office 2021 Professional Plus (Clé À Vie)",
+    titleAR: "مايكروسوفت أوفيس 2021 برو بلس (مفتاح مدى الحياة)",
+    descriptionFR: "Suite bureautique complète comprenant Word, Excel, PowerPoint, Outlook, Access et Publisher. Licence permanente sans abonnement mensuel.",
+    descriptionAR: "الحزمة المكتبيّة الكاملة التي تشمل وورد، إكسل، باوربوينت، أوتلوك، وأكسس. ترخيص دائم مدى الحياة بدون أي رسوم أو اشتراكات شهرية.",
+    price: 2200,
+    oldPrice: 4000,
+    image: "/src/assets/images/bento_software_keys_1784816632444.jpg",
+    category: "digital",
+    isDigital: true,
+    digitalCategory: "activation_keys",
+    badgeFR: "SANS ABONNEMENT",
+    badgeAR: "ترخيص دائم مدى الحياة",
+    rating: 4.9,
+    reviewsCount: 289,
+    stockStatus: "in_stock",
+    featuresFR: [
+      "Inclus : Word, Excel, PowerPoint, Outlook, Publisher, Access",
+      "Activation permanente pour 1 PC Windows",
+      "Téléchargement direct depuis le site officiel Microsoft",
+      "Prise en charge de toutes les langues",
+      "Clé d'activation authentique"
+    ],
+    featuresAR: [
+      "يتضمن: Word, Excel, PowerPoint, Outlook, Publisher, Access",
+      "تفعيل دائم لجهاز كمبيوتر واحد يعمل بنظام ويندوز",
+      "تحميل مباشر ورسمي من موقع مايكروسوفت الرسمي",
+      "دعم كامل للغة العربية والفرنسية والإنجليزية",
+      "مفتاح تفعيل أصلـي مع دليل التثبيت بالخطوات"
+    ]
+  },
+  {
+    id: "dig-6",
+    titleFR: "Compte ChatGPT Plus / OpenAI GPT-4o (1 Mois / 1 An)",
+    titleAR: "اشتراك تشات جي بي تي بلس ChatGPT Plus / GPT-4o",
+    descriptionFR: "Débloquez la puissance maximale de l'Intelligence Artificielle avec GPT-4o, génération d'images DALL-E 3, analyse de documents et accès prioritaire sans attente.",
+    descriptionAR: "افتح القوة الكاملة للذكاء الاصطناعي مع نموذج GPT-4o الفائق، توليد الصور المتقدم DALL-E 3، تحليل المستندات والبيانات، وسرعة استجابة فائقة بدون انتظار.",
+    price: 2900,
+    oldPrice: 4500,
+    image: "/src/assets/images/bento_ai_tools_1784816644259.jpg",
+    category: "digital",
+    isDigital: true,
+    digitalCategory: "ai_tools",
+    badgeFR: "ACCÈS GPT-4o & DALL-E 3",
+    badgeAR: "نسخة GPT-4o الرسمية",
+    rating: 4.9,
+    reviewsCount: 178,
+    stockStatus: "in_stock",
+    featuresFR: [
+      "Accès garanti au dernier modèle GPT-4o et GPT-4 Turbo",
+      "Génération d'images haute qualité avec DALL-E 3",
+      "Analyse avancée de données, fichiers PDF et code",
+      "Vitesse de réponse ultra-rapide 24/7",
+      "Support et garantie pendant toute la période"
+    ],
+    featuresAR: [
+      "وصول مضمون لأحدث نموذج ذكاء اصطناعي GPT-4o",
+      "توليد الصور الاحترافية عالية الدقة بواسطة DALL-E 3",
+      "تحليل الملفات المستندات الـ PDF والأكواد البرمجية",
+      "استجابة سريعة جداً بدون أي انقطاع",
+      "دعم وضمان كامل لم المذة المحددة"
+    ]
+  },
+  {
+    id: "dig-7",
+    titleFR: "Abonnement Canva Pro (12 Mois)",
+    titleAR: "اشتراك كانفا برو Canva Pro (12 شهر)",
+    descriptionFR: "Accédez à plus de 100 millions d'éléments graphiques, suppression d'arrière-plan en 1 clic, redimensionnement magique et des milliers de modèles premium.",
+    descriptionAR: "احصل على وصول كامل لأكثر من 100 مليون عنصر جرافيك، إزالة خلفية الصور بضغطة زر واحدة، تغيير أحجام التصاميم بذكاء، وآلاف القوالب المدفوعة.",
+    price: 1500,
+    oldPrice: 3000,
+    image: "/src/assets/images/bento_ai_tools_1784816644259.jpg",
+    category: "digital",
+    isDigital: true,
+    digitalCategory: "ai_tools",
+    badgeFR: "SUR VOTRE EMAIL",
+    badgeAR: "تفعيل على إيميلك الخاص",
+    rating: 5.0,
+    reviewsCount: 520,
+    stockStatus: "in_stock",
+    featuresFR: [
+      "Invitation officielle envoyée directement sur votre compte email Canva",
+      "Suppresseur d'arrière-plan d'image IA en un clic",
+      "Espace de stockage cloud de 1 To",
+      "Accès aux outils d'édition IA avancés (Magic Edit, Redimensionnement)",
+      "Garantie 12 mois sans coupure"
+    ],
+    featuresAR: [
+      "دعوة رسمية ترسل مباشرة إلى حسابك الخاص في كانفا",
+      "أداة إزالة خلفية الصور بالذكاء الاصطناعي بنقرة واحدة",
+      "مساحة تخزين سحابية ضخمة 1 تيرابايت",
+      "أدوات الذكاء الاصطناعي السحرية لتعديل وتكبير التصاميم",
+      "ضمان لمدة 12 شهراً بدون أي انقطاع"
+    ]
+  },
+  {
+    id: "dig-8",
+    titleFR: "Pack Formation Marketing Digital & E-Commerce 2026",
+    titleAR: "حقيبة كورسات وكتب التسويق الرقمي والتجارة الإلكترونية",
+    descriptionFR: "Pack complet incluant 15+ formations vidéo HD et 30+ e-books pratiques pour maîtriser la publicité Facebook/TikTok Ads, la création de boutiques et le dropshipping.",
+    descriptionAR: "حقيبة تدريبية شاملة تحتوي على أكثر من 15 دورة فيديو عالية الدقة و30 كتاباً إلكترونياً لتعلم إعلانات فيسبوك وتيك توك، إنشاء المتاجر، والتجارة الإلكترونية.",
+    price: 2500,
+    oldPrice: 6000,
+    image: "/src/assets/images/bento_ebooks_courses_1784816657536.jpg",
+    category: "digital",
+    isDigital: true,
+    digitalCategory: "ebooks_courses",
+    badgeFR: "15+ FORMATIONS & EBOOKS",
+    badgeAR: "دورة شاملة + كتب إلكترونية",
+    rating: 4.8,
+    reviewsCount: 145,
+    stockStatus: "in_stock",
+    featuresFR: [
+      "Accès à vie à Google Drive avec mises à jour gratuites",
+      "Formations vidéo complètes en arabe et français",
+      "Guides pratiques étape par étape pour Facebook & TikTok Ads",
+      "Modèles de stratégie et fiches de calcul de rentabilité incluses",
+      "Téléchargement illimité sur tous vos appareils"
+    ],
+    featuresAR: [
+      "وصول مدى الحياة عبر جوجل درايف مع تحديثات مجانية",
+      "كورس فيديو تفصيلي ومكتمل باللغة العربية والفرنسية",
+      "شرح عملي خطوة بخطوة لإعلانات فيسبوك، انستغرام وتيك توك",
+      "ملفات وقوالب حساب الأرباح واستراتيجيات التسويق جاهزة",
+      "تحميل غير محدود على هاتفك أو جهاز الكمبيوتر"
+    ]
+  },
+  {
+    id: "dig-9",
+    titleFR: "Carte Cadeau Google Play $25 USD / EUR",
+    titleAR: "بطاقة هدايا جوجل بلاي Google Play $25",
+    descriptionFR: "Rechargez votre solde Google Play en un instant pour acheter des jeux, des applications, des diamants Free Fire, PUBG UC ou des abonnements in-app.",
+    descriptionAR: "اشحن رصيد حسابك في جوجل بلاي فوراً لشراء الألعاب، التطبيقات، شحن جواهر فري فاير، شدات ببجي أو الاشتراكات داخل التطبيقات بسهولة وأمان.",
+    price: 3800,
+    oldPrice: 4500,
+    image: "/src/assets/images/bento_gift_cards_1784816668964.jpg",
+    category: "digital",
+    isDigital: true,
+    digitalCategory: "gift_cards",
+    badgeFR: "CODE INSTANTANÉ",
+    badgeAR: "كود شحن فوري",
+    rating: 4.9,
+    reviewsCount: 310,
+    stockStatus: "in_stock",
+    featuresFR: [
+      "Code officiel à 16 chiffres prêt à être activé",
+      "Compatible avec le Google Play Store US / FR",
+      "Livraison immédiate par SMS ou WhatsApp après validation",
+      "Garantie d'authenticité 100%",
+      "Support d'aide à l'activation si besoin"
+    ],
+    featuresAR: [
+      "كود رسمي مكون من 16 رقم جاهز للتفعيل الفوري",
+      "متوافق مع متجر جوجل بلاي الأمريكي أو الفرنسي",
+      "إرسال فوري للكود عبر SMS أو واتساب فور الشراء",
+      "ضمان أصالة الكود 100%",
+      "دعم المساعدة في تفعيل الكود إذا لزم الأمر"
+    ]
+  },
+  {
+    id: "dig-10",
+    titleFR: "Pack 500+ Templates Social Media Canva & Photoshop",
+    titleAR: "حزمة 500+ قالب تصميم جاهز للسوشيال ميديا",
+    descriptionFR: "Collection massive de modèles de publications, stories et bannières professionnels entièrement modifiables sur Canva et Photoshop pour booster vos réseaux.",
+    descriptionAR: "مجموعة ضخمة من قوالب المنشورات والستوريات الإعلانية الاحترافية الجاهزة للتعديل الكامل على كانفا وفوتوشوب لتطوير حساباتك ومتجرك بسهولة.",
+    price: 1900,
+    oldPrice: 3800,
+    image: "/src/assets/images/bento_design_templates_1784816681609.jpg",
+    category: "digital",
+    isDigital: true,
+    digitalCategory: "design_templates",
+    badgeFR: "MODIFIABLE EN 1 CLIC",
+    badgeAR: "جاهزة للتعديل السريع",
+    rating: 4.9,
+    reviewsCount: 167,
+    stockStatus: "in_stock",
+    featuresFR: [
+      "Plus de 500 designs modernes classés par domaine (E-commerce, Resto, High-Tech)",
+      "Liens Canva directs + Fichiers source PSD Photoshop inclus",
+      "Typographies et éléments libres de droits inclus",
+      "Téléchargement direct et immédiat",
+      "Utilisation commerciale autorisée"
+    ],
+    featuresAR: [
+      "أكثر من 500 تصميم حديث مقسم حسب المجالات (تجارة، مطاعم، تقنية)",
+      "روابط كانفا مباشرة + ملفات المصدر PSD بفوتوشوب متضمنة",
+      "خطوط وعناصر جرافيك مجانية وحرة الاستخدام",
+      "تحميل مباشر وفوري بعد الشراء",
+      "ترخيص استخدام تجاري مفتوح"
     ]
   }
 ];

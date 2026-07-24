@@ -6,14 +6,25 @@ import AutoSlider from "./AutoSlider";
 interface HomeSectionsProps {
   lang: "fr" | "ar";
   onBuyClick: (product: Product) => void;
+  onSelectProduct?: (product: Product) => void;
   onAddToCart?: (product: Product) => void;
   onViewAllClick: (categoryId: string | null) => void;
   products: Product[];
   categories: Category[];
 }
 
-export default function HomeSections({ lang, onBuyClick, onAddToCart, onViewAllClick, products, categories }: HomeSectionsProps) {
+export default function HomeSections({ lang, onBuyClick, onSelectProduct, onAddToCart, onViewAllClick, products, categories }: HomeSectionsProps) {
   const isRTL = lang === "ar";
+  const handleCardProductClick = (product: Product) => {
+    if (onSelectProduct) {
+      onSelectProduct(product);
+    } else {
+      onBuyClick(product);
+    }
+  };
+
+  // Ensure physical product sections only show physical non-digital products
+  const physicalProducts = products.filter((p) => !p.isDigital && !p.category?.toLowerCase().startsWith("digital"));
 
   // Select filtered subsets of products for each of the 4 sections
   const sectionsData = [
@@ -51,7 +62,7 @@ export default function HomeSections({ lang, onBuyClick, onAddToCart, onViewAllC
     <div className="space-y-10 sm:space-y-16 py-8 sm:py-16">
       {sectionsData.map((sec) => {
         // Find products belonging to this section using our high-fidelity WooCommerce tags filter
-        const secProducts = getProductsForSection(products, sec.id);
+        const secProducts = getProductsForSection(physicalProducts, sec.id);
 
         if (secProducts.length === 0) return null;
 
@@ -66,7 +77,7 @@ export default function HomeSections({ lang, onBuyClick, onAddToCart, onViewAllC
             >
               {/* Image Section */}
               <div 
-                onClick={() => onBuyClick(product)}
+                onClick={() => handleCardProductClick(product)}
                 className="relative aspect-square overflow-hidden rounded-xl bg-gray-50 dark:bg-[#262626] cursor-pointer"
               >
                 <img
@@ -92,7 +103,7 @@ export default function HomeSections({ lang, onBuyClick, onAddToCart, onViewAllC
 
                   {/* Product Title */}
                   <h4 
-                    onClick={() => onBuyClick(product)}
+                    onClick={() => handleCardProductClick(product)}
                     className="font-arabic font-extrabold text-xs text-brand-navy dark:text-zinc-100 mt-1.5 leading-snug line-clamp-2 group-hover:text-brand-green transition-colors sm:text-sm cursor-pointer"
                   >
                     {title}

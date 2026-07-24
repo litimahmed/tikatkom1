@@ -14,7 +14,7 @@ interface CategoriesGridProps {
 export default function CategoriesGrid({ lang, onCategoryClick, categories }: CategoriesGridProps) {
   const t = translations[lang];
   const isRTL = lang === "ar";
-  const displayCategories = categories.filter(c => !isUncategorizedCategory(c));
+  const displayCategories = categories.filter(c => !isUncategorizedCategory(c) && !c.isDigital && !c.id.toLowerCase().startsWith("digital"));
 
   const renderCategoryCard = (category: Category, index: number) => {
     const name = lang === "fr" ? category.nameFR : category.nameAR;

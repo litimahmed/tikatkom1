@@ -70,50 +70,20 @@ export default function Hero({ lang, onExploreClick, onBuyFlagshipClick, product
             </div>
           </div>
 
-          {/* Showcase Image container */}
-          <div className="lg:col-span-5 relative flex justify-center pt-2 lg:pt-0">
-            {/* Soft backdrop radial shadow */}
-            <div className="absolute inset-0 m-auto h-60 w-60 sm:h-72 sm:w-72 rounded-full bg-brand-green/10 blur-3xl"></div>
-            
+          {/* Showcase Image container - Simplified design: no shadow, no borders, no text display */}
+          <div className="lg:col-span-5 flex justify-center pt-2 lg:pt-0">
             <div 
               onClick={onBuyFlagshipClick}
-              className="relative group overflow-hidden rounded-2xl sm:rounded-3xl bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 transition-transform duration-500 hover:scale-[1.02] cursor-pointer w-full max-w-[280px] xs:max-w-[320px] sm:max-w-[380px] shadow-sm"
-              id="hero-product-card"
+              className="relative overflow-hidden rounded-2xl sm:rounded-3xl cursor-pointer w-full max-w-[280px] xs:max-w-[320px] sm:max-w-[380px] transition-transform duration-300 hover:scale-[1.01]"
+              id="hero-product-image"
               title={lang === "fr" ? "Cliquez pour commander !" : "اضغط للطلب الآن !"}
             >
-              {/* Product Card Container */}
-              <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-white dark:bg-zinc-900">
-                <img
-                  src={flagshipProduct?.image || "https://placehold.co/600x600/png?text=Tikatkom"}
-                  alt={isRTL ? flagshipProduct?.titleAR : flagshipProduct?.titleFR}
-                  className="h-[260px] xs:h-[290px] sm:h-[360px] w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  referrerPolicy="no-referrer"
-                />
-
-                {/* Micro info bar under the image */}
-                <div className="border-t border-gray-100 dark:border-zinc-800 bg-gray-50/80 dark:bg-zinc-950/80 p-3 sm:p-4">
-                  <div className="flex items-center justify-between">
-                    <div className={isRTL ? "text-right" : "text-left"}>
-                      <p className="text-[10px] sm:text-xs text-gray-500 dark:text-zinc-400 uppercase tracking-wider font-semibold">
-                        {lang === "fr" ? "Style de Vie Premium" : "نمط حياة متميز"}
-                      </p>
-                      <h4 className="text-xs sm:text-sm font-extrabold text-brand-navy dark:text-white truncate max-w-[150px] sm:max-w-[180px]">
-                        {isRTL ? flagshipProduct?.titleAR : flagshipProduct?.titleFR}
-                      </h4>
-                    </div>
-                    <div className={isRTL ? "text-left" : "text-right"}>
-                      {flagshipProduct?.oldPrice && (
-                        <p className="text-[10px] sm:text-xs text-gray-400 dark:text-zinc-500 line-through">
-                          {(flagshipProduct.oldPrice).toLocaleString()} {lang === "fr" ? "DA" : "دج"}
-                        </p>
-                      )}
-                      <p className="text-sm sm:text-base font-black text-brand-green">
-                        {flagshipProduct ? (flagshipProduct.price).toLocaleString() : 0} {lang === "fr" ? "DA" : "دج"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <img
+                src={flagshipProduct?.image || "https://placehold.co/600x600/png?text=Tikatkom"}
+                alt={isRTL ? flagshipProduct?.titleAR : flagshipProduct?.titleFR}
+                className="w-full h-auto max-h-[380px] object-cover rounded-2xl sm:rounded-3xl"
+                referrerPolicy="no-referrer"
+              />
             </div>
           </div>
         </div>

@@ -159,12 +159,19 @@ export function isUncategorizedCategory(cat: { id?: string; slug?: string; nameF
 // Map WooCommerce Store API category to our App's Category type
 export function mapWooCategory(wpCat: any): Category {
   const nameInfo = parseMultilingual(wpCat.name || "");
+  const catSlug = (wpCat.slug || String(wpCat.id) || "").toLowerCase();
+  
+  // Category is digital if its slug starts with "digital" or includes "digital"
+  const isDigital = catSlug.startsWith("digital") || catSlug.includes("digital");
+
   return {
     id: wpCat.slug || String(wpCat.id),
     nameFR: nameInfo.fr || wpCat.name,
     nameAR: nameInfo.ar || wpCat.name,
     image: wpCat.image?.src || "https://placehold.co/600x400/png?text=Tikatkom",
-    count: wpCat.count || 0
+    count: wpCat.count || 0,
+    isDigital,
+    slug: wpCat.slug || String(wpCat.id)
   };
 }
 
@@ -194,18 +201,73 @@ export function mapWooProduct(wpProduct: any): Product {
     }
   }
 
-  // Extract features list from the short description bullet points, or attributes
+  // Check if product belongs to a digital category (category slug starts with or contains "digital")
+  let isDigitalProduct = false;
+  let detectedDigitalCategory: any = undefined;
+
+  if (wpProduct.categories && Array.isArray(wpProduct.categories) && wpProduct.categories.length > 0) {
+    for (const cat of wpProduct.categories) {
+      const catSlug = (cat.slug || String(cat.id) || "").toLowerCase();
+      if (catSlug.startsWith("digital") || catSlug.includes("digital")) {
+        isDigitalProduct = true;
+        
+        // Match specific subcategories if slug contains keywords
+        if (catSlug.includes("subscript") || catSlug.includes("vip")) {
+          detectedDigitalCategory = "vip_subscriptions";
+        } else if (catSlug.includes("key") || catSlug.includes("activation") || catSlug.includes("licence") || catSlug.includes("license")) {
+          detectedDigitalCategory = "activation_keys";
+        } else if (catSlug.includes("ai") || catSlug.includes("tool")) {
+          detectedDigitalCategory = "ai_tools";
+        } else if (catSlug.includes("book") || catSlug.includes("course") || catSlug.includes("formation")) {
+          detectedDigitalCategory = "ebooks_courses";
+        } else if (catSlug.includes("gift") || catSlug.includes("card") || catSlug.includes("carte")) {
+          detectedDigitalCategory = "gift_cards";
+        } else if (catSlug.includes("design") || catSlug.includes("template")) {
+          detectedDigitalCategory = "design_templates";
+        }
+        break;
+      }
+    }
+  }
+
+  // Also check product flags
+  if (wpProduct.virtual || wpProduct.downloadable || wpProduct.type === "digital") {
+    isDigitalProduct = true;
+  }
+
+  // Extract features list from short description or description (support HTML <li> items and custom <bullet text> syntax)
   const featuresFR: string[] = [];
   const featuresAR: string[] = [];
   
-  if (wpProduct.short_description) {
-    const doc = new DOMParser().parseFromString(wpProduct.short_description, 'text/html');
+  const rawShortDesc = wpProduct.short_description || "";
+  const rawFullDesc = wpProduct.description || "";
+  const combinedDesc = `${rawShortDesc}\n${rawFullDesc}`;
+
+  // 1. Extract standard HTML <li> bullets if present
+  if (combinedDesc) {
+    const doc = new DOMParser().parseFromString(combinedDesc, 'text/html');
     const lis = doc.querySelectorAll('li');
     lis.forEach(li => {
-      const text = li.textContent || "";
-      const info = parseMultilingual(text);
-      if (info.fr) featuresFR.push(info.fr);
-      if (info.ar) featuresAR.push(info.ar);
+      const text = (li.textContent || "").trim();
+      if (text) {
+        const info = parseMultilingual(text);
+        if (info.fr && !featuresFR.includes(info.fr)) featuresFR.push(info.fr);
+        if (info.ar && !featuresAR.includes(info.ar)) featuresAR.push(info.ar);
+      }
+    });
+  }
+
+  // 2. Extract custom angle-bracket bullets: <Great product for summer usage>
+  const htmlTagRegex = /^(?:p|br|hr|b|i|strong|em|u|span|div|ul|ol|li|a|img|h[1-6]|table|tr|td|th|\/(?:p|br|hr|b|i|strong|em|u|span|div|ul|ol|li|a|img|h[1-6]|table|tr|td|th))$/i;
+  const angleBracketMatches = combinedDesc.match(/<([^<>]+)>/g);
+  if (angleBracketMatches) {
+    angleBracketMatches.forEach(match => {
+      const inner = match.slice(1, -1).trim();
+      if (inner && !htmlTagRegex.test(inner)) {
+        const info = parseMultilingual(inner);
+        if (info.fr && !featuresFR.includes(info.fr)) featuresFR.push(info.fr);
+        if (info.ar && !featuresAR.includes(info.ar)) featuresAR.push(info.ar);
+      }
     });
   }
   
@@ -276,7 +338,9 @@ export function mapWooProduct(wpProduct: any): Product {
     featuresAR,
     tags: wpProduct.tags ? wpProduct.tags.map((t: any) => ({ id: t.id, name: t.name, slug: t.slug })) : undefined,
     lemonSqueezyUrl,
-    permalink: wpProduct.permalink || undefined
+    permalink: wpProduct.permalink || undefined,
+    isDigital: isDigitalProduct,
+    digitalCategory: detectedDigitalCategory
   };
 }
 

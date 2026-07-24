@@ -180,8 +180,36 @@ export default function ProductPage({
   };
 
   const title = lang === "fr" ? product.titleFR : product.titleAR;
-  const description = lang === "fr" ? product.descriptionFR : product.descriptionAR;
-  const features = lang === "fr" ? product.featuresFR : product.featuresAR;
+  const rawDescription = lang === "fr" ? product.descriptionFR : product.descriptionAR;
+  const rawFeatures = lang === "fr" ? product.featuresFR : product.featuresAR;
+
+  // Process angle-bracket bullet syntax: <Great product for summer usage>
+  const processDescriptionAndBullets = (rawDesc: string = "", existingFeatures: string[] = []) => {
+    if (!rawDesc) return { cleanDesc: "", allFeatures: existingFeatures };
+
+    const htmlTagRegex = /^(?:p|br|hr|b|i|strong|em|u|span|div|ul|ol|li|a|img|h[1-6]|table|tr|td|th|\/(?:p|br|hr|b|i|strong|em|u|span|div|ul|ol|li|a|img|h[1-6]|table|tr|td|th))$/i;
+    const customBullets: string[] = [];
+
+    const cleanDesc = rawDesc.replace(/<([^<>]+)>/g, (match, inner) => {
+      const trimmed = inner.trim();
+      if (trimmed && !htmlTagRegex.test(trimmed)) {
+        customBullets.push(trimmed);
+        return "";
+      }
+      return match;
+    }).replace(/\n\s*\n\s*\n/g, "\n\n").trim();
+
+    const combinedFeatures = [...(existingFeatures || [])];
+    customBullets.forEach((bullet) => {
+      if (!combinedFeatures.includes(bullet)) {
+        combinedFeatures.push(bullet);
+      }
+    });
+
+    return { cleanDesc, allFeatures: combinedFeatures };
+  };
+
+  const { cleanDesc: description, allFeatures: features } = processDescriptionAndBullets(rawDescription, rawFeatures);
 
   return (
     <div className="bg-gray-50/50 dark:bg-[#121212] min-h-screen py-6 sm:py-10">
@@ -547,11 +575,12 @@ export default function ProductPage({
                     </div>
                   </div>
 
-                  {/* Submit Order Button */}
+                  {/* Modern, elegant submit order button */}
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full rounded-xl bg-brand-green py-3.5 text-sm font-bold text-white hover:bg-brand-green-hover active:scale-98 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                    className="w-full rounded-xl bg-brand-green py-3.5 px-6 text-base font-extrabold text-white shadow-sm transition-all duration-200 hover:bg-brand-green-hover active:scale-[0.99] cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                    id="product-page-submit-order-btn"
                   >
                     {isSubmitting ? (
                       <span className="flex items-center justify-center gap-2">
@@ -559,7 +588,10 @@ export default function ProductPage({
                         <span>{t.submitting}</span>
                       </span>
                     ) : (
-                      <span>{t.submitOrder}</span>
+                      <span className="flex items-center justify-center gap-2">
+                        <Check className="h-5 w-5 stroke-[2.5]" />
+                        <span>{t.submitOrder}</span>
+                      </span>
                     )}
                   </button>
                 </form>

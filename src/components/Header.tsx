@@ -25,7 +25,17 @@ export default function Header({
   const t = translations[lang];
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const langDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Scroll detection for logo clipping
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 15);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Close dropdowns on click outside
   useEffect(() => {
@@ -58,12 +68,14 @@ export default function Header({
             className="flex items-center focus:outline-none cursor-pointer shrink-0"
             id="header-logo-btn"
           >
-            <img
-              src="/src/assets/images/tikatkom.png"
-              alt="Tikatkom Logo"
-              className="h-9 lg:h-12 w-auto object-contain transition-transform hover:scale-105"
-              referrerPolicy="no-referrer"
-            />
+            <div className={`overflow-hidden transition-all duration-300 flex items-start ${isScrolled ? "h-[18px] lg:h-[24px]" : "h-9 lg:h-12"}`}>
+              <img
+                src="/src/assets/images/tikatkom.png"
+                alt="Tikatkom Logo"
+                className="h-9 lg:h-12 w-auto object-cover object-top transition-transform hover:scale-105"
+                referrerPolicy="no-referrer"
+              />
+            </div>
           </button>
         </div>
 

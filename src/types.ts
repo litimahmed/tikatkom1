@@ -19,6 +19,8 @@ export interface Product {
   tags?: Array<{ id: number; name: string; slug: string }>;
   lemonSqueezyUrl?: string;
   permalink?: string;
+  isDigital?: boolean;
+  digitalCategory?: "vip_subscriptions" | "activation_keys" | "ai_tools" | "ebooks_courses" | "gift_cards" | "design_templates";
 }
 
 export interface Category {
@@ -27,6 +29,8 @@ export interface Category {
   nameAR: string;
   image: string;
   count: number;
+  isDigital?: boolean;
+  slug?: string;
 }
 
 export interface Wilaya {
