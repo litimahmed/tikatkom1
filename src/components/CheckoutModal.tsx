@@ -138,7 +138,10 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
 
     try {
       const metaEnv = (import.meta as any).env;
-      const apiBase = (metaEnv && metaEnv.VITE_API_URL) || "";
+      let apiBase = (metaEnv && metaEnv.VITE_API_URL) || "";
+      if (apiBase.includes("localhost")) {
+        apiBase = "";
+      }
 
       const formattedItems = displayItems.map((item) => ({
         productId: item.product.id,
