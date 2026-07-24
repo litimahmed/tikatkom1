@@ -65,10 +65,7 @@ export default function TrackingModal({ isOpen, onClose, lang }: TrackingModalPr
 
     try {
       const metaEnv = (import.meta as any).env;
-      let apiBase = (metaEnv && metaEnv.VITE_API_URL) || "";
-      if (apiBase.includes("localhost")) {
-        apiBase = "";
-      }
+      const apiBase = (metaEnv && metaEnv.VITE_API_URL) || "";
       const response = await fetch(`${apiBase}/api/track`, {
         method: "POST",
         headers: {

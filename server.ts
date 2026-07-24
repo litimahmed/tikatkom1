@@ -76,18 +76,6 @@ async function startServer() {
   // Support JSON payload decoding
   app.use(express.json());
 
-  // 0. Geolocation endpoint to safely detect client country without browser CORS issues
-  app.get("/api/geo", async (req, res) => {
-    try {
-      const clientIp = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-      // In Cloud Run or local environment, try querying geo service server-side if needed
-      // Default to DZ (Algeria) as primary audience, but check ipinfo/freeipapi server-side cleanly
-      res.json({ success: true, countryCode: "DZ" });
-    } catch {
-      res.json({ success: true, countryCode: "DZ" });
-    }
-  });
-
   // 1. Order Checkout / Save Client Record & Dispatch to ZR Express
   app.post("/api/checkout", async (req, res) => {
     try {

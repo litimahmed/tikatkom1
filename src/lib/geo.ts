@@ -21,32 +21,53 @@ export async function getUserCountryCode(): Promise<string> {
     }
   }
 
-  // 2. Try internal /api/geo endpoint first (same origin, no CORS)
-  try {
-    const res = await fetch("/api/geo", { signal: AbortSignal.timeout(2000) });
-    if (res.ok) {
+  // 2. Fetch live country code from HTTPS IP Geolocation Services sequentially
+  const services = [
+    // Service 1: ipapi.co (HTTPS)
+    async () => {
+      const res = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(3000) });
+      if (!res.ok) throw new Error(`ipapi status ${res.status}`);
       const data = await res.json();
-      if (data && data.countryCode) {
-        return data.countryCode.toUpperCase();
+      if (data && typeof data.country_code === "string") {
+        return data.country_code.toUpperCase();
       }
-    }
-  } catch {
-    // Silent fallback to secondary client-side check or default
-  }
-
-  // 3. Fallback to freeipapi.com (CORS friendly) if needed
-  try {
-    const res = await fetch("https://freeipapi.com/api/json", { signal: AbortSignal.timeout(2000) });
-    if (res.ok) {
+      throw new Error("Invalid response schema from ipapi");
+    },
+    // Service 2: freeipapi.com (HTTPS)
+    async () => {
+      const res = await fetch("https://freeipapi.com/api/json", { signal: AbortSignal.timeout(3000) });
+      if (!res.ok) throw new Error(`freeipapi status ${res.status}`);
       const data = await res.json();
       if (data && typeof data.countryCode === "string") {
         return data.countryCode.toUpperCase();
       }
+      throw new Error("Invalid response schema from freeipapi");
+    },
+    // Service 3: ipinfo.io (HTTPS)
+    async () => {
+      const res = await fetch("https://ipinfo.io/json", { signal: AbortSignal.timeout(3000) });
+      if (!res.ok) throw new Error(`ipinfo status ${res.status}`);
+      const data = await res.json();
+      if (data && typeof data.country === "string") {
+        return data.country.toUpperCase();
+      }
+      throw new Error("Invalid response schema from ipinfo");
     }
-  } catch {
-    // Silent catch
+  ];
+
+  for (const service of services) {
+    try {
+      const countryCode = await service();
+      if (countryCode && countryCode.length === 2) {
+        console.log(`[Geo API] Live Detected Country: ${countryCode}`);
+        return countryCode;
+      }
+    } catch (error) {
+      console.warn(`[Geo API Fallback] Service failed:`, error);
+    }
   }
 
-  // Default to DZ (Algeria)
+  // Fallback to DZ (Algeria) if all IP APIs fail
+  console.warn("[Geo API] All geolocation APIs failed. Defaulting to Algeria (DZ).");
   return "DZ";
 }
