@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Product, Category } from "../types";
-import { digitalProducts as staticDigitalProducts, translations } from "../data";
+import { translations } from "../data";
 
 interface DigitalStorePageProps {
   lang: "fr" | "ar";
@@ -26,31 +26,17 @@ export default function DigitalStorePage({
   const t = translations[lang];
   const isRTL = lang === "ar";
 
-  // Combine live WooCommerce digital products with static digital products
-  const combinedDigitalProducts = useMemo(() => {
-    const fromProps = allProducts.filter(p => p.isDigital || p.category === "digital" || p.category.toLowerCase().startsWith("digital"));
-    if (fromProps.length > 0) {
-      const propIds = new Set(fromProps.map(p => p.id));
-      const remainingStatic = staticDigitalProducts.filter(p => !propIds.has(p.id));
-      return [...fromProps, ...remainingStatic];
-    }
-    return staticDigitalProducts;
+  // Filter live WooCommerce digital products
+  const digitalProductsList = useMemo(() => {
+    return allProducts.filter(
+      p => p.isDigital || p.category === "digital" || p.category.toLowerCase().startsWith("digital")
+    );
   }, [allProducts]);
 
   const [activeSubcat, setActiveSubcat] = useState<string>(initialSubcategory || "all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const defaultSubcategories = [
-    { id: "all", labelFR: "Tous les produits", labelAR: "جميع المنتجات الرقمية" },
-    { id: "vip_subscriptions", labelFR: "Abonnements VIP", labelAR: "اشتراكات وتطبيقات VIP" },
-    { id: "activation_keys", labelFR: "Clés & Licences", labelAR: "تفعيل وتسليم تلقائي" },
-    { id: "ai_tools", labelFR: "Outils IA & Web", labelAR: "أدوات وحسابات AI" },
-    { id: "ebooks_courses", labelFR: "E-Books & Formations", labelAR: "مكتبة التعلم والدورات" },
-    { id: "gift_cards", labelFR: "Cartes Cadeaux", labelAR: "بطاقات هدايا وشحن" },
-    { id: "design_templates", labelFR: "Templates & Design", labelAR: "قوالب وتصاميم جاهزة" },
-  ];
-
-  // Dynamically include WooCommerce digital categories whose slug starts with "digital" or isDigital = true
+  // Dynamically generate tabs directly from WooCommerce digital categories (slug starts with "digital" or isDigital = true)
   const subcategories = useMemo(() => {
     const wpDigitalSubcats = categories
       .filter(c => c.isDigital || c.id.toLowerCase().startsWith("digital") || (c.slug && c.slug.toLowerCase().startsWith("digital")))
@@ -60,26 +46,14 @@ export default function DigitalStorePage({
         labelAR: c.nameAR
       }));
 
-    if (wpDigitalSubcats.length > 0) {
-      const existingIds = new Set(wpDigitalSubcats.map(s => s.id));
-      const merged = [{ id: "all", labelFR: "Tous les produits", labelAR: "جميع المنتجات الرقمية" }];
-      
-      wpDigitalSubcats.forEach(sc => merged.push(sc));
-      
-      // Also add default subcategories if they don't conflict
-      defaultSubcategories.forEach(ds => {
-        if (ds.id !== "all" && !existingIds.has(ds.id)) {
-          merged.push(ds);
-        }
-      });
-      return merged;
-    }
-
-    return defaultSubcategories;
+    return [
+      { id: "all", labelFR: "Tous les produits", labelAR: "جميع المنتجات الرقمية" },
+      ...wpDigitalSubcats
+    ];
   }, [categories]);
 
   const filteredProducts = useMemo(() => {
-    return combinedDigitalProducts.filter((product) => {
+    return digitalProductsList.filter((product) => {
       if (activeSubcat !== "all") {
         const matchesSubcat = product.digitalCategory === activeSubcat;
         const matchesCategory = product.category === activeSubcat || product.category.toLowerCase() === activeSubcat.toLowerCase();
@@ -95,7 +69,7 @@ export default function DigitalStorePage({
       }
       return true;
     });
-  }, [combinedDigitalProducts, activeSubcat, searchQuery]);
+  }, [digitalProductsList, activeSubcat, searchQuery]);
 
   return (
     <div className="min-h-screen bg-gray-50/50 dark:bg-[#121212] py-8 sm:py-16 lg:py-20">

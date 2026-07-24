@@ -21,47 +21,8 @@ interface DigitalCategoryItem {
 export default function DigitalBentoGrid({ lang, onExploreClick, onOpenDigitalStore, categories = [] }: DigitalBentoGridProps) {
   const isRTL = lang === "ar";
 
-  const defaultDigitalCategories: DigitalCategoryItem[] = [
-    {
-      id: "vip_subscriptions",
-      nameFR: "Abonnements VIP",
-      nameAR: "اشتراكات وتطبيقات VIP",
-      image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
-    },
-    {
-      id: "activation_keys",
-      nameFR: "Clés & Licences",
-      nameAR: "تفعيل وتسليم تلقائي",
-      image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80",
-    },
-    {
-      id: "ai_tools",
-      nameFR: "Outils IA & Web",
-      nameAR: "أدوات وحسابات AI",
-      image: "https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=800&q=80",
-    },
-    {
-      id: "ebooks_courses",
-      nameFR: "E-Books & Formations",
-      nameAR: "مكتبة التعلم والدورات",
-      image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=800&q=80",
-    },
-    {
-      id: "gift_cards",
-      nameFR: "Cartes Cadeaux",
-      nameAR: "بطاقات هدايا وشحن",
-      image: "https://images.unsplash.com/photo-1556742049-0a670f4a4591?auto=format&fit=crop&w=800&q=80",
-    },
-    {
-      id: "design_templates",
-      nameFR: "Templates & Design",
-      nameAR: "قوالب وتصاميم جاهزة",
-      image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80",
-    },
-  ];
-
   // Dynamic WooCommerce digital categories (whose slug starts with "digital" or has isDigital = true)
-  const wpDigitalCats: DigitalCategoryItem[] = categories
+  const digitalCategories: DigitalCategoryItem[] = categories
     .filter(c => c.isDigital || c.id.toLowerCase().startsWith("digital") || (c.slug && c.slug.toLowerCase().startsWith("digital")))
     .map(c => ({
       id: c.id,
@@ -70,7 +31,9 @@ export default function DigitalBentoGrid({ lang, onExploreClick, onOpenDigitalSt
       image: c.image && !c.image.includes("placehold.co") ? c.image : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
     }));
 
-  const digitalCategories = wpDigitalCats.length > 0 ? wpDigitalCats : defaultDigitalCategories;
+  if (digitalCategories.length === 0) {
+    return null;
+  }
 
   const handleCardClick = (subcatId: string) => {
     if (onOpenDigitalStore) {
