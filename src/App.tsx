@@ -8,6 +8,7 @@ import HomeSections from "./components/HomeSections";
 import ProductsGrid from "./components/ProductsGrid";
 import ProductPage from "./components/ProductPage";
 import DigitalStorePage from "./components/DigitalStorePage";
+import CheckoutPage from "./components/CheckoutPage";
 import Footer from "./components/Footer";
 import ShippingModal from "./components/ShippingModal";
 import CheckoutModal from "./components/CheckoutModal";
@@ -181,10 +182,14 @@ export default function App() {
     window.location.reload();
   };
 
-  // Page Routing State: "home" | "products" | "product" | "digital"
-  const [view, setView] = useState<"home" | "products" | "product" | "digital">((): "home" | "products" | "product" | "digital" => {
+  // Page Routing State: "home" | "products" | "product" | "digital" | "checkout"
+  const [previousView, setPreviousView] = useState<string | null>(null);
+  const [view, setView] = useState<"home" | "products" | "product" | "digital" | "checkout">((): "home" | "products" | "product" | "digital" | "checkout" => {
     const currentPath = window.location.pathname;
     const params = new URLSearchParams(window.location.search);
+    if (params.get("view") === "checkout" || currentPath.includes("/checkout")) {
+      return "checkout";
+    }
     if (params.get("product") || params.get("id")) {
       return "product";
     }
@@ -317,7 +322,13 @@ export default function App() {
       if (cartItems.length > 0) {
         setCheckoutItems([...cartItems]);
         setCheckoutProduct(cartItems[0].product);
-        setIsCheckoutOpen(true);
+        setView("checkout");
+        if (typeof window !== "undefined") {
+          const url = new URL(window.location.href);
+          url.searchParams.set("view", "checkout");
+          window.history.pushState({}, "", url.toString());
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
       }
     } else {
       // International Lemon Squeezy Hosted Checkout Redirect
@@ -375,13 +386,15 @@ export default function App() {
     setCheckoutProduct(product);
     setCheckoutItems([{ product, quantity: 1 }]);
     if (isAlgerian) {
-      // On mobile screens (< 768px), point to the dedicated mobile product page view with embedded Algerian COD checkout form
-      const isMobileScreen = typeof window !== "undefined" && window.innerWidth < 768;
-      if (isMobileScreen) {
-        handleSelectProduct(product);
-      } else {
-        // On desktop, open the custom tailored Algerian Cash-On-Delivery popup modal
-        setIsCheckoutOpen(true);
+      setView("checkout");
+      if (typeof window !== "undefined") {
+        const url = new URL(window.location.href);
+        url.searchParams.set("view", "checkout");
+        if (product?.id) {
+          url.searchParams.set("product", product.id);
+        }
+        window.history.pushState({}, "", url.toString());
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
     } else {
       // Direct international buyer to product Lemon Squeezy hosted checkout page
@@ -393,7 +406,18 @@ export default function App() {
   };
 
   const handleBackFromProductPage = () => {
-    window.location.href = getHomePageUrl();
+    if (previousView === "checkout") {
+      setView("checkout");
+      setPreviousView(null);
+      if (typeof window !== "undefined") {
+        const url = new URL(window.location.href);
+        url.searchParams.set("view", "checkout");
+        window.history.pushState({}, "", url.toString());
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    } else {
+      window.location.href = getHomePageUrl();
+    }
   };
 
   // Handler when clicking categories - sets view to products page and selects category filter
@@ -478,7 +502,8 @@ export default function App() {
             lang={lang}
             onBack={handleBackFromProductPage}
             onAddToCart={handleAddToCart}
-            isAlgerian={isAlgerian}
+            onBuyNow={(prod) => handleOpenCheckout(prod)}
+            isFromCheckout={previousView === "checkout"}
           />
         ) : view === "home" ? (
           <>
@@ -524,6 +549,25 @@ export default function App() {
               categories={categories}
             />
           </>
+        ) : view === "checkout" ? (
+          <CheckoutPage
+            lang={lang}
+            product={checkoutProduct}
+            items={checkoutItems}
+            onSelectProduct={(prod) => {
+              setPreviousView("checkout");
+              handleSelectProduct(prod);
+            }}
+            onBack={() => {
+              setView("home");
+              if (typeof window !== "undefined") {
+                window.history.pushState({}, "", getHomePageUrl());
+              }
+            }}
+            onUpdateCartQuantity={handleUpdateCartQuantity}
+            onRemoveFromCart={handleRemoveFromCart}
+            isAlgerian={isAlgerian}
+          />
         ) : view === "digital" ? (
           <DigitalStorePage
             lang={lang}

@@ -33,6 +33,17 @@ interface Order {
 
 const ORDERS_FILE = path.join(process.cwd(), "orders.json");
 
+// Safe helper to format Algerian phone numbers into standard E.164 (+213...) format
+function formatAlgerianPhone(phoneStr: string): string {
+  if (!phoneStr) return "+213550000000";
+  const cleaned = phoneStr.replace(/[\s\.\-\(\)]/g, "");
+  if (cleaned.startsWith("+213")) return cleaned;
+  if (cleaned.startsWith("00213")) return "+" + cleaned.slice(2);
+  if (cleaned.startsWith("213")) return "+" + cleaned;
+  if (cleaned.startsWith("0") && cleaned.length === 10) return "+213" + cleaned.slice(1);
+  return "+213" + cleaned;
+}
+
 // Safe helper to read orders from JSON file
 function readOrders(): Order[] {
   try {
@@ -253,58 +264,94 @@ async function startServer() {
       existingOrders.push(newOrder);
       writeOrders(existingOrders);
 
-      // 5. ZR Express Procolis API credentials check
-      const zrToken = process.env.ZR_API_TOKEN;
-      const zrKey = process.env.ZR_API_KEY;
+      // 5. ZR Express API v1 Parcel Creation (POST https://api.zrexpress.app/api/v1/parcels)
+      const zrApiKey = process.env.ZREXPRESS_API_KEY || "20GBXOuqTEaIWJOvNL5EogSFDZNtUmffFTsEMCN1M6n4JHwLi3cqttlON9KJ9Gmg";
+      const zrTenantId = process.env.ZREXPRESS_TENANT_ID || "d1dc440e-39ab-4ae7-beb9-783750e06d83";
+      const zrVersion = process.env.ZREXPRESS_API_VERSION || "v1";
 
-      if (zrToken && zrKey) {
-        console.log(`[ZR Express API] Dispatching parcel to Procolis. Tracking: ${trackingCode}, Order ID: ${orderId}`);
-        
+      if (zrApiKey && zrTenantId) {
+        console.log(`[ZR Express API] Dispatching createparcel to https://api.zrexpress.app/api/${zrVersion}/parcels`);
+
+        // Format ordered products list
+        const orderedProducts = (items && Array.isArray(items) && items.length > 0)
+          ? items.map((item: any, idx: number) => ({
+              unitPrice: Number(item.price) || 0,
+              quantity: Number(item.quantity) || 1,
+              productId: String(item.productId || item.id || `prod-${idx + 1}`),
+              productName: String(item.productName || item.title || "Produit Tikatkom"),
+              length: 20,
+              width: 10,
+              height: 1,
+              weight: 1,
+              stockType: "local"
+            }))
+          : [
+              {
+                unitPrice: Number(price) || 0,
+                quantity: Number(quantity) || 1,
+                productId: String(productId || "prod-1"),
+                productName: String(productName || "Article Tikatkom"),
+                length: 20,
+                width: 10,
+                height: 1,
+                weight: 1,
+                stockType: "local"
+              }
+            ];
+
         const zrPayload = {
-          Colis: [
-            {
-              Tracking: trackingCode,
-              TypeLivraison: deliveryType === "home" ? "0" : "1", // 0 = Domicile, 1 = Stopdesk
-              TypeColis: "0", // 0 = Standard
-              Confrimee: "1", // 1 = Ready to Ship immediately
-              Client: fullName,
-              MobileA: phone,
-              MobileB: "",
-              Adresse: address || `${commune}, ${wilayaName}`,
-              IDWilaya: String(wilayaCode),
-              Commune: String(commune),
-              Total: String(grandTotal),
-              Note: notes || "",
-              TProduit: `${productName || "Article"} (x${quantity})`,
-              id_Externe: orderId,
-              Source: "TIKATKOM"
+          customer: {
+            customerId: `cust-${Date.now()}`,
+            name: fullName.trim(),
+            phone: {
+              number1: formatAlgerianPhone(phone),
+              number2: ""
             }
-          ]
+          },
+          deliveryAddress: {
+            street: address?.trim() || `${commune}, ${wilayaName}`,
+            city: wilayaName || "Alger",
+            district: commune || wilayaName || "Alger",
+            postalCode: `${wilayaCode || "16"}000`,
+            country: "algeria"
+          },
+          orderedProducts: orderedProducts,
+          amount: Number(grandTotal) || 0,
+          description: notes || productName || "Commande Tikatkom",
+          deliveryType: deliveryType === "desk" || deliveryType === "stopdesk" ? "stopdesk" : "home"
         };
 
         try {
-          const response = await fetch("https://procolis.com/api_v1/add_colis", {
+          const targetUrl = `https://api.zrexpress.app/api/${zrVersion}/parcels`;
+          const zrResponse = await fetch(targetUrl, {
             method: "POST",
             headers: {
-              "Content-Type": "application/json",
-              "token": zrToken,
-              "key": zrKey
+              "accept": "application/json",
+              "content-type": "application/json",
+              "X-Tenant": zrTenantId,
+              "X-Api-Key": zrApiKey
             },
             body: JSON.stringify(zrPayload)
           });
 
-          if (!response.ok) {
-            const errBody = await response.text();
-            console.error(`[ZR Express API] Error from Procolis status ${response.status}:`, errBody);
+          if (zrResponse.status === 201 || zrResponse.status === 200 || zrResponse.ok) {
+            const zrData = await zrResponse.json();
+            console.log(`[ZR Express API] Parcel created successfully!`, zrData);
+            const returnedParcelId = zrData.id || zrData.parcelId || zrData.trackingCode || zrData.code || zrData.uuid;
+            if (returnedParcelId) {
+              trackingCode = String(returnedParcelId);
+              newOrder.trackingCode = trackingCode;
+              writeOrders(existingOrders);
+            }
           } else {
-            const zrResult = await response.json();
-            console.log(`[ZR Express API] Parcel dispatched successfully!`, zrResult);
+            const errBody = await zrResponse.text();
+            console.error(`[ZR Express API Error ${zrResponse.status}]:`, errBody);
           }
         } catch (apiErr) {
-          console.error(`[ZR Express API] Network error during dispatch:`, apiErr);
+          console.error(`[ZR Express API Network Error]:`, apiErr);
         }
       } else {
-        console.warn("[ZR Express API] API Token or Key not configured. Running order in high-fidelity developer simulator.");
+        console.warn("[ZR Express API] API Key or Tenant ID not configured.");
       }
 
       // Return success response with order details and tracking code!
@@ -416,29 +463,24 @@ async function startServer() {
       const cleanTracking = trackingCode.trim();
 
       // Check if real ZR Express credentials exist for live tracking
-      const token = process.env.ZR_API_TOKEN;
-      const key = process.env.ZR_API_KEY;
+      const zrApiKey = process.env.ZREXPRESS_API_KEY || "20GBXOuqTEaIWJOvNL5EogSFDZNtUmffFTsEMCN1M6n4JHwLi3cqttlON9KJ9Gmg";
+      const zrTenantId = process.env.ZREXPRESS_TENANT_ID || "d1dc440e-39ab-4ae7-beb9-783750e06d83";
+      const zrVersion = process.env.ZREXPRESS_API_VERSION || "v1";
 
-      if (token && key) {
-        console.log(`[ZR Express API] Querying real Procolis status for tracking: ${cleanTracking}`);
+      if (zrApiKey && zrTenantId) {
+        console.log(`[ZR Express API] Querying status for parcel ID: ${cleanTracking}`);
         try {
-          const response = await fetch("https://procolis.com/api_v1/lire", {
-            method: "POST",
+          const response = await fetch(`https://api.zrexpress.app/api/${zrVersion}/parcels/${encodeURIComponent(cleanTracking)}`, {
+            method: "GET",
             headers: {
-              "Content-Type": "application/json",
-              "token": token,
-              "key": key
-            },
-            body: JSON.stringify({
-              Colis: [
-                { Tracking: cleanTracking }
-              ]
-            })
+              "accept": "application/json",
+              "X-Tenant": zrTenantId,
+              "X-Api-Key": zrApiKey
+            }
           });
 
           if (response.ok) {
             const result = await response.json();
-            // Let's parse or pass through the response
             return res.status(200).json({
               success: true,
               realApi: true,
@@ -446,10 +488,10 @@ async function startServer() {
             });
           } else {
             const errText = await response.text();
-            console.error(`[ZR Express API] Error from Procolis /lire:`, errText);
+            console.error(`[ZR Express API Track Error ${response.status}]:`, errText);
           }
         } catch (apiErr) {
-          console.error(`[ZR Express API] Network error on /lire:`, apiErr);
+          console.error(`[ZR Express API Track Network Error]:`, apiErr);
         }
       }
 
