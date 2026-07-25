@@ -1,141 +1,36 @@
 import React, { useState, useEffect } from "react";
-import { X, Check, ShoppingBag, Phone, MapPin, Truck, AlertCircle, Plus, Minus, Landmark, Trash2 } from "lucide-react";
-import { Product, OrderForm, Wilaya, CartItem, ZrTerritory } from "../types";
+import { X, Check, ShoppingBag, Phone, MapPin, Truck, AlertCircle, Plus, Minus, Landmark } from "lucide-react";
+import { Product, OrderForm, Wilaya } from "../types";
 import { AlgerianWilayas, translations } from "../data";
 
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
-  product?: Product | null;
-  items?: CartItem[];
+  product: Product | null;
   lang: "fr" | "ar";
 }
 
-export default function CheckoutModal({ isOpen, onClose, product, items, lang }: CheckoutModalProps) {
-  // Local state for items in checkout so user can adjust quantities or remove items
-  const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]);
-
-  useEffect(() => {
-    if (isOpen) {
-      if (items && items.length > 0) {
-        setCheckoutItems(items.map((i) => ({ ...i })));
-      } else if (product) {
-        setCheckoutItems([{ product, quantity: 1 }]);
-      } else {
-        setCheckoutItems([]);
-      }
-    } else {
-      setCheckoutItems([]);
-    }
-  }, [isOpen, items, product]);
-
-  // Fallback to items or product if local state hasn't populated yet
-  const displayItems = checkoutItems.length > 0 
-    ? checkoutItems 
-    : (items && items.length > 0 ? items : (product ? [{ product, quantity: 1 }] : []));
+export default function CheckoutModal({ isOpen, onClose, product, lang }: CheckoutModalProps) {
+  if (!isOpen || !product) return null;
 
   const t = translations[lang];
   const isRTL = lang === "ar";
 
   // State managers
+  const [quantity, setQuantity] = useState<number>(1);
   const [fullName, setFullName] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
   const [selectedWilayaCode, setSelectedWilayaCode] = useState<string>("");
   const [selectedCommune, setSelectedCommune] = useState<string>("");
   const [address, setAddress] = useState<string>("");
-  const [selectedCourier, setSelectedCourier] = useState<string>("zrexpress");
   const [deliveryType, setDeliveryType] = useState<"home" | "desk">("home");
   const [notes, setNotes] = useState<string>("");
-
-  // ZR Express Territory Search State
-  const [zrTerritories, setZrTerritories] = useState<ZrTerritory[]>([]);
-  const [isLoadingTerritories, setIsLoadingTerritories] = useState<boolean>(false);
-  const [selectedCityTerritoryId, setSelectedCityTerritoryId] = useState<string>("");
-  const [selectedDistrictTerritoryId, setSelectedDistrictTerritoryId] = useState<string>("");
-  const [postalCode, setPostalCode] = useState<string>("");
-
-  useEffect(() => {
-    if (!isOpen) return;
-    async function loadZrTerritories() {
-      setIsLoadingTerritories(true);
-      try {
-        const metaEnv = (import.meta as any).env;
-        const apiBase = (metaEnv && metaEnv.VITE_API_URL) || "";
-        const response = await fetch(`${apiBase}/api/zrexpress/territories/search`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ keyword: "", pageSize: 200 })
-        });
-        if (response.ok) {
-          const data = await response.json();
-          if (data.items && Array.isArray(data.items)) {
-            setZrTerritories(data.items);
-          }
-        }
-      } catch (err) {
-        console.warn("Failed to load ZR Express territories in modal.", err);
-      } finally {
-        setIsLoadingTerritories(false);
-      }
-    }
-    loadZrTerritories();
-  }, [isOpen]);
-
-  const zrWilayas = zrTerritories.filter((t) => t.level === "wilaya");
-  const zrCommunes = zrTerritories.filter((t) => t.level === "commune" && t.parentId === selectedCityTerritoryId);
-
-  const handleWilayaSelect = (val: string) => {
-    const matchedZrWilaya = zrWilayas.find((w) => w.id === val || String(w.code) === val);
-    if (matchedZrWilaya) {
-      setSelectedCityTerritoryId(matchedZrWilaya.id);
-      setSelectedWilayaCode(String(matchedZrWilaya.code));
-      const communes = zrTerritories.filter((t) => t.level === "commune" && t.parentId === matchedZrWilaya.id);
-      if (communes.length > 0) {
-        setSelectedDistrictTerritoryId(communes[0].id);
-        setSelectedCommune(communes[0].name);
-        setPostalCode(communes[0].postalCode || "");
-      } else {
-        setSelectedDistrictTerritoryId("");
-        setSelectedCommune("");
-        setPostalCode("");
-      }
-    } else {
-      setSelectedWilayaCode(val);
-      setSelectedCityTerritoryId("");
-      const localW = AlgerianWilayas.find((w) => w.code === val);
-      if (localW && localW.communes.length > 0) {
-        setSelectedCommune(localW.communes[0]);
-      } else {
-        setSelectedCommune("");
-      }
-    }
-  };
-
-  const handleCommuneSelect = (val: string) => {
-    const matchedZrCommune = zrCommunes.find((c) => c.id === val || c.name === val);
-    if (matchedZrCommune) {
-      setSelectedDistrictTerritoryId(matchedZrCommune.id);
-      setSelectedCommune(matchedZrCommune.name);
-      setPostalCode(matchedZrCommune.postalCode || "");
-    } else {
-      setSelectedCommune(val);
-      setSelectedDistrictTerritoryId("");
-    }
-  };
-
-  const couriersList = [
-    { id: "zrexpress", nameFR: "ZR Express", nameAR: "زد آر إكسبريس", badge: "Partenaire Officiel" },
-    { id: "maystro", nameFR: "Maystro Delivery", nameAR: "مايسترو دليفري", badge: "Sécurisé" },
-    { id: "noest", nameFR: "NOEST Delivery", nameAR: "نويست دليفري", badge: "Fiable" },
-    { id: "ecotrack", nameFR: "Ecotrack", nameAR: "إيكوتراك", badge: "Éco" },
-  ];
 
   // Validation & Loading
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [orderReference, setOrderReference] = useState<string>("");
-  const [trackingReference, setTrackingReference] = useState<string>("");
 
   // Get selected Wilaya object
   const currentWilaya = AlgerianWilayas.find((w) => w.code === selectedWilayaCode);
@@ -149,27 +44,7 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
     }
   }, [selectedWilayaCode]);
 
-  // Shipping Fee calculation
-  const getShippingFee = (): number => {
-    if (!currentWilaya) return 0;
-    return deliveryType === "home" ? currentWilaya.homePrice : currentWilaya.deskPrice;
-  };
-
-  const handleItemQuantityChange = (productId: string, newQty: number) => {
-    const sourceList = checkoutItems.length > 0 ? checkoutItems : displayItems;
-    if (newQty <= 0) {
-      setCheckoutItems(sourceList.filter((i) => i.product.id !== productId));
-    } else {
-      setCheckoutItems(
-        sourceList.map((i) => (i.product.id === productId ? { ...i, quantity: newQty } : i))
-      );
-    }
-  };
-
-  const subtotal = displayItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  const totalQuantity = displayItems.reduce((sum, item) => sum + item.quantity, 0);
-  const shippingFee = getShippingFee();
-  const grandTotal = subtotal + shippingFee;
+  const grandTotal = product.price * quantity;
 
   // Validation Handler
   const validateForm = (): boolean => {
@@ -180,9 +55,10 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
     }
 
     // Algerian Mobile Validation
+    // Algerian numbers start with 05, 06, or 07 and have 10 digits
     const cleanPhone = phone.replace(/[\s.-]/g, "");
     const phoneRegex = /^(05|06|07)[0-9]{8}$/;
-
+    
     if (!cleanPhone) {
       newErrors.phone = t.requiredError;
     } else if (!phoneRegex.test(cleanPhone)) {
@@ -215,22 +91,10 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
     try {
       const metaEnv = (import.meta as any).env;
       const apiBase = (metaEnv && metaEnv.VITE_API_URL) || "";
-
-      const formattedItems = displayItems.map((item) => ({
-        productId: item.product.id,
-        productName: lang === "fr" ? item.product.titleFR : item.product.titleAR,
-        quantity: item.quantity,
-        price: item.product.price,
-      }));
-
-      const summaryName = displayItems
-        .map((item) => `${lang === "fr" ? item.product.titleFR : item.product.titleAR} (x${item.quantity})`)
-        .join(", ");
-
       const response = await fetch(`${apiBase}/api/checkout`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           fullName,
@@ -239,20 +103,13 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
           wilayaName: currentWilaya ? (lang === "fr" ? currentWilaya.nameFR : currentWilaya.nameAR) : "",
           commune: selectedCommune,
           address,
-          courier: selectedCourier,
           deliveryType,
           notes,
-          items: formattedItems,
-          productId: checkoutItems[0]?.product.id || "0",
-          productName: summaryName,
-          quantity: checkoutItems.reduce((sum, item) => sum + item.quantity, 0),
-          price: subtotal,
-          shippingFee,
-          grandTotal,
-          cityTerritoryId: selectedCityTerritoryId,
-          districtTerritoryId: selectedDistrictTerritoryId,
-          postalCode: postalCode
-        }),
+          productId: product.id,
+          quantity,
+          price: product.price,
+          grandTotal
+        })
       });
 
       if (!response.ok) {
@@ -263,20 +120,17 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
       if (result.success) {
         setIsSuccess(true);
         setOrderReference(result.orderId);
-        setTrackingReference(result.trackingCode || "");
       } else {
-        throw new Error(result.error || "Failed to create order record.");
+        throw new Error(result.error || "Failed to create order record on WordPress.");
       }
     } catch (err: any) {
-      console.warn("Real-time API connection was unavailable or returned an error. Running simulation.", err);
+      console.warn("WordPress WooCommerce API connection fallback preview.", err);
       setTimeout(() => {
         setIsSubmitting(false);
         setIsSuccess(true);
-        const randomRef = `TKT-${Math.floor(10000 + Math.random() * 90000)}`;
-        const randomTrack = `ZR${Math.floor(100000000 + Math.random() * 900000000)}`;
+        const randomRef = `#SIM-${Math.floor(10000 + Math.random() * 90000)}`;
         setOrderReference(randomRef);
-        setTrackingReference(randomTrack);
-      }, 1200);
+      }, 1000);
       return;
     }
 
@@ -286,28 +140,20 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
   // Reset Form states on close or reopen
   useEffect(() => {
     if (isOpen) {
+      setQuantity(1);
       setFullName("");
       setPhone("");
       setSelectedWilayaCode("");
       setSelectedCommune("");
       setAddress("");
-      setSelectedCourier("yalidine");
       setDeliveryType("home");
       setNotes("");
       setErrors({});
       setIsSuccess(false);
-      setTrackingReference("");
     }
   }, [isOpen]);
 
-  if (!isOpen || displayItems.length === 0) return null;
-
-  const singleProduct = checkoutItems.length === 1 ? checkoutItems[0] : null;
-  const singleProductName = singleProduct
-    ? lang === "fr"
-      ? singleProduct.product.titleFR
-      : singleProduct.product.titleAR
-    : "";
+  const productName = lang === "fr" ? product.titleFR : product.titleAR;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
@@ -349,117 +195,51 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
                 </p>
               </div>
 
-              {/* Order Items Brief Section */}
-              {displayItems.length === 1 ? (
-                <div className="flex items-center gap-4 rounded-2xl border border-gray-100 dark:border-[#2a2a2a] bg-gray-50/50 dark:bg-[#262626]/30 p-4">
-                  <img
-                    src={displayItems[0].product.image}
-                    alt={lang === "fr" ? displayItems[0].product.titleFR : displayItems[0].product.titleAR}
-                    className="h-16 w-16 rounded-xl object-cover border border-gray-100 dark:border-[#2a2a2a] shrink-0"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-brand-green">
-                      {lang === "fr" ? "Votre produit sélectionné" : "المنتج المحدد حالياً"}
-                    </span>
-                    <h4 className="font-display text-sm font-extrabold text-brand-navy dark:text-white truncate">
-                      {lang === "fr" ? displayItems[0].product.titleFR : displayItems[0].product.titleAR}
-                    </h4>
-                    <p className="text-xs font-black text-brand-green mt-0.5">
-                      {displayItems[0].product.price.toLocaleString()} {t.priceCurrency}
-                    </p>
-                  </div>
-
-                  {/* Quantity Manager */}
-                  <div className="flex items-center gap-1 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#2a2a2a] rounded-xl p-1 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => handleItemQuantityChange(displayItems[0].product.id, displayItems[0].quantity - 1)}
-                      className="p-1 text-gray-500 dark:text-zinc-400 hover:text-brand-green rounded-lg transition-colors active:scale-90 cursor-pointer"
-                      aria-label="Decrease quantity"
-                      id="quantity-minus-btn"
-                    >
-                      <Minus className="h-3.5 w-3.5" />
-                    </button>
-                    <span className="w-6 text-center text-xs font-black text-brand-navy dark:text-white">
-                      {displayItems[0].quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleItemQuantityChange(displayItems[0].product.id, displayItems[0].quantity + 1)}
-                      className="p-1 text-gray-500 dark:text-zinc-400 hover:text-brand-green rounded-lg transition-colors active:scale-90 cursor-pointer"
-                      aria-label="Increase quantity"
-                      id="quantity-plus-btn"
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
+              {/* Product Brief Row */}
+              <div className="flex items-center gap-4 rounded-2xl border border-gray-100 dark:border-[#2a2a2a] bg-gray-50/50 dark:bg-[#262626]/30 p-4">
+                <img
+                  src={product.image}
+                  alt={productName}
+                  className="h-16 w-16 rounded-xl object-cover border border-gray-100 dark:border-[#2a2a2a] shrink-0"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-brand-green">
+                    {lang === "fr" ? "Votre produit sélectionné" : "المنتج المحدد حالياً"}
+                  </span>
+                  <h4 className="font-display text-sm font-extrabold text-brand-navy dark:text-white truncate">
+                    {productName}
+                  </h4>
+                  <p className="text-xs font-black text-brand-green mt-0.5">
+                    {product.price.toLocaleString()} {t.priceCurrency}
+                  </p>
                 </div>
-              ) : (
-                <div className="rounded-2xl border border-gray-200/80 dark:border-[#2a2a2a] bg-gray-50/50 dark:bg-[#262626]/30 p-3.5 space-y-2.5">
-                  <div className="flex items-center justify-between px-1">
-                    <span className="text-xs font-black uppercase tracking-wider text-brand-green flex items-center gap-1.5">
-                      <ShoppingBag className="h-3.5 w-3.5" />
-                      {lang === "fr" ? `Articles commandés (${displayItems.length})` : `المنتجات المحددة (${displayItems.length})`}
-                    </span>
-                    <span className="text-xs font-black text-brand-navy dark:text-white">
-                      {subtotal.toLocaleString()} {t.priceCurrency}
-                    </span>
-                  </div>
 
-                  {/* Scrollable list of items to prevent UI clutter */}
-                  <div className="max-h-48 overflow-y-auto pr-1 space-y-2 scrollbar-thin scrollbar-thumb-gray-200">
-                    {displayItems.map((item) => {
-                      const itemTitle = lang === "fr" ? item.product.titleFR : item.product.titleAR;
-                      return (
-                        <div
-                          key={item.product.id}
-                          className="flex items-center justify-between gap-3 bg-white dark:bg-[#1a1a1b] p-2.5 rounded-xl border border-gray-100 dark:border-[#2a2a2a] shadow-xs"
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <img
-                              src={item.product.image}
-                              alt={itemTitle}
-                              className="h-11 w-11 rounded-lg object-cover border border-gray-100 dark:border-[#2a2a2a] shrink-0"
-                              referrerPolicy="no-referrer"
-                            />
-                            <div className="min-w-0">
-                              <h4 className="text-xs font-extrabold text-brand-navy dark:text-white truncate">
-                                {itemTitle}
-                              </h4>
-                              <p className="text-[11px] font-black text-brand-green mt-0.5">
-                                {item.product.price.toLocaleString()} {t.priceCurrency}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-1 bg-gray-50 dark:bg-[#262626] border border-gray-200 dark:border-[#333] rounded-lg p-0.5 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => handleItemQuantityChange(item.product.id, item.quantity - 1)}
-                              className="p-1 text-gray-500 hover:text-red-500 transition-colors cursor-pointer"
-                              title={lang === "fr" ? "Moins" : "إنقاص"}
-                            >
-                              <Minus className="h-3 w-3" />
-                            </button>
-                            <span className="w-5 text-center text-xs font-black text-brand-navy dark:text-white">
-                              {item.quantity}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleItemQuantityChange(item.product.id, item.quantity + 1)}
-                              className="p-1 text-gray-500 hover:text-brand-green transition-colors cursor-pointer"
-                              title={lang === "fr" ? "Plus" : "زيادة"}
-                            >
-                              <Plus className="h-3 w-3" />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                {/* Quantity Manager */}
+                <div className="flex items-center gap-1 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#2a2a2a] rounded-xl p-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="p-1 text-gray-500 dark:text-zinc-400 hover:text-brand-green rounded-lg transition-colors active:scale-90 cursor-pointer"
+                    aria-label="Decrease quantity"
+                    id="quantity-minus-btn"
+                  >
+                    <Minus className="h-3.5 w-3.5" />
+                  </button>
+                  <span className="w-6 text-center text-xs font-black text-brand-navy dark:text-white">
+                    {quantity}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="p-1 text-gray-500 dark:text-zinc-400 hover:text-brand-green rounded-lg transition-colors active:scale-90 cursor-pointer"
+                    aria-label="Increase quantity"
+                    id="quantity-plus-btn"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </button>
                 </div>
-              )}
+              </div>
 
               {/* Grid: 2 Columns for fields on desktop */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -546,8 +326,8 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
                       {t.formWilaya} <span className="text-red-500">*</span>
                     </label>
                     <select
-                      value={selectedCityTerritoryId || selectedWilayaCode}
-                      onChange={(e) => handleWilayaSelect(e.target.value)}
+                      value={selectedWilayaCode}
+                      onChange={(e) => setSelectedWilayaCode(e.target.value)}
                       className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 dark:bg-[#262626] dark:text-white ${isRTL ? "text-right" : "text-left"} ${
                         errors.wilayaCode 
                           ? "border-red-300 dark:border-red-900/30 focus:ring-red-100 dark:focus:ring-red-900/10" 
@@ -555,24 +335,12 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
                       }`}
                       id="input-wilaya"
                     >
-                      <option value="" className="dark:bg-[#1a1a1a] dark:text-zinc-300">
-                        {isLoadingTerritories
-                          ? (lang === "fr" ? "Chargement des wilayas..." : "جاري تحميل الولايات...")
-                          : (lang === "fr" ? "-- Choisir votre Wilaya --" : "-- اختر الولاية --")}
-                      </option>
-                      {zrWilayas.length > 0 ? (
-                        zrWilayas.map((w) => (
-                          <option key={w.id} value={w.id} className="dark:bg-[#1a1a1a] dark:text-zinc-300">
-                            {w.code} - {isRTL && w.nameArabic ? w.nameArabic : w.name}
-                          </option>
-                        ))
-                      ) : (
-                        AlgerianWilayas.map((wilaya) => (
-                          <option key={wilaya.code} value={wilaya.code} className="dark:bg-[#1a1a1a] dark:text-zinc-300">
-                            {wilaya.code} - {lang === "fr" ? wilaya.nameFR : wilaya.nameAR}
-                          </option>
-                        ))
-                      )}
+                      <option value="" className="dark:bg-[#1a1a1a] dark:text-zinc-300">{lang === "fr" ? "-- Choisir votre Wilaya --" : "-- اختر الولاية --"}</option>
+                      {AlgerianWilayas.map((wilaya) => (
+                        <option key={wilaya.code} value={wilaya.code} className="dark:bg-[#1a1a1a] dark:text-zinc-300">
+                          {wilaya.code} - {lang === "fr" ? wilaya.nameFR : wilaya.nameAR}
+                        </option>
+                      ))}
                     </select>
                     {errors.wilayaCode && (
                       <p className={`mt-1 flex items-center gap-1 text-[11px] text-red-500 font-medium ${isRTL ? "justify-end text-right" : "justify-start text-left"}`}>
@@ -587,24 +355,18 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
                       {t.formCommune} <span className="text-red-500">*</span>
                     </label>
                     <select
-                      value={selectedDistrictTerritoryId || selectedCommune}
-                      onChange={(e) => handleCommuneSelect(e.target.value)}
-                      disabled={!selectedWilayaCode && !selectedCityTerritoryId}
+                      value={selectedCommune}
+                      onChange={(e) => setSelectedCommune(e.target.value)}
+                      disabled={!selectedWilayaCode}
                       className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 dark:bg-[#262626] dark:text-white ${isRTL ? "text-right" : "text-left"} ${
                         errors.commune 
                           ? "border-red-300 dark:border-red-900/30 focus:ring-red-100 dark:focus:ring-red-900/10" 
                           : "border-gray-200 dark:border-[#2a2a2a] focus:border-brand-green focus:ring-brand-green/10"
-                      } ${(!selectedWilayaCode && !selectedCityTerritoryId) ? "bg-gray-50 dark:bg-[#121212] cursor-not-allowed text-gray-400 dark:text-zinc-650" : ""}`}
+                      } ${!selectedWilayaCode ? "bg-gray-50 dark:bg-[#121212] cursor-not-allowed text-gray-400 dark:text-zinc-650" : ""}`}
                       id="input-commune"
                     >
-                      {(!selectedWilayaCode && !selectedCityTerritoryId) ? (
+                      {!selectedWilayaCode ? (
                         <option value="" className="dark:bg-[#1a1a1a] dark:text-zinc-300">{lang === "fr" ? "Veuillez d'abord choisir la Wilaya" : "يرجى اختيار الولاية أولاً"}</option>
-                      ) : zrCommunes.length > 0 ? (
-                        zrCommunes.map((c) => (
-                          <option key={c.id} value={c.id} className="dark:bg-[#1a1a1a] dark:text-zinc-300">
-                            {isRTL && c.nameArabic ? c.nameArabic : c.name}
-                          </option>
-                        ))
                       ) : (
                         currentWilaya?.communes.map((commune, idx) => (
                           <option key={idx} value={commune} className="dark:bg-[#1a1a1a] dark:text-zinc-300">
@@ -654,15 +416,7 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
                       onChange={() => setDeliveryType("home")}
                       className="h-4 w-4 accent-brand-green cursor-pointer"
                     />
-                    <span>
-                      {t.formHome}
-                      <span className="text-gray-400 font-normal ml-1.5 mr-1.5">
-                        ({selectedWilayaCode 
-                          ? `${currentWilaya?.homePrice} DA` 
-                          : (lang === "fr" ? "Tarif à domicile selon Wilaya" : "حسب الولاية")
-                        })
-                      </span>
-                    </span>
+                    <span>{t.formHome}</span>
                   </label>
 
                   {/* Desk Delivery Radio */}
@@ -675,15 +429,7 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
                       onChange={() => setDeliveryType("desk")}
                       className="h-4 w-4 accent-brand-green cursor-pointer"
                     />
-                    <span>
-                      {t.formDesk}
-                      <span className="text-gray-400 font-normal ml-1.5 mr-1.5">
-                        ({selectedWilayaCode 
-                          ? `${currentWilaya?.deskPrice} DA` 
-                          : (lang === "fr" ? "Tarif bureau selon Wilaya" : "حسب الولاية")
-                        })
-                      </span>
-                    </span>
+                    <span>{t.formDesk}</span>
                   </label>
                 </div>
               </div>
@@ -696,17 +442,7 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
                 <div className="space-y-2 text-xs">
                   <div className="flex justify-between text-gray-600 dark:text-zinc-400">
                     <span>{t.formQty} :</span>
-                    <span className="font-bold text-brand-navy dark:text-zinc-100">{totalQuantity}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-600 dark:text-zinc-400">
-                    <span>{t.subtotal} :</span>
-                    <span className="font-bold text-brand-navy dark:text-zinc-100">{subtotal.toLocaleString()} {t.priceCurrency}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-600 dark:text-zinc-400">
-                    <span>{t.shippingFee} :</span>
-                    <span className="font-bold text-brand-navy dark:text-zinc-100">
-                      {selectedWilayaCode ? `${shippingFee.toLocaleString()} ${t.priceCurrency}` : "0 DA"}
-                    </span>
+                    <span className="font-bold text-brand-navy dark:text-zinc-100">{quantity}</span>
                   </div>
                   <div className="flex justify-between text-sm font-black text-brand-navy dark:text-white pt-2 border-t border-gray-200/50 dark:border-[#2a2a2a]">
                     <span>{t.grandTotal} :</span>
@@ -722,17 +458,18 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
                 <span>{t.orderSecure}</span>
               </p>
 
-              {/* Modern, elegant submit order button */}
+              {/* Pulsing high conversion checkout button */}
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`w-full rounded-xl bg-brand-green py-3.5 px-6 text-base font-extrabold text-white shadow-sm transition-all duration-200 hover:bg-brand-green-hover active:scale-[0.99] cursor-pointer ${
-                  isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+                className={`relative w-full rounded-2xl bg-brand-green py-4 px-6 text-sm font-black text-white shadow-xl shadow-brand-green/30 transition-all duration-200 hover:bg-brand-green-hover active:scale-[0.98] ${
+                  isSubmitting ? "opacity-75 cursor-not-allowed" : "animate-pulse-subtle"
                 }`}
                 id="submit-checkout-order-btn"
               >
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
+                    {/* Native loading ring */}
                     <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -740,10 +477,7 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
                     <span>{t.submitting}</span>
                   </span>
                 ) : (
-                  <span className="flex items-center justify-center gap-2">
-                    <Check className="h-5 w-5 stroke-[2.5]" />
-                    <span>{t.submitOrder}</span>
-                  </span>
+                  <span>{t.submitOrder}</span>
                 )}
               </button>
 
@@ -753,8 +487,8 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
             /* Success confirmation screen */
             <div className="text-center py-8 space-y-6">
               
-              {/* Giant elegant checklist animation circle (bouncing removed) */}
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-brand-green/10 text-brand-green">
+              {/* Giant elegant checklist animation circle */}
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-brand-green/10 text-brand-green animate-bounce">
                 <Check className="h-10 w-10 stroke-[3.5]" />
               </div>
 
@@ -767,18 +501,13 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
                 </p>
               </div>
 
-              {/* Single ZR Express Official Tracking Code details */}
-              <div className="mx-auto max-w-sm rounded-xl border border-dashed border-brand-green/40 dark:border-brand-green/30 bg-brand-green/5 dark:bg-brand-green/10 p-5 space-y-2 text-center">
-                <p className="text-xs text-brand-green font-black uppercase tracking-wider">
-                  {lang === "fr" ? "Code de Suivi Officiel ZR Express :" : "رقم تتبع شحنتك (ZR Express) :"}
+              {/* Order Reference details */}
+              <div className="mx-auto max-w-sm rounded-xl border border-dashed border-gray-200 dark:border-[#2a2a2a] bg-gray-50 dark:bg-[#262626]/30 p-4 space-y-1 text-center" style={{ direction: isRTL ? "rtl" : "ltr" }}>
+                <p className="text-[10px] text-gray-400 dark:text-zinc-500 font-bold uppercase tracking-wider">
+                  {t.successCode}
                 </p>
-                <p className="font-mono text-2xl font-black text-brand-green tracking-widest select-all">
-                  {trackingReference || orderReference}
-                </p>
-                <p className="text-[11px] text-gray-500 dark:text-zinc-400 font-medium">
-                  {lang === "fr"
-                    ? "Utilisez ce code unique pour suivre votre colis à tout moment."
-                    : "استخدم هذا الرقم الموحد لتتبع حالة طردك لدى شركة زد آر إكسبريس."}
+                <p className="font-mono text-base font-black text-brand-navy dark:text-zinc-200">
+                  {orderReference}
                 </p>
               </div>
 
@@ -808,23 +537,17 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
                     {deliveryType === "home" ? t.formHome : t.formDesk}
                   </span>
                 </div>
-                <div className="flex justify-between text-gray-600 dark:text-zinc-400">
-                  <span>{lang === "fr" ? "Transporteur" : "شركة التوصيل"} :</span>
-                  <span className="font-semibold text-brand-navy dark:text-zinc-100 font-sans">
-                    {couriersList.find(c => c.id === selectedCourier)?.[lang === "fr" ? "nameFR" : "nameAR"]}
-                  </span>
-                </div>
                 <div className="flex justify-between text-sm font-black text-brand-navy dark:text-white pt-2 border-t border-gray-100 dark:border-zinc-800">
                   <span>{t.grandTotal} :</span>
                   <span className="text-brand-green text-base font-extrabold">{grandTotal.toLocaleString()} {t.priceCurrency}</span>
                 </div>
               </div>
 
-              {/* Close CTAs (WhatsApp quick-confirm and bounce animations removed as requested) */}
-              <div className="flex justify-center max-w-sm mx-auto w-full">
+              {/* Close CTAs */}
+              <div className="flex justify-center max-w-sm mx-auto">
                 <button
                   onClick={onClose}
-                  className="w-full rounded-xl bg-brand-green hover:bg-brand-green-hover text-white py-3.5 px-6 text-xs font-black transition-all active:scale-95 shadow-md shadow-brand-green/20 cursor-pointer"
+                  className="w-full rounded-xl bg-brand-green hover:bg-brand-green-hover text-white py-3 px-6 text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-md shadow-brand-green/20"
                   id="close-success-btn"
                 >
                   {t.successClose}

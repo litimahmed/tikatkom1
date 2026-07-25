@@ -2,24 +2,17 @@ import { useState, useEffect } from "react";
 import Header from "./components/Header";
 import Hero from "./components/Hero";
 import BrandBanner from "./components/BrandBanner";
-import DigitalBentoGrid from "./components/DigitalBentoGrid";
 import CategoriesGrid from "./components/CategoriesGrid";
 import HomeSections from "./components/HomeSections";
 import ProductsGrid from "./components/ProductsGrid";
-import ProductPage from "./components/ProductPage";
-import DigitalStorePage from "./components/DigitalStorePage";
-import CheckoutPage from "./components/CheckoutPage";
 import Footer from "./components/Footer";
 import ShippingModal from "./components/ShippingModal";
 import CheckoutModal from "./components/CheckoutModal";
-import TrackingModal from "./components/TrackingModal";
 import FloatingContact from "./components/FloatingContact";
-import { Product, Category, CartItem } from "./types";
-import { products as staticProducts, categories as staticCategories, digitalProducts as staticDigitalProducts } from "./data";
-import { ChevronRight, ChevronLeft, Globe } from "lucide-react";
-import { getWooCategories, getWooProducts, detectWordPressBaseUrl, isUncategorizedCategory } from "./lib/woocommerce";
-import { getUserCountryCode } from "./lib/geo";
-import CartDrawer from "./components/CartDrawer";
+import { Product, Category } from "./types";
+import { products as staticProducts, categories as staticCategories } from "./data";
+import { ChevronRight, ChevronLeft } from "lucide-react";
+import { getWooCategories, getWooProducts, detectWordPressBaseUrl } from "./lib/woocommerce";
 
 // Clean navigation helpers for traditional page reloads (hard loading)
 export function getStorePageUrl(categoryId?: string | null): string {
@@ -27,13 +20,7 @@ export function getStorePageUrl(categoryId?: string | null): string {
   const currentUrl = new URL(window.location.href);
 
   // If in AI Studio Preview or standalone port 3000 local dev, keep same page but append params
-  const isDevPreview =
-    currentUrl.port === "3000" ||
-    currentUrl.hostname.includes("run.app") ||
-    currentUrl.hostname.includes("ais-dev") ||
-    currentUrl.hostname.includes("ais-pre");
-
-  if (isDevPreview) {
+  if (currentUrl.hostname.includes("run.app") || currentUrl.port === "3000" || currentUrl.hostname === "localhost") {
     const target = new URL(window.location.pathname, window.location.origin);
     target.searchParams.set("view", "products");
     if (categoryId) {
@@ -51,44 +38,12 @@ export function getStorePageUrl(categoryId?: string | null): string {
   return url;
 }
 
-export function getDigitalStorePageUrl(subcategoryId?: string | null): string {
-  const baseUrl = detectWordPressBaseUrl();
-  const currentUrl = new URL(window.location.href);
-
-  const isDevPreview =
-    currentUrl.port === "3000" ||
-    currentUrl.hostname.includes("run.app") ||
-    currentUrl.hostname.includes("ais-dev") ||
-    currentUrl.hostname.includes("ais-pre");
-
-  if (isDevPreview) {
-    const target = new URL(window.location.pathname, window.location.origin);
-    target.searchParams.set("view", "digital");
-    if (subcategoryId && subcategoryId !== "all") {
-      target.searchParams.set("digitalCategory", subcategoryId);
-    }
-    return target.toString();
-  }
-
-  const cleanBase = baseUrl.replace(/\/$/, "");
-  let url = `${cleanBase}/digital-store/`;
-  if (subcategoryId && subcategoryId !== "all") {
-    url += `?digitalCategory=${encodeURIComponent(subcategoryId)}`;
-  }
-  return url;
-}
-
 export function getHomePageUrl(): string {
   const baseUrl = detectWordPressBaseUrl();
   const currentUrl = new URL(window.location.href);
 
-  const isDevPreview =
-    currentUrl.port === "3000" ||
-    currentUrl.hostname.includes("run.app") ||
-    currentUrl.hostname.includes("ais-dev") ||
-    currentUrl.hostname.includes("ais-pre");
-
-  if (isDevPreview) {
+  // In preview/dev container, go to current page path without params
+  if (currentUrl.hostname.includes("run.app") || currentUrl.port === "3000" || currentUrl.hostname === "localhost") {
     return new URL(window.location.pathname, window.location.origin).toString();
   }
 
@@ -101,44 +56,6 @@ export default function App() {
     const saved = localStorage.getItem("lang");
     return (saved === "ar" || saved === "fr") ? saved : "fr";
   });
-
-  // Geolocation & Mode state: DZ (Algeria COD Mode) or International (Traditional Checkout/Cart)
-  const [isAlgerian, setIsAlgerian] = useState<boolean>(() => {
-    // Clear any stale local storage locks from previous runs
-    try {
-      localStorage.removeItem("tikatkom_force_mode");
-      localStorage.removeItem("tikatkom_user_country");
-      localStorage.removeItem("tikatkom_user_country_timestamp");
-    } catch {
-      // ignore
-    }
-
-    const params = new URLSearchParams(window.location.search);
-    const modeParam = params.get("mode");
-    if (modeParam === "intl") return false;
-    if (modeParam === "dz") return true;
-
-    // Default to true (Algeria) while live IP check finishes to avoid layout flash
-    return true;
-  });
-
-  const [detectedCountry, setDetectedCountry] = useState<string>("");
-  
-  // Headless Cart States for International users
-  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
-    try {
-      const saved = localStorage.getItem("tikatkom_cart");
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-  const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
-
-  // Synchronize cart state to localStorage for persistence
-  useEffect(() => {
-    localStorage.setItem("tikatkom_cart", JSON.stringify(cartItems));
-  }, [cartItems]);
   
   // Ensure dark mode is completely removed from document element and localStorage
   useEffect(() => {
@@ -146,60 +63,10 @@ export default function App() {
     localStorage.removeItem("theme");
   }, []);
 
-  // Detect Country on mount
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const modeParam = params.get("mode");
-
-    if (modeParam === "intl") {
-      setIsAlgerian(false);
-      setDetectedCountry("International Mode (?mode=intl)");
-      return;
-    } else if (modeParam === "dz") {
-      setIsAlgerian(true);
-      setDetectedCountry("Algeria Mode (?mode=dz)");
-      return;
-    }
-
-    async function detectGeo() {
-      try {
-        const country = await getUserCountryCode();
-        setDetectedCountry(country);
-        setIsAlgerian(country === "DZ");
-      } catch (err) {
-        console.error("Failed to detect user country, keeping default (Algeria).", err);
-      }
-    }
-    detectGeo();
-  }, []);
-
-  // Toggle mode manually for store owners to preview both
-  const handleToggleMode = () => {
-    const nextMode = isAlgerian ? "intl" : "dz";
-    localStorage.setItem("tikatkom_force_mode", nextMode);
-    setIsAlgerian(!isAlgerian);
-    // Reload page to apply clean filters
-    window.location.reload();
-  };
-
-  // Page Routing State: "home" | "products" | "product" | "digital" | "checkout"
-  const [previousView, setPreviousView] = useState<string | null>(null);
-  const [view, setView] = useState<"home" | "products" | "product" | "digital" | "checkout">((): "home" | "products" | "product" | "digital" | "checkout" => {
+  // Page Routing State: "home" or "products"
+  const [view, setView] = useState<"home" | "products">(() => {
     const currentPath = window.location.pathname;
     const params = new URLSearchParams(window.location.search);
-    if (params.get("view") === "checkout" || currentPath.includes("/checkout")) {
-      return "checkout";
-    }
-    if (params.get("product") || params.get("id")) {
-      return "product";
-    }
-    if (
-      currentPath.includes("/digital") || 
-      params.get("view") === "digital" ||
-      params.get("digitalCategory") !== null
-    ) {
-      return "digital";
-    }
     if (
       currentPath.includes("/shop") || 
       currentPath.includes("/catalog") || 
@@ -211,15 +78,6 @@ export default function App() {
     return "home";
   });
 
-  // Selected Product State for dedicated product page view
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-
-  // Selected Digital Subcategory state
-  const [selectedDigitalSubcategory, setSelectedDigitalSubcategory] = useState<string | null>(() => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get("digitalCategory");
-  });
-
   // Dynamic Catalog States: initialized empty to prevent flashing of hardcoded data
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -228,28 +86,13 @@ export default function App() {
   // Modals Visibility State
   const [isShippingOpen, setIsShippingOpen] = useState<boolean>(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
-  const [isTrackingOpen, setIsTrackingOpen] = useState<boolean>(false);
   const [checkoutProduct, setCheckoutProduct] = useState<Product | null>(null);
-  const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]);
 
   // Active Category Filter
   const [selectedCategory, setSelectedCategory] = useState<string | null>(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("category");
   });
-
-  // Check URL params for direct product linking
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const productId = params.get("product") || params.get("id");
-    if (productId && products.length > 0) {
-      const found = products.find((p) => p.id === productId);
-      if (found) {
-        setSelectedProduct(found);
-        setView("product");
-      }
-    }
-  }, [products]);
 
   // Fetch from live WooCommerce backend on mount
   useEffect(() => {
@@ -262,9 +105,9 @@ export default function App() {
         ]);
         
         if (wooCats && wooCats.length > 0) {
-          setCategories(wooCats.filter(c => !isUncategorizedCategory(c)));
+          setCategories(wooCats);
         } else {
-          setCategories(staticCategories.filter(c => !isUncategorizedCategory(c)));
+          setCategories(staticCategories);
         }
 
         if (wooProds && wooProds.length > 0) {
@@ -274,7 +117,7 @@ export default function App() {
         }
       } catch (error) {
         console.warn("Could not load live WooCommerce data, keeping local high-fidelity mock data.", error);
-        setCategories(staticCategories.filter(c => !isUncategorizedCategory(c)));
+        setCategories(staticCategories);
         setProducts(staticProducts);
       } finally {
         setIsLoading(false);
@@ -290,134 +133,9 @@ export default function App() {
   }, [lang]);
 
   // Handler to open order form for a selected product
-  // Helper to add item to Cart
-  const handleAddToCart = (product: Product) => {
-    setCartItems((prev) => {
-      const existingIndex = prev.findIndex((item) => item.product.id === product.id);
-      if (existingIndex > -1) {
-        const nextCart = [...prev];
-        nextCart[existingIndex] = {
-          ...nextCart[existingIndex],
-          quantity: nextCart[existingIndex].quantity + 1,
-        };
-        return nextCart;
-      }
-      return [...prev, { product, quantity: 1 }];
-    });
-  };
-
-  const handleUpdateCartQuantity = (productId: string, quantity: number) => {
-    setCartItems((prev) =>
-      prev.map((item) => (item.product.id === productId ? { ...item, quantity } : item))
-    );
-  };
-
-  const handleRemoveFromCart = (productId: string) => {
-    setCartItems((prev) => prev.filter((item) => item.product.id !== productId));
-  };
-
-  const handleProceedToCheckout = async () => {
-    setIsCartOpen(false);
-    if (isAlgerian) {
-      if (cartItems.length > 0) {
-        setCheckoutItems([...cartItems]);
-        setCheckoutProduct(cartItems[0].product);
-        setView("checkout");
-        if (typeof window !== "undefined") {
-          const url = new URL(window.location.href);
-          url.searchParams.set("view", "checkout");
-          window.history.pushState({}, "", url.toString());
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }
-      }
-    } else {
-      // International Lemon Squeezy Hosted Checkout Redirect
-      const env = (import.meta as any).env || {};
-      const fallbackUrl =
-        (cartItems.length > 0 && cartItems[0].product.lemonSqueezyUrl) ||
-        env.VITE_LEMON_SQUEEZY_CHECKOUT_URL ||
-        "https://lemonsqueezy.com";
-
-      try {
-        const payload = {
-          items: cartItems.map((item) => ({
-            id: item.product.id,
-            title: lang === "fr" ? item.product.titleFR : item.product.titleAR,
-            price: item.product.price,
-            quantity: item.quantity,
-            lemonSqueezyUrl: item.product.lemonSqueezyUrl,
-          })),
-        };
-
-        const res = await fetch("/api/lemonsqueezy/create-checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        const data = await res.json();
-        if (data.success && data.url) {
-          window.location.href = data.url;
-          return;
-        }
-      } catch (err) {
-        console.error("[Lemon Squeezy] API checkout call failed, using direct URL", err);
-      }
-
-      window.location.href = fallbackUrl;
-    }
-  };
-
-  // Handler to view dedicated Product Page
-  const handleSelectProduct = (product: Product) => {
-    setSelectedProduct(product);
-    setView("product");
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-      url.searchParams.set("product", product.id);
-      window.history.pushState({}, "", url.toString());
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
-
-  // Handler to open order form for a selected product
   const handleOpenCheckout = (product: Product) => {
-    setSelectedProduct(product);
     setCheckoutProduct(product);
-    setCheckoutItems([{ product, quantity: 1 }]);
-    if (isAlgerian) {
-      setView("checkout");
-      if (typeof window !== "undefined") {
-        const url = new URL(window.location.href);
-        url.searchParams.set("view", "checkout");
-        if (product?.id) {
-          url.searchParams.set("product", product.id);
-        }
-        window.history.pushState({}, "", url.toString());
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-    } else {
-      // Direct international buyer to product Lemon Squeezy hosted checkout page
-      const env = (import.meta as any).env || {};
-      const lemonUrl = product.lemonSqueezyUrl || env.VITE_LEMON_SQUEEZY_CHECKOUT_URL || "https://lemonsqueezy.com";
-      console.log(`[Lemon Squeezy] Redirecting for product ${product.id} to Lemon Squeezy checkout: ${lemonUrl}`);
-      window.location.href = lemonUrl;
-    }
-  };
-
-  const handleBackFromProductPage = () => {
-    if (previousView === "checkout") {
-      setView("checkout");
-      setPreviousView(null);
-      if (typeof window !== "undefined") {
-        const url = new URL(window.location.href);
-        url.searchParams.set("view", "checkout");
-        window.history.pushState({}, "", url.toString());
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-    } else {
-      window.location.href = getHomePageUrl();
-    }
+    setIsCheckoutOpen(true);
   };
 
   // Handler when clicking categories - sets view to products page and selects category filter
@@ -445,24 +163,6 @@ export default function App() {
     }
   };
 
-  // Handler for opening dedicated Digital Store page
-  const handleOpenDigitalStore = (subcategoryId?: string | null) => {
-    const subcat = subcategoryId || "all";
-    setSelectedDigitalSubcategory(subcat);
-    setView("digital");
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-      url.searchParams.set("view", "digital");
-      if (subcat && subcat !== "all") {
-        url.searchParams.set("digitalCategory", subcat);
-      } else {
-        url.searchParams.delete("digitalCategory");
-      }
-      window.history.pushState({}, "", url.toString());
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
-
   // Handle Logo click - goes back home and resets filters
   const handleLogoClick = () => {
     window.location.href = getHomePageUrl();
@@ -477,10 +177,6 @@ export default function App() {
         setLang={setLang} 
         onOpenShippingModal={() => setIsShippingOpen(true)} 
         onLogoClick={handleLogoClick}
-        isAlgerian={isAlgerian}
-        onOpenCart={() => setIsCartOpen(true)}
-        cartCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
-        onOpenTracking={() => setIsTrackingOpen(true)}
       />
 
       <main>
@@ -496,31 +192,18 @@ export default function App() {
               {lang === "ar" ? "جاري تحميل المتجر..." : "Chargement de la boutique..."}
             </p>
           </div>
-        ) : view === "product" && selectedProduct ? (
-          <ProductPage
-            product={selectedProduct}
-            lang={lang}
-            onBack={handleBackFromProductPage}
-            onAddToCart={handleAddToCart}
-            onBuyNow={(prod) => handleOpenCheckout(prod)}
-            isFromCheckout={previousView === "checkout"}
-          />
         ) : view === "home" ? (
           <>
-            {/* 2. Hero Section (Hidden on Mobile and Tablet) */}
-            <div className="hidden lg:block">
-              <Hero 
-                lang={lang} 
-                onExploreClick={handleExploreClick}
-                onBuyFlagshipClick={handleBuyFlagshipClick}
-                products={products}
-              />
-            </div>
+            {/* 2. Hero Section */}
+            <Hero 
+              lang={lang} 
+              onExploreClick={handleExploreClick}
+              onBuyFlagshipClick={handleBuyFlagshipClick}
+              products={products}
+            />
 
-            {/* 3. Brand & Trust Signature Banner (Second Section - Hidden on Mobile and Tablet) */}
-            <div className="hidden lg:block">
-              <BrandBanner lang={lang} />
-            </div>
+            {/* 3. Brand & Trust Signature Banner */}
+            <BrandBanner lang={lang} />
 
             {/* 4. Categories Section */}
             <CategoriesGrid 
@@ -533,52 +216,11 @@ export default function App() {
             <HomeSections 
               lang={lang}
               onBuyClick={handleOpenCheckout}
-              onSelectProduct={handleSelectProduct}
-              onAddToCart={handleAddToCart}
               onViewAllClick={handleViewAllClick}
               products={products}
               categories={categories}
             />
-
-            {/* 6. Digital Bento Grid Section (Placed at last as requested) */}
-            <DigitalBentoGrid 
-              lang={lang}
-              onExploreClick={handleExploreClick}
-              onOpenDigitalStore={handleOpenDigitalStore}
-              onSelectProduct={handleSelectProduct}
-              categories={categories}
-            />
           </>
-        ) : view === "checkout" ? (
-          <CheckoutPage
-            lang={lang}
-            product={checkoutProduct}
-            items={checkoutItems}
-            onSelectProduct={(prod) => {
-              setPreviousView("checkout");
-              handleSelectProduct(prod);
-            }}
-            onBack={() => {
-              setView("home");
-              if (typeof window !== "undefined") {
-                window.history.pushState({}, "", getHomePageUrl());
-              }
-            }}
-            onUpdateCartQuantity={handleUpdateCartQuantity}
-            onRemoveFromCart={handleRemoveFromCart}
-            isAlgerian={isAlgerian}
-          />
-        ) : view === "digital" ? (
-          <DigitalStorePage
-            lang={lang}
-            onBackHome={handleLogoClick}
-            onSelectProduct={handleSelectProduct}
-            onBuyClick={handleOpenCheckout}
-            onAddToCart={handleAddToCart}
-            initialSubcategory={selectedDigitalSubcategory}
-            allProducts={products}
-            categories={categories}
-          />
         ) : (
           <>
             {/* Elegant Breadcrumbs & Navigation Bar for Dedicated Shop Page */}
@@ -606,8 +248,6 @@ export default function App() {
             <ProductsGrid 
               lang={lang} 
               onBuyClick={handleOpenCheckout}
-              onSelectProduct={handleSelectProduct}
-              onAddToCart={handleAddToCart}
               selectedCategory={selectedCategory}
               setSelectedCategory={setSelectedCategory}
               products={products}
@@ -632,30 +272,11 @@ export default function App() {
         isOpen={isCheckoutOpen} 
         onClose={() => setIsCheckoutOpen(false)} 
         product={checkoutProduct} 
-        items={checkoutItems}
         lang={lang} 
       />
 
-      {/* Floating Modern Contact Elements (WhatsApp, Email & Algeria Parcel Tracking) */}
-      <FloatingContact lang={lang} isAlgerian={isAlgerian} onTrackingClick={() => setIsTrackingOpen(true)} />
-
-      {/* Realtime Express Parcel Tracking Status Modal */}
-      <TrackingModal 
-        isOpen={isTrackingOpen} 
-        onClose={() => setIsTrackingOpen(false)} 
-        lang={lang} 
-      />
-
-      {/* Modern, Headless Cart Drawer for International Clients */}
-      <CartDrawer
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        cartItems={cartItems}
-        onUpdateQuantity={handleUpdateCartQuantity}
-        onRemoveItem={handleRemoveFromCart}
-        onProceedToCheckout={handleProceedToCheckout}
-        lang={lang}
-      />
+      {/* Floating Modern Contact Elements (WhatsApp & Email) */}
+      <FloatingContact lang={lang} />
 
     </div>
   );

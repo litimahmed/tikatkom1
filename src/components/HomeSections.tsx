@@ -1,30 +1,17 @@
 import { ArrowRight, ArrowLeft } from "lucide-react";
-import { getProductsForSection, isUncategorizedCategory } from "../lib/woocommerce";
+import { getProductsForSection } from "../lib/woocommerce";
 import { Product, Category } from "../types";
-import AutoSlider from "./AutoSlider";
 
 interface HomeSectionsProps {
   lang: "fr" | "ar";
   onBuyClick: (product: Product) => void;
-  onSelectProduct?: (product: Product) => void;
-  onAddToCart?: (product: Product) => void;
   onViewAllClick: (categoryId: string | null) => void;
   products: Product[];
   categories: Category[];
 }
 
-export default function HomeSections({ lang, onBuyClick, onSelectProduct, onAddToCart, onViewAllClick, products, categories }: HomeSectionsProps) {
+export default function HomeSections({ lang, onBuyClick, onViewAllClick, products, categories }: HomeSectionsProps) {
   const isRTL = lang === "ar";
-  const handleCardProductClick = (product: Product) => {
-    if (onSelectProduct) {
-      onSelectProduct(product);
-    } else {
-      onBuyClick(product);
-    }
-  };
-
-  // Ensure physical product sections only show physical non-digital products
-  const physicalProducts = products.filter((p) => !p.isDigital && !p.category?.toLowerCase().startsWith("digital"));
 
   // Select filtered subsets of products for each of the 4 sections
   const sectionsData = [
@@ -59,108 +46,25 @@ export default function HomeSections({ lang, onBuyClick, onSelectProduct, onAddT
   ];
 
   return (
-    <div className="space-y-10 sm:space-y-16 py-8 sm:py-16">
+    <div className="space-y-16 py-12 lg:py-16">
       {sectionsData.map((sec) => {
         // Find products belonging to this section using our high-fidelity WooCommerce tags filter
-        const secProducts = getProductsForSection(physicalProducts, sec.id);
+        const secProducts = getProductsForSection(products, sec.id);
 
         if (secProducts.length === 0) return null;
-
-        const renderProductCard = (product: Product) => {
-          const title = lang === "fr" ? product.titleFR : product.titleAR;
-          const badge = lang === "fr" ? product.badgeFR : product.badgeAR;
-          
-          return (
-            <div
-              className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-gray-100 dark:border-[#2a2a2a] bg-white dark:bg-[#1a1a1a] p-3 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 h-full"
-              id={`home-product-card-${sec.id}-${product.id}`}
-            >
-              {/* Image Section */}
-              <div 
-                onClick={() => handleCardProductClick(product)}
-                className="relative aspect-square overflow-hidden rounded-xl bg-gray-50 dark:bg-[#262626] cursor-pointer"
-              >
-                <img
-                  src={product.image}
-                  alt={title}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-
-              {/* Info Section */}
-              <div className="mt-3 flex flex-1 flex-col justify-between">
-                <div>
-                  {/* Category Row */}
-                  <div className="flex items-center justify-between gap-1">
-                    <span className="text-[9px] font-bold text-brand-green uppercase tracking-wider">
-                      {(() => {
-                        const matchedCat = categories.find(c => c.id === product.category && !isUncategorizedCategory(c));
-                        return matchedCat ? (lang === "fr" ? matchedCat.nameFR : matchedCat.nameAR) : "";
-                      })()}
-                    </span>
-                  </div>
-
-                  {/* Product Title */}
-                  <h4 
-                    onClick={() => handleCardProductClick(product)}
-                    className="font-arabic font-extrabold text-xs text-brand-navy dark:text-zinc-100 mt-1.5 leading-snug line-clamp-2 group-hover:text-brand-green transition-colors sm:text-sm cursor-pointer"
-                  >
-                    {title}
-                  </h4>
-                </div>
-
-                <div className="mt-4">
-                  {/* Pricing Row */}
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-sm font-black text-brand-green sm:text-base">
-                      {product.price.toLocaleString()} {lang === "fr" ? "DA" : "دج"}
-                    </span>
-                    {product.oldPrice && (
-                      <span className="text-[10px] text-gray-400 dark:text-zinc-500 line-through">
-                        {product.oldPrice.toLocaleString()}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* CTA Order Buttons */}
-                  <div className="mt-3 space-y-1.5">
-                    <button
-                      onClick={() => onBuyClick(product)}
-                      className="w-full rounded-full bg-brand-navy dark:bg-[#262626] py-2.5 px-3 text-[11px] font-extrabold text-white transition-all duration-200 hover:bg-brand-green dark:hover:bg-brand-green hover:shadow-sm active:scale-[0.98] cursor-pointer text-center"
-                      id={`home-buy-btn-${sec.id}-${product.id}`}
-                    >
-                      {lang === "fr" ? "Acheter Maintenant" : "اشتري الآن"}
-                    </button>
-
-                    {onAddToCart && (
-                      <button
-                        onClick={() => onAddToCart(product)}
-                        className="w-full text-center rounded-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 py-2 px-3 text-[10px] font-bold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
-                        id={`home-add-cart-btn-${sec.id}-${product.id}`}
-                      >
-                        {lang === "fr" ? "Ajouter au Panier" : "أضف إلى السلة"}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        };
 
         return (
           <section 
             key={sec.id} 
-            className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 overflow-hidden"
+            className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"
             style={{ direction: isRTL ? "rtl" : "ltr" }}
           >
             {/* Section Title Bar */}
-            <div className="flex items-end justify-between border-b border-gray-100 dark:border-zinc-800 pb-3 mb-5 sm:pb-4 sm:mb-8">
-              <div className="flex flex-col gap-y-1 sm:gap-y-2">
+            <div className="flex items-end justify-between border-b border-gray-100 dark:border-zinc-800 pb-4 mb-8">
+              <div className="flex flex-col gap-y-2">
                 {/* French or Arabic Subtitle */}
                 {isRTL ? (
-                  <p className="font-arabic text-xs sm:text-sm font-bold text-brand-green tracking-wide">
+                  <p className="font-arabic text-sm font-bold text-brand-green tracking-wide">
                     {sec.subtitleAR}
                   </p>
                 ) : (
@@ -170,7 +74,7 @@ export default function HomeSections({ lang, onBuyClick, onSelectProduct, onAddT
                 )}
                 
                 {/* Bold Arabic Main Heading */}
-                <h3 className={`text-brand-navy dark:text-white tracking-tight text-xl sm:text-3xl ${isRTL ? "font-arabic font-black" : "font-sans font-black"}`}>
+                <h3 className={`text-brand-navy dark:text-white tracking-tight text-3xl sm:text-4xl ${isRTL ? "font-arabic font-black" : "font-sans font-black"}`}>
                   {isRTL ? sec.titleAR : sec.titleFR}
                 </h3>
               </div>
@@ -189,17 +93,81 @@ export default function HomeSections({ lang, onBuyClick, onSelectProduct, onAddT
               </button>
             </div>
 
-            {/* Reusable High-Performance Auto-sliding Product Carousel */}
-            <AutoSlider
-              items={secProducts}
-              renderItem={renderProductCard}
-              lang={lang}
-              idPrefix={`products-slider-${sec.id}`}
-              visibleDesktop={3}
-              visibleTablet={2}
-              visibleMobile={1}
-              autoPlayInterval={3000}
-            />
+            {/* Single line product row (grid-cols-2 on mobile, grid-cols-3 on desktop) */}
+            <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3">
+              {secProducts.map((product) => {
+                const title = lang === "fr" ? product.titleFR : product.titleAR;
+                const badge = lang === "fr" ? product.badgeFR : product.badgeAR;
+                
+                return (
+                  <div
+                    key={product.id}
+                    className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-gray-100 dark:border-[#2a2a2a] bg-white dark:bg-[#1a1a1a] p-3 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
+                    id={`home-product-card-${sec.id}-${product.id}`}
+                  >
+                    {/* Image Section */}
+                    <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-50 dark:bg-[#262626]">
+                      <img
+                        src={product.image}
+                        alt={title}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        referrerPolicy="no-referrer"
+                      />
+                      
+                      {/* Badge overlay */}
+                      {badge && (
+                        <span className={`absolute top-2.5 ${isRTL ? "right-2.5" : "left-2.5"} rounded bg-brand-green px-1.5 py-0.5 text-[8px] font-extrabold text-white uppercase tracking-wider`}>
+                          {badge}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Info Section */}
+                    <div className="mt-3 flex flex-1 flex-col justify-between">
+                      <div>
+                        {/* Category Row */}
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-[9px] font-bold text-brand-green uppercase tracking-wider">
+                            {lang === "fr" 
+                              ? categories.find(c => c.id === product.category)?.nameFR 
+                              : categories.find(c => c.id === product.category)?.nameAR
+                            }
+                          </span>
+                        </div>
+
+                        {/* Product Title */}
+                        <h4 className="font-arabic font-extrabold text-xs text-brand-navy dark:text-zinc-100 mt-1.5 leading-snug line-clamp-2 group-hover:text-brand-green transition-colors sm:text-sm">
+                          {title}
+                        </h4>
+                      </div>
+
+                      <div className="mt-4">
+                        {/* Pricing Row */}
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-sm font-black text-brand-green sm:text-base">
+                            {product.price.toLocaleString()} {lang === "fr" ? "DA" : "دج"}
+                          </span>
+                          {product.oldPrice && (
+                            <span className="text-[10px] text-gray-400 dark:text-zinc-500 line-through">
+                              {product.oldPrice.toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* CTA Order Button */}
+                        <button
+                          onClick={() => onBuyClick(product)}
+                          className="mt-3 w-full rounded-full bg-brand-navy dark:bg-[#262626] py-2.5 px-4 text-[10px] font-bold text-white transition-all duration-200 hover:bg-brand-green dark:hover:bg-brand-green hover:shadow-sm active:scale-[0.98] cursor-pointer"
+                          id={`home-buy-btn-${sec.id}-${product.id}`}
+                        >
+                          {lang === "fr" ? "Acheter Maintenant" : "اشتري الآن"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </section>
         );
       })}

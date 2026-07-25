@@ -7,44 +7,23 @@ import { products as mockProducts, categories as mockCategories } from "../data"
 // 2. Otherwise, we detect if the app is served inside WordPress by parsing script tags
 // 3. Fall back to current origin.
 export function detectWordPressBaseUrl(): string {
-  // 1. Explicit environment variable override
-  const envUrl = (import.meta as any).env?.VITE_WORDPRESS_URL;
-  if (envUrl && typeof envUrl === "string" && envUrl.trim() !== "") {
-    return envUrl.trim().replace(/\/$/, "");
-  }
+  const envUrl = (import.meta as any).env?.VITE_WORDPRESS_URL || "http://localhost/tikatkom";
+  if (envUrl) return envUrl.replace(/\/$/, "");
 
-  if (typeof window !== "undefined") {
-    // 2. Search script tags to find the WordPress base path (in case of subdirectory install e.g. /wordpress/)
-    const scripts = Array.from(document.querySelectorAll('script'));
-    for (const script of scripts) {
-      const src = script.src;
-      if (src && (src.includes('/wp-content/') || src.includes('/wp-includes/'))) {
-        const match = src.match(/^(https?:\/\/[^\/]+(?:\/[^\/]+)*?)\/(?:wp-content|wp-includes)\//);
-        if (match && match[1]) {
-          return match[1].replace(/\/$/, "");
-        }
+  // Search script tags to find the WordPress base path (in case of subdirectory install)
+  const scripts = Array.from(document.querySelectorAll('script'));
+  for (const script of scripts) {
+    const src = script.src;
+    if (src && (src.includes('/wp-content/') || src.includes('/wp-includes/'))) {
+      const match = src.match(/^(https?:\/\/[^\/]+(?:\/[^\/]+)*?)\/(?:wp-content|wp-includes)\//);
+      if (match && match[1]) {
+        return match[1];
       }
     }
-
-    // 3. Fallback to current window origin + pathname
-    const origin = window.location.origin;
-    const pathname = window.location.pathname;
-    const isDevPreview =
-      window.location.port === "3000" ||
-      origin.includes("run.app") ||
-      origin.includes("ais-dev") ||
-      origin.includes("ais-pre");
-
-    if (isDevPreview) {
-      return origin;
-    }
-
-    // On XAMPP or live WordPress server, preserve current subdirectory path and strip index.php/filename
-    const cleanPath = pathname.replace(/\/[^/]+\.[a-z0-9]+$/i, "").replace(/\/$/, "");
-    return `${origin}${cleanPath}`;
   }
 
-  return "http://localhost";
+  // Fallback to origin
+  return window.location.origin;
 }
 
 const WP_BASE_URL = detectWordPressBaseUrl();
@@ -118,60 +97,15 @@ export function parseMultilingual(text: string): { fr: string; ar: string } {
   }
 }
 
-// Helper to detect uncategorized categories (in English, French, Arabic, or slugs)
-export function isUncategorizedCategory(cat: { id?: string; slug?: string; nameFR?: string; nameAR?: string; name?: string }): boolean {
-  if (!cat) return true;
-  const idLower = (cat.id || "").toLowerCase();
-  const slugLower = (cat.slug || "").toLowerCase();
-  const frLower = (cat.nameFR || cat.name || "").toLowerCase();
-  const arLower = (cat.nameAR || cat.name || "").toLowerCase();
-
-  return (
-    idLower === "uncategorized" ||
-    idLower === "uncategorised" ||
-    idLower.includes("uncategorized") ||
-    idLower.includes("uncategorised") ||
-    idLower.includes("non-classe") ||
-    idLower.includes("non-classé") ||
-    idLower.includes("sans-categorie") ||
-    idLower.includes("sans-catégorie") ||
-    idLower.includes("غير-مصنف") ||
-    slugLower === "uncategorized" ||
-    slugLower === "uncategorised" ||
-    slugLower.includes("uncategorized") ||
-    slugLower.includes("uncategorised") ||
-    slugLower.includes("non-classe") ||
-    slugLower.includes("non-classé") ||
-    slugLower.includes("sans-categorie") ||
-    slugLower.includes("sans-catégorie") ||
-    slugLower.includes("غير-مصنف") ||
-    frLower.includes("uncategorized") ||
-    frLower.includes("uncategorised") ||
-    frLower.includes("non classé") ||
-    frLower.includes("non classe") ||
-    frLower.includes("sans catégorie") ||
-    frLower.includes("sans categorie") ||
-    arLower.includes("غير مصنف") ||
-    arLower.includes("غير-مصنف")
-  );
-}
-
 // Map WooCommerce Store API category to our App's Category type
 export function mapWooCategory(wpCat: any): Category {
   const nameInfo = parseMultilingual(wpCat.name || "");
-  const catSlug = (wpCat.slug || String(wpCat.id) || "").toLowerCase();
-  
-  // Category is digital if its slug starts with "digital" or includes "digital"
-  const isDigital = catSlug.startsWith("digital") || catSlug.includes("digital");
-
   return {
     id: wpCat.slug || String(wpCat.id),
     nameFR: nameInfo.fr || wpCat.name,
     nameAR: nameInfo.ar || wpCat.name,
     image: wpCat.image?.src || "https://placehold.co/600x400/png?text=Tikatkom",
-    count: wpCat.count || 0,
-    isDigital,
-    slug: wpCat.slug || String(wpCat.id)
+    count: wpCat.count || 0
   };
 }
 
@@ -201,73 +135,18 @@ export function mapWooProduct(wpProduct: any): Product {
     }
   }
 
-  // Check if product belongs to a digital category (category slug starts with or contains "digital")
-  let isDigitalProduct = false;
-  let detectedDigitalCategory: any = undefined;
-
-  if (wpProduct.categories && Array.isArray(wpProduct.categories) && wpProduct.categories.length > 0) {
-    for (const cat of wpProduct.categories) {
-      const catSlug = (cat.slug || String(cat.id) || "").toLowerCase();
-      if (catSlug.startsWith("digital") || catSlug.includes("digital")) {
-        isDigitalProduct = true;
-        
-        // Match specific subcategories if slug contains keywords
-        if (catSlug.includes("subscript") || catSlug.includes("vip")) {
-          detectedDigitalCategory = "vip_subscriptions";
-        } else if (catSlug.includes("key") || catSlug.includes("activation") || catSlug.includes("licence") || catSlug.includes("license")) {
-          detectedDigitalCategory = "activation_keys";
-        } else if (catSlug.includes("ai") || catSlug.includes("tool")) {
-          detectedDigitalCategory = "ai_tools";
-        } else if (catSlug.includes("book") || catSlug.includes("course") || catSlug.includes("formation")) {
-          detectedDigitalCategory = "ebooks_courses";
-        } else if (catSlug.includes("gift") || catSlug.includes("card") || catSlug.includes("carte")) {
-          detectedDigitalCategory = "gift_cards";
-        } else if (catSlug.includes("design") || catSlug.includes("template")) {
-          detectedDigitalCategory = "design_templates";
-        }
-        break;
-      }
-    }
-  }
-
-  // Also check product flags
-  if (wpProduct.virtual || wpProduct.downloadable || wpProduct.type === "digital") {
-    isDigitalProduct = true;
-  }
-
-  // Extract features list from short description or description (support HTML <li> items and custom <bullet text> syntax)
+  // Extract features list from the short description bullet points, or attributes
   const featuresFR: string[] = [];
   const featuresAR: string[] = [];
   
-  const rawShortDesc = wpProduct.short_description || "";
-  const rawFullDesc = wpProduct.description || "";
-  const combinedDesc = `${rawShortDesc}\n${rawFullDesc}`;
-
-  // 1. Extract standard HTML <li> bullets if present
-  if (combinedDesc) {
-    const doc = new DOMParser().parseFromString(combinedDesc, 'text/html');
+  if (wpProduct.short_description) {
+    const doc = new DOMParser().parseFromString(wpProduct.short_description, 'text/html');
     const lis = doc.querySelectorAll('li');
     lis.forEach(li => {
-      const text = (li.textContent || "").trim();
-      if (text) {
-        const info = parseMultilingual(text);
-        if (info.fr && !featuresFR.includes(info.fr)) featuresFR.push(info.fr);
-        if (info.ar && !featuresAR.includes(info.ar)) featuresAR.push(info.ar);
-      }
-    });
-  }
-
-  // 2. Extract custom angle-bracket bullets: <Great product for summer usage>
-  const htmlTagRegex = /^(?:p|br|hr|b|i|strong|em|u|span|div|ul|ol|li|a|img|h[1-6]|table|tr|td|th|\/(?:p|br|hr|b|i|strong|em|u|span|div|ul|ol|li|a|img|h[1-6]|table|tr|td|th))$/i;
-  const angleBracketMatches = combinedDesc.match(/<([^<>]+)>/g);
-  if (angleBracketMatches) {
-    angleBracketMatches.forEach(match => {
-      const inner = match.slice(1, -1).trim();
-      if (inner && !htmlTagRegex.test(inner)) {
-        const info = parseMultilingual(inner);
-        if (info.fr && !featuresFR.includes(info.fr)) featuresFR.push(info.fr);
-        if (info.ar && !featuresAR.includes(info.ar)) featuresAR.push(info.ar);
-      }
+      const text = li.textContent || "";
+      const info = parseMultilingual(text);
+      if (info.fr) featuresFR.push(info.fr);
+      if (info.ar) featuresAR.push(info.ar);
     });
   }
   
@@ -287,12 +166,10 @@ export function mapWooProduct(wpProduct: any): Product {
     stockStatus = "low_stock";
   }
 
-  // Primary category slug - prioritize a valid non-uncategorized category if available
-  let categorySlug = "uncategorized";
-  if (wpProduct.categories && Array.isArray(wpProduct.categories) && wpProduct.categories.length > 0) {
-    const validCat = wpProduct.categories.find((c: any) => !isUncategorizedCategory({ id: c.slug || String(c.id), slug: c.slug, name: c.name }));
-    categorySlug = validCat ? (validCat.slug || String(validCat.id)) : (wpProduct.categories[0].slug || String(wpProduct.categories[0].id));
-  }
+  // Primary category slug
+  const categorySlug = wpProduct.categories && wpProduct.categories.length > 0 
+    ? wpProduct.categories[0].slug 
+    : "uncategorized";
 
   // Badges (either calculated sale percentage or from tags)
   let badgeFR = undefined;
@@ -307,15 +184,6 @@ export function mapWooProduct(wpProduct: any): Product {
     badgeAR = tagInfo.ar;
   }
 
-  // Extract custom Lemon Squeezy URL if defined in meta or attributes
-  let lemonSqueezyUrl = undefined;
-  if (wpProduct.meta_data && Array.isArray(wpProduct.meta_data)) {
-    const foundMeta = wpProduct.meta_data.find((m: any) => 
-      m.key === "lemon_squeezy_url" || m.key === "lemonsqueezy_url" || m.key === "checkout_url"
-    );
-    if (foundMeta) lemonSqueezyUrl = foundMeta.value;
-  }
-
   return {
     id: String(wpProduct.id),
     titleFR: titleInfo.fr || wpProduct.name,
@@ -325,9 +193,6 @@ export function mapWooProduct(wpProduct: any): Product {
     price: priceParsed,
     oldPrice: oldPriceParsed,
     image: wpProduct.images && wpProduct.images.length > 0 ? wpProduct.images[0].src : "https://placehold.co/600x400/png?text=Tikatkom",
-    images: wpProduct.images && Array.isArray(wpProduct.images) && wpProduct.images.length > 0 
-      ? wpProduct.images.map((img: any) => img?.src).filter(Boolean)
-      : undefined,
     category: categorySlug,
     badgeFR,
     badgeAR,
@@ -336,11 +201,7 @@ export function mapWooProduct(wpProduct: any): Product {
     stockStatus,
     featuresFR,
     featuresAR,
-    tags: wpProduct.tags ? wpProduct.tags.map((t: any) => ({ id: t.id, name: t.name, slug: t.slug })) : undefined,
-    lemonSqueezyUrl,
-    permalink: wpProduct.permalink || undefined,
-    isDigital: isDigitalProduct,
-    digitalCategory: detectedDigitalCategory
+    tags: wpProduct.tags ? wpProduct.tags.map((t: any) => ({ id: t.id, name: t.name, slug: t.slug })) : undefined
   };
 }
 
@@ -349,14 +210,12 @@ export async function getWooCategories(): Promise<Category[]> {
   try {
     const data = await fetchWooStore("wc/store/v1/products/categories?per_page=100");
     if (Array.isArray(data)) {
-      return data
-        .map(mapWooCategory)
-        .filter(cat => !isUncategorizedCategory(cat));
+      return data.map(mapWooCategory);
     }
-    return mockCategories.filter(cat => !isUncategorizedCategory(cat));
+    return mockCategories;
   } catch (error) {
     console.warn("WooCommerce connection failed; using gorgeous mock categories fallback.", error);
-    return mockCategories.filter(cat => !isUncategorizedCategory(cat));
+    return mockCategories;
   }
 }
 

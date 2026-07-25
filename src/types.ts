@@ -7,7 +7,6 @@ export interface Product {
   price: number;
   oldPrice?: number;
   image: string;
-  images?: string[];
   category: string;
   badgeFR?: string;
   badgeAR?: string;
@@ -17,10 +16,6 @@ export interface Product {
   featuresFR: string[];
   featuresAR: string[];
   tags?: Array<{ id: number; name: string; slug: string }>;
-  lemonSqueezyUrl?: string;
-  permalink?: string;
-  isDigital?: boolean;
-  digitalCategory?: "vip_subscriptions" | "activation_keys" | "ai_tools" | "ebooks_courses" | "gift_cards" | "design_templates";
 }
 
 export interface Category {
@@ -29,32 +24,13 @@ export interface Category {
   nameAR: string;
   image: string;
   count: number;
-  isDigital?: boolean;
-  slug?: string;
 }
 
 export interface Wilaya {
   code: string;
   nameFR: string;
   nameAR: string;
-  homePrice: number;
-  deskPrice: number;
   communes: string[];
-}
-
-export interface ZrTerritory {
-  id: string;
-  code: number;
-  name: string;
-  nameArabic: string;
-  postalCode: string;
-  level: "wilaya" | "commune";
-  parentId: string | null;
-  delivery?: {
-    hasHomeDelivery: boolean;
-    hasPickupPoint: boolean;
-    canSend: boolean;
-  };
 }
 
 export interface OrderForm {
@@ -65,10 +41,5 @@ export interface OrderForm {
   address: string;
   deliveryType: "home" | "desk";
   notes?: string;
-  quantity: number;
-}
-
-export interface CartItem {
-  product: Product;
   quantity: number;
 }
