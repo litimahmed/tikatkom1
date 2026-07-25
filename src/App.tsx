@@ -66,7 +66,7 @@ export default function App() {
   const [view, setView] = useState<"home" | "products" | "checkout">((): "home" | "products" | "checkout" => {
     const currentPath = window.location.pathname;
     const params = new URLSearchParams(window.location.search);
-    if (currentPath.includes("/checkout") || params.get("view") === "checkout") {
+    if (params.get("view") === "checkout") {
       return "checkout";
     }
     if (
@@ -94,23 +94,6 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     return params.get("category");
   });
-
-  // Handle browser back/forward buttons
-  useEffect(() => {
-    const handlePopState = () => {
-      const path = window.location.pathname;
-      const params = new URLSearchParams(window.location.search);
-      if (path.includes("/checkout") || params.get("view") === "checkout") {
-        setView("checkout");
-      } else if (path.includes("/shop") || params.get("view") === "products" || params.get("category") !== null) {
-        setView("products");
-      } else {
-        setView("home");
-      }
-    };
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
 
   // Fetch from live WooCommerce backend on mount
   useEffect(() => {
@@ -144,22 +127,6 @@ export default function App() {
     loadWooCommerceData();
   }, []);
 
-  // Automatically select product if loading directly on /checkout or /checkout?productId=...
-  useEffect(() => {
-    if (view === "checkout" && products.length > 0 && !checkoutProduct) {
-      const params = new URLSearchParams(window.location.search);
-      const targetId = params.get("productId") || params.get("product");
-      if (targetId) {
-        const found = products.find((p) => String(p.id) === targetId);
-        if (found) {
-          setCheckoutProduct(found);
-          return;
-        }
-      }
-      setCheckoutProduct(products[0]);
-    }
-  }, [view, products, checkoutProduct]);
-
   // Set HTML dir and lang attributes on state changes for perfect RTL/LTR layout behavior
   useEffect(() => {
     document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
@@ -170,7 +137,6 @@ export default function App() {
   const handleOpenCheckout = (product: Product) => {
     setCheckoutProduct(product);
     setView("checkout");
-    window.history.pushState({ view: "checkout", productId: product.id }, "", `/checkout?productId=${product.id}`);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -261,10 +227,7 @@ export default function App() {
           <CheckoutPage 
             product={checkoutProduct} 
             lang={lang} 
-            onBackToStore={() => {
-              setView("products");
-              window.history.pushState({ view: "products" }, "", "/shop");
-            }} 
+            onBackToStore={() => setView("products")} 
           />
         ) : (
           <>

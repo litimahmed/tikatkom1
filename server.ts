@@ -148,46 +148,7 @@ async function startServer() {
     }
   });
 
-  // 2. ZR Express Wilayas Proxy Route (Fixes CORS for browser requests)
-  app.get("/api/zrexpress/wilayas", async (req, res) => {
-    try {
-      const tenantId = process.env.VITE_ZR_TENANT_ID || "d1dc440e-39ab-4ae7-beb9-783750e06d83";
-      const apiKey = process.env.VITE_ZR_SECRET_KEY || "xjek4BaaVQUyIW50JabZu6ukjtDD8ElLhdSOD6bTy1OT6D9WDuo6oNyFSQw7wpCG";
-
-      const response = await fetch("https://api.zrexpress.app/api/v1/territories/search", {
-        method: "POST",
-        headers: {
-          "accept": "application/json",
-          "X-Tenant": tenantId,
-          "X-Api-Key": apiKey,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          advancedFilter: {
-            field: "level",
-            operator: "eq",
-            value: "wilaya"
-          },
-          pageSize: 100,
-          pageNumber: 1,
-          orderBy: ["code asc"]
-        })
-      });
-
-      if (!response.ok) {
-        const errText = await response.text();
-        return res.status(response.status).send(errText);
-      }
-
-      const data = await response.json();
-      return res.status(200).json(data);
-    } catch (err: any) {
-      console.error("[ZR Express Proxy Error]:", err);
-      return res.status(500).json({ error: err.message });
-    }
-  });
-
-  // 3. Health check route
+  // 2. Health check route
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
   });

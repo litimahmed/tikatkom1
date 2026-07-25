@@ -5,34 +5,28 @@ export async function fetchWilayasFromZR(): Promise<Wilaya[]> {
   const apiKey = process.env.VITE_ZR_SECRET_KEY || import.meta.env.VITE_ZR_SECRET_KEY || "xjek4BaaVQUyIW50JabZu6ukjtDD8ElLhdSOD6bTy1OT6D9WDuo6oNyFSQw7wpCG";
 
   try {
-    // Primary: Call local backend proxy to bypass browser CORS restrictions
-    let response = await fetch("/api/zrexpress/wilayas");
-
-    if (!response.ok) {
-      // Fallback: Direct API request
-      response = await fetch("https://api.zrexpress.app/api/v1/territories/search", {
-        method: "POST",
-        headers: {
-          "accept": "application/json",
-          "X-Tenant": tenantId,
-          "X-Api-Key": apiKey,
-          "Content-Type": "application/json"
+    const response = await fetch("https://api.zrexpress.app/api/v1/territories/search", {
+      method: "POST",
+      headers: {
+        "accept": "application/json",
+        "X-Tenant": tenantId,
+        "X-Api-Key": apiKey,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        advancedFilter: {
+          field: "level",
+          operator: "eq",
+          value: "wilaya"
         },
-        body: JSON.stringify({
-          advancedFilter: {
-            field: "level",
-            operator: "eq",
-            value: "wilaya"
-          },
-          pageSize: 100,
-          pageNumber: 1,
-          orderBy: ["code asc"]
-        })
-      });
-    }
+        pageSize: 100,
+        pageNumber: 1,
+        orderBy: ["code asc"]
+      })
+    });
 
     if (!response.ok) {
-      console.error("Failed to fetch wilayas from ZR Express API");
+      console.error("Failed to fetch wilayas from ZR Express API:", response.statusText);
       return [];
     }
 
