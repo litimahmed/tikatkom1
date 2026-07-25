@@ -51,17 +51,11 @@ export function getHomePageUrl(): string {
 
 export function getCheckoutPageUrl(productId?: string): string {
   const currentUrl = new URL(window.location.href);
-  let target: URL;
-
-  if (currentUrl.hostname.includes("run.app") || currentUrl.port === "3000" || currentUrl.hostname === "localhost") {
-    target = new URL("/tikatkom/checkout", window.location.origin);
-  } else {
-    const baseUrl = detectWordPressBaseUrl().replace(/\/$/, "");
-    target = new URL(`${baseUrl}/tikatkom/checkout`);
-  }
+  const target = new URL(currentUrl.pathname, currentUrl.origin);
+  target.searchParams.set("view", "checkout");
 
   if (productId) {
-    target.searchParams.set("product", productId);
+    target.searchParams.set("product", String(productId));
   }
   return target.toString();
 }
