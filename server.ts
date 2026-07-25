@@ -66,6 +66,89 @@ function writeOrders(orders: Order[]) {
   }
 }
 
+// Helper to resolve ZR Express Territory UUIDs (cityTerritoryId for wilaya, districtTerritoryId for commune)
+async function resolveZrTerritoryIds(
+  wilayaCode: string,
+  wilayaName: string,
+  commune: string,
+  passedCityId?: string,
+  passedDistrictId?: string
+): Promise<{ cityTerritoryId: string; districtTerritoryId: string; postalCode: string }> {
+  const isUuid = (str?: string) => Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str.trim()));
+
+  let cityId = isUuid(passedCityId) ? passedCityId!.trim() : "";
+  let districtId = isUuid(passedDistrictId) ? passedDistrictId!.trim() : "";
+  let postalCode = "";
+
+  if (cityId && districtId) {
+    return { cityTerritoryId: cityId, districtTerritoryId: districtId, postalCode: "16000" };
+  }
+
+  const zrApiKey = process.env.ZREXPRESS_API_KEY || "20GBXOuqTEaIWJOvNL5EogSFDZNtUmffFTsEMCN1M6n4JHwLi3cqttlON9KJ9Gmg";
+  const zrTenantId = process.env.ZREXPRESS_TENANT_ID || "d1dc440e-39ab-4ae7-beb9-783750e06d83";
+  const zrVersion = process.env.ZREXPRESS_API_VERSION || "v1";
+
+  try {
+    const searchRes = await fetch(`https://api.zrexpress.app/api/${zrVersion}/territories/search`, {
+      method: "POST",
+      headers: {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "X-Tenant": zrTenantId,
+        "X-Api-Key": zrApiKey,
+      },
+      body: JSON.stringify({
+        keyword: (wilayaName || commune || "").trim(),
+        pageSize: 100,
+        pageNumber: 1,
+      }),
+    });
+
+    if (searchRes.ok) {
+      const data = await searchRes.json();
+      const items = data.items || [];
+
+      if (!cityId) {
+        const wilayaMatch = items.find(
+          (i: any) =>
+            i.level === "wilaya" &&
+            (String(i.code) === String(wilayaCode) ||
+              i.name?.toLowerCase().includes((wilayaName || "").toLowerCase()) ||
+              i.nameArabic?.includes(wilayaName || ""))
+        );
+        if (wilayaMatch) {
+          cityId = wilayaMatch.id;
+        }
+      }
+
+      if (!districtId) {
+        const communeMatch = items.find(
+          (i: any) =>
+            i.level === "commune" &&
+            (i.name?.toLowerCase().includes((commune || "").toLowerCase()) ||
+              i.nameArabic?.includes(commune || "")) &&
+            (!cityId || i.parentId === cityId)
+        );
+        if (communeMatch) {
+          districtId = communeMatch.id;
+          postalCode = communeMatch.postalCode || "";
+          if (!cityId && communeMatch.parentId) {
+            cityId = communeMatch.parentId;
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error("[ZR Express Territory Resolution Error]:", err);
+  }
+
+  return {
+    cityTerritoryId: cityId || "e772eb46-276a-4f41-bae7-3b67e1bdc616",
+    districtTerritoryId: districtId || "d43a3c18-2d6a-4063-a980-c419e53f19a9",
+    postalCode: postalCode || `${wilayaCode || "16"}000`,
+  };
+}
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -75,6 +158,99 @@ async function startServer() {
 
   // Support JSON payload decoding
   app.use(express.json());
+
+  // ZR Express Territory Search API Proxy Endpoint
+  app.post("/api/zrexpress/territories/search", async (req, res) => {
+    try {
+      const { keyword = "", level, parentId, pageSize = 100, pageNumber = 1 } = req.body || {};
+      const zrApiKey = process.env.ZREXPRESS_API_KEY || "20GBXOuqTEaIWJOvNL5EogSFDZNtUmffFTsEMCN1M6n4JHwLi3cqttlON9KJ9Gmg";
+      const zrTenantId = process.env.ZREXPRESS_TENANT_ID || "d1dc440e-39ab-4ae7-beb9-783750e06d83";
+      const zrVersion = process.env.ZREXPRESS_API_VERSION || "v1";
+
+      const targetUrl = `https://api.zrexpress.app/api/${zrVersion}/territories/search`;
+
+      const response = await fetch(targetUrl, {
+        method: "POST",
+        headers: {
+          "accept": "application/json",
+          "content-type": "application/json",
+          "X-Tenant": zrTenantId,
+          "X-Api-Key": zrApiKey,
+        },
+        body: JSON.stringify({
+          keyword: keyword || "",
+          pageSize: Number(pageSize) || 100,
+          pageNumber: Number(pageNumber) || 1,
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error(`[ZR Express Territory Search Error ${response.status}]:`, errText);
+        return res.status(response.status).json({
+          success: false,
+          error: `ZR Express error (${response.status}): ${errText}`,
+        });
+      }
+
+      const data = await response.json();
+      let items = data.items || [];
+
+      if (level) {
+        items = items.filter((item: any) => item.level === level);
+      }
+      if (parentId) {
+        items = items.filter((item: any) => item.parentId === parentId);
+      }
+
+      return res.status(200).json({
+        ...data,
+        items,
+        success: true,
+      });
+    } catch (error: any) {
+      console.error("[ZR Express Territory Search Exception]:", error);
+      return res.status(500).json({
+        success: false,
+        error: error.message || "Failed to search ZR Express territories.",
+      });
+    }
+  });
+
+  // GET Territory Search endpoint convenience wrapper
+  app.get("/api/zrexpress/territories", async (req, res) => {
+    try {
+      const keyword = (req.query.keyword as string) || "";
+      const zrApiKey = process.env.ZREXPRESS_API_KEY || "20GBXOuqTEaIWJOvNL5EogSFDZNtUmffFTsEMCN1M6n4JHwLi3cqttlON9KJ9Gmg";
+      const zrTenantId = process.env.ZREXPRESS_TENANT_ID || "d1dc440e-39ab-4ae7-beb9-783750e06d83";
+      const zrVersion = process.env.ZREXPRESS_API_VERSION || "v1";
+
+      const response = await fetch(`https://api.zrexpress.app/api/${zrVersion}/territories/search`, {
+        method: "POST",
+        headers: {
+          "accept": "application/json",
+          "content-type": "application/json",
+          "X-Tenant": zrTenantId,
+          "X-Api-Key": zrApiKey,
+        },
+        body: JSON.stringify({
+          keyword,
+          pageSize: 200,
+          pageNumber: 1,
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        return res.status(response.status).json({ success: false, error: errText });
+      }
+
+      const data = await response.json();
+      return res.status(200).json(data);
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  });
 
   // 1. Order Checkout / Save Client Record & Dispatch to ZR Express
   app.post("/api/checkout", async (req, res) => {
@@ -95,11 +271,14 @@ async function startServer() {
         quantity,
         price,
         shippingFee,
-        grandTotal
+        grandTotal,
+        cityTerritoryId,
+        districtTerritoryId,
+        postalCode
       } = req.body;
 
       // Validate core required inputs
-      if (!fullName || !phone || !wilayaCode) {
+      if (!fullName || !phone || (!wilayaCode && !cityTerritoryId)) {
         return res.status(400).json({
           success: false,
           error: "Le nom, le numéro de téléphone et la Wilaya sont requis pour soumettre la commande."
@@ -116,12 +295,10 @@ async function startServer() {
 
       if (consumerKey && consumerSecret) {
         console.log(`[WooCommerce API] Connecting to: ${wordpressUrl}`);
-        // Format Client Name for WordPress Customer Fields
         const nameParts = fullName.trim().split(/\s+/);
         const firstName = nameParts[0] || "";
         const lastName = nameParts.slice(1).join(" ") || "Guest";
 
-        // Map product items to WooCommerce line_items
         let line_items: any[] = [];
         if (items && Array.isArray(items) && items.length > 0) {
           line_items = items.map((item: any) => {
@@ -137,7 +314,6 @@ async function startServer() {
           }
         }
 
-        // Format shipping fee into WooCommerce flat rate lines
         const parsedShippingFee = parseFloat(shippingFee);
         const shipping_lines = isNaN(parsedShippingFee) || parsedShippingFee <= 0
           ? []
@@ -149,7 +325,6 @@ async function startServer() {
               }
             ];
 
-        // Build a robust order payload according to standard WooCommerce order schema
         const orderPayload = {
           payment_method: "cod",
           payment_method_title: "Cash on Delivery",
@@ -159,8 +334,8 @@ async function startServer() {
             last_name: lastName,
             address_1: address || `${commune}, ${wilayaName}`,
             city: commune || wilayaName,
-            state: wilayaCode,
-            country: "DZ", // Algeria country code
+            state: String(wilayaCode || ""),
+            country: "DZ",
             phone: phone
           },
           shipping: {
@@ -168,7 +343,7 @@ async function startServer() {
             last_name: lastName,
             address_1: address || `${commune}, ${wilayaName}`,
             city: commune || wilayaName,
-            state: wilayaCode,
+            state: String(wilayaCode || ""),
             country: "DZ",
             phone: phone
           },
@@ -176,13 +351,15 @@ async function startServer() {
           shipping_lines,
           customer_note: notes || "",
           meta_data: [
-            { key: "_delivery_wilaya_code", value: wilayaCode },
-            { key: "_delivery_wilaya_name", value: wilayaName },
-            { key: "_delivery_commune", value: commune },
-            { key: "_delivery_courier", value: courier },
-            { key: "_delivery_type", value: deliveryType },
+            { key: "_delivery_wilaya_code", value: String(wilayaCode || "") },
+            { key: "_delivery_wilaya_name", value: wilayaName || "" },
+            { key: "_delivery_commune", value: commune || "" },
+            { key: "_delivery_courier", value: courier || "zrexpress" },
+            { key: "_delivery_type", value: deliveryType || "home" },
             { key: "_delivery_shipping_fee", value: String(parsedShippingFee || 0) },
-            { key: "_delivery_grand_total", value: String(grandTotal) }
+            { key: "_delivery_grand_total", value: String(grandTotal) },
+            { key: "_city_territory_id", value: cityTerritoryId || "" },
+            { key: "_district_territory_id", value: districtTerritoryId || "" }
           ]
         };
 
@@ -212,7 +389,6 @@ async function startServer() {
           isWcMock = false;
         } catch (wcErr: any) {
           console.error("[WooCommerce API Error] Failed to submit to live WooCommerce:", wcErr);
-          // Fall back gracefully to simulation so that user is not completely blocked
           orderId = `TKT-${Math.floor(10000 + Math.random() * 90000)}`;
         }
       } else {
@@ -220,7 +396,7 @@ async function startServer() {
         orderId = `TKT-${Math.floor(10000 + Math.random() * 90000)}`;
       }
 
-      // 2. Generate unique ZR Express tracking code with collision checks
+      // 2. Generate unique tracking code reference
       let trackingCode = "";
       const existingOrders = readOrders();
       let attempts = 0;
@@ -237,20 +413,33 @@ async function startServer() {
         trackingCode = `ZR${Date.now().toString().slice(-9)}`;
       }
 
-      // 3. Build order object
+      // 3. Resolve Territory UUIDs for ZR Express
+      const resolvedTerritories = await resolveZrTerritoryIds(
+        String(wilayaCode || ""),
+        wilayaName || "",
+        commune || "",
+        cityTerritoryId,
+        districtTerritoryId
+      );
+
+      const finalCityTerritoryId = resolvedTerritories.cityTerritoryId;
+      const finalDistrictTerritoryId = resolvedTerritories.districtTerritoryId;
+      const finalPostalCode = postalCode || resolvedTerritories.postalCode || `${wilayaCode || "16"}000`;
+
+      // 4. Build order object
       const newOrder: Order = {
         orderId,
         trackingCode,
         fullName,
         phone,
-        wilayaCode: String(wilayaCode),
-        wilayaName,
-        commune: String(commune),
+        wilayaCode: String(wilayaCode || ""),
+        wilayaName: wilayaName || "",
+        commune: String(commune || ""),
         address: address || "",
         courier: courier || "zrexpress",
         deliveryType,
         notes: notes || "",
-        productId: String(productId),
+        productId: String(productId || "0"),
         productName: productName || "Article Premium",
         quantity: Number(quantity) || 1,
         price: Number(price) || 0,
@@ -260,19 +449,22 @@ async function startServer() {
         status: "Prêt à expédier"
       };
 
-      // 4. Save to local orders.json database
+      // 5. Save to local orders.json database
       existingOrders.push(newOrder);
       writeOrders(existingOrders);
 
-      // 5. ZR Express API v1 Parcel Creation (POST https://api.zrexpress.app/api/v1/parcels)
+      // 6. ZR Express API v1 Parcel Creation (POST https://api.zrexpress.app/api/v1/parcels)
       const zrApiKey = process.env.ZREXPRESS_API_KEY || "20GBXOuqTEaIWJOvNL5EogSFDZNtUmffFTsEMCN1M6n4JHwLi3cqttlON9KJ9Gmg";
       const zrTenantId = process.env.ZREXPRESS_TENANT_ID || "d1dc440e-39ab-4ae7-beb9-783750e06d83";
       const zrVersion = process.env.ZREXPRESS_API_VERSION || "v1";
 
-      if (zrApiKey && zrTenantId) {
-        console.log(`[ZR Express API] Dispatching createparcel to https://api.zrexpress.app/api/${zrVersion}/parcels`);
+      let parcelCreatedInZr = false;
+      let zrParcelResponseData: any = null;
+      let zrParcelErrorMsg: string | null = null;
 
-        // Format ordered products list
+      if (zrApiKey && zrTenantId) {
+        console.log(`[ZR Express API] Creating parcel with cityTerritoryId=${finalCityTerritoryId}, districtTerritoryId=${finalDistrictTerritoryId}`);
+
         const orderedProducts = (items && Array.isArray(items) && items.length > 0)
           ? items.map((item: any, idx: number) => ({
               unitPrice: Number(item.price) || 0,
@@ -309,11 +501,10 @@ async function startServer() {
             }
           },
           deliveryAddress: {
+            cityTerritoryId: finalCityTerritoryId,
+            districtTerritoryId: finalDistrictTerritoryId,
             street: address?.trim() || `${commune}, ${wilayaName}`,
-            city: wilayaName || "Alger",
-            district: commune || wilayaName || "Alger",
-            postalCode: `${wilayaCode || "16"}000`,
-            country: "algeria"
+            postalCode: finalPostalCode
           },
           orderedProducts: orderedProducts,
           amount: Number(grandTotal) || 0,
@@ -335,32 +526,41 @@ async function startServer() {
           });
 
           if (zrResponse.status === 201 || zrResponse.status === 200 || zrResponse.ok) {
-            const zrData = await zrResponse.json();
-            console.log(`[ZR Express API] Parcel created successfully!`, zrData);
-            const returnedParcelId = zrData.id || zrData.parcelId || zrData.trackingCode || zrData.code || zrData.uuid;
+            zrParcelResponseData = await zrResponse.json();
+            parcelCreatedInZr = true;
+            console.log(`[ZR Express API] Parcel created successfully!`, zrParcelResponseData);
+            const returnedParcelId = zrParcelResponseData.id || zrParcelResponseData.parcelId || zrParcelResponseData.trackingCode || zrParcelResponseData.code;
             if (returnedParcelId) {
               trackingCode = String(returnedParcelId);
               newOrder.trackingCode = trackingCode;
               writeOrders(existingOrders);
             }
           } else {
-            const errBody = await zrResponse.text();
-            console.error(`[ZR Express API Error ${zrResponse.status}]:`, errBody);
+            zrParcelErrorMsg = await zrResponse.text();
+            console.error(`[ZR Express API Error ${zrResponse.status}]:`, zrParcelErrorMsg);
           }
-        } catch (apiErr) {
+        } catch (apiErr: any) {
+          zrParcelErrorMsg = apiErr?.message || "Erreur réseau lors de la création du colis ZR Express.";
           console.error(`[ZR Express API Network Error]:`, apiErr);
         }
       } else {
         console.warn("[ZR Express API] API Key or Tenant ID not configured.");
       }
 
-      // Return success response with order details and tracking code!
+      // Return status with transparent indication of ZR Express creation
       return res.status(200).json({
         success: true,
         mock: isWcMock,
         orderId: orderId,
         trackingCode: trackingCode,
-        message: "Commande enregistrée et colis généré avec succès !"
+        parcelCreated: parcelCreatedInZr,
+        zrExpressParcel: zrParcelResponseData,
+        zrExpressError: zrParcelErrorMsg,
+        cityTerritoryId: finalCityTerritoryId,
+        districtTerritoryId: finalDistrictTerritoryId,
+        message: parcelCreatedInZr 
+          ? "Commande enregistrée et colis ZR Express créé avec succès dans le tableau de bord !"
+          : `Commande enregistrée localement (Réf: ${orderId}), statut colis ZR Express: ${zrParcelErrorMsg || "Non configuré"}`
       });
 
     } catch (err: any) {

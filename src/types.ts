@@ -42,6 +42,21 @@ export interface Wilaya {
   communes: string[];
 }
 
+export interface ZrTerritory {
+  id: string;
+  code: number;
+  name: string;
+  nameArabic: string;
+  postalCode: string;
+  level: "wilaya" | "commune";
+  parentId: string | null;
+  delivery?: {
+    hasHomeDelivery: boolean;
+    hasPickupPoint: boolean;
+    canSend: boolean;
+  };
+}
+
 export interface OrderForm {
   fullName: string;
   phone: string;

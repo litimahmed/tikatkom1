@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { X, Check, ShoppingBag, Phone, MapPin, Truck, AlertCircle, Plus, Minus, Landmark, Trash2 } from "lucide-react";
-import { Product, OrderForm, Wilaya, CartItem } from "../types";
+import { Product, OrderForm, Wilaya, CartItem, ZrTerritory } from "../types";
 import { AlgerianWilayas, translations } from "../data";
 
 interface CheckoutModalProps {
@@ -46,6 +46,82 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
   const [selectedCourier, setSelectedCourier] = useState<string>("zrexpress");
   const [deliveryType, setDeliveryType] = useState<"home" | "desk">("home");
   const [notes, setNotes] = useState<string>("");
+
+  // ZR Express Territory Search State
+  const [zrTerritories, setZrTerritories] = useState<ZrTerritory[]>([]);
+  const [isLoadingTerritories, setIsLoadingTerritories] = useState<boolean>(false);
+  const [selectedCityTerritoryId, setSelectedCityTerritoryId] = useState<string>("");
+  const [selectedDistrictTerritoryId, setSelectedDistrictTerritoryId] = useState<string>("");
+  const [postalCode, setPostalCode] = useState<string>("");
+
+  useEffect(() => {
+    if (!isOpen) return;
+    async function loadZrTerritories() {
+      setIsLoadingTerritories(true);
+      try {
+        const metaEnv = (import.meta as any).env;
+        const apiBase = (metaEnv && metaEnv.VITE_API_URL) || "";
+        const response = await fetch(`${apiBase}/api/zrexpress/territories/search`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ keyword: "", pageSize: 200 })
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.items && Array.isArray(data.items)) {
+            setZrTerritories(data.items);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to load ZR Express territories in modal.", err);
+      } finally {
+        setIsLoadingTerritories(false);
+      }
+    }
+    loadZrTerritories();
+  }, [isOpen]);
+
+  const zrWilayas = zrTerritories.filter((t) => t.level === "wilaya");
+  const zrCommunes = zrTerritories.filter((t) => t.level === "commune" && t.parentId === selectedCityTerritoryId);
+
+  const handleWilayaSelect = (val: string) => {
+    const matchedZrWilaya = zrWilayas.find((w) => w.id === val || String(w.code) === val);
+    if (matchedZrWilaya) {
+      setSelectedCityTerritoryId(matchedZrWilaya.id);
+      setSelectedWilayaCode(String(matchedZrWilaya.code));
+      const communes = zrTerritories.filter((t) => t.level === "commune" && t.parentId === matchedZrWilaya.id);
+      if (communes.length > 0) {
+        setSelectedDistrictTerritoryId(communes[0].id);
+        setSelectedCommune(communes[0].name);
+        setPostalCode(communes[0].postalCode || "");
+      } else {
+        setSelectedDistrictTerritoryId("");
+        setSelectedCommune("");
+        setPostalCode("");
+      }
+    } else {
+      setSelectedWilayaCode(val);
+      setSelectedCityTerritoryId("");
+      const localW = AlgerianWilayas.find((w) => w.code === val);
+      if (localW && localW.communes.length > 0) {
+        setSelectedCommune(localW.communes[0]);
+      } else {
+        setSelectedCommune("");
+      }
+    }
+  };
+
+  const handleCommuneSelect = (val: string) => {
+    const matchedZrCommune = zrCommunes.find((c) => c.id === val || c.name === val);
+    if (matchedZrCommune) {
+      setSelectedDistrictTerritoryId(matchedZrCommune.id);
+      setSelectedCommune(matchedZrCommune.name);
+      setPostalCode(matchedZrCommune.postalCode || "");
+    } else {
+      setSelectedCommune(val);
+      setSelectedDistrictTerritoryId("");
+    }
+  };
 
   const couriersList = [
     { id: "zrexpress", nameFR: "ZR Express", nameAR: "زد آر إكسبريس", badge: "Partenaire Officiel" },
@@ -173,6 +249,9 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
           price: subtotal,
           shippingFee,
           grandTotal,
+          cityTerritoryId: selectedCityTerritoryId,
+          districtTerritoryId: selectedDistrictTerritoryId,
+          postalCode: postalCode
         }),
       });
 
@@ -467,8 +546,8 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
                       {t.formWilaya} <span className="text-red-500">*</span>
                     </label>
                     <select
-                      value={selectedWilayaCode}
-                      onChange={(e) => setSelectedWilayaCode(e.target.value)}
+                      value={selectedCityTerritoryId || selectedWilayaCode}
+                      onChange={(e) => handleWilayaSelect(e.target.value)}
                       className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 dark:bg-[#262626] dark:text-white ${isRTL ? "text-right" : "text-left"} ${
                         errors.wilayaCode 
                           ? "border-red-300 dark:border-red-900/30 focus:ring-red-100 dark:focus:ring-red-900/10" 
@@ -476,12 +555,24 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
                       }`}
                       id="input-wilaya"
                     >
-                      <option value="" className="dark:bg-[#1a1a1a] dark:text-zinc-300">{lang === "fr" ? "-- Choisir votre Wilaya --" : "-- اختر الولاية --"}</option>
-                      {AlgerianWilayas.map((wilaya) => (
-                        <option key={wilaya.code} value={wilaya.code} className="dark:bg-[#1a1a1a] dark:text-zinc-300">
-                          {wilaya.code} - {lang === "fr" ? wilaya.nameFR : wilaya.nameAR}
-                        </option>
-                      ))}
+                      <option value="" className="dark:bg-[#1a1a1a] dark:text-zinc-300">
+                        {isLoadingTerritories
+                          ? (lang === "fr" ? "Chargement des wilayas..." : "جاري تحميل الولايات...")
+                          : (lang === "fr" ? "-- Choisir votre Wilaya --" : "-- اختر الولاية --")}
+                      </option>
+                      {zrWilayas.length > 0 ? (
+                        zrWilayas.map((w) => (
+                          <option key={w.id} value={w.id} className="dark:bg-[#1a1a1a] dark:text-zinc-300">
+                            {w.code} - {isRTL && w.nameArabic ? w.nameArabic : w.name}
+                          </option>
+                        ))
+                      ) : (
+                        AlgerianWilayas.map((wilaya) => (
+                          <option key={wilaya.code} value={wilaya.code} className="dark:bg-[#1a1a1a] dark:text-zinc-300">
+                            {wilaya.code} - {lang === "fr" ? wilaya.nameFR : wilaya.nameAR}
+                          </option>
+                        ))
+                      )}
                     </select>
                     {errors.wilayaCode && (
                       <p className={`mt-1 flex items-center gap-1 text-[11px] text-red-500 font-medium ${isRTL ? "justify-end text-right" : "justify-start text-left"}`}>
@@ -496,18 +587,24 @@ export default function CheckoutModal({ isOpen, onClose, product, items, lang }:
                       {t.formCommune} <span className="text-red-500">*</span>
                     </label>
                     <select
-                      value={selectedCommune}
-                      onChange={(e) => setSelectedCommune(e.target.value)}
-                      disabled={!selectedWilayaCode}
+                      value={selectedDistrictTerritoryId || selectedCommune}
+                      onChange={(e) => handleCommuneSelect(e.target.value)}
+                      disabled={!selectedWilayaCode && !selectedCityTerritoryId}
                       className={`w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 dark:bg-[#262626] dark:text-white ${isRTL ? "text-right" : "text-left"} ${
                         errors.commune 
                           ? "border-red-300 dark:border-red-900/30 focus:ring-red-100 dark:focus:ring-red-900/10" 
                           : "border-gray-200 dark:border-[#2a2a2a] focus:border-brand-green focus:ring-brand-green/10"
-                      } ${!selectedWilayaCode ? "bg-gray-50 dark:bg-[#121212] cursor-not-allowed text-gray-400 dark:text-zinc-650" : ""}`}
+                      } ${(!selectedWilayaCode && !selectedCityTerritoryId) ? "bg-gray-50 dark:bg-[#121212] cursor-not-allowed text-gray-400 dark:text-zinc-650" : ""}`}
                       id="input-commune"
                     >
-                      {!selectedWilayaCode ? (
+                      {(!selectedWilayaCode && !selectedCityTerritoryId) ? (
                         <option value="" className="dark:bg-[#1a1a1a] dark:text-zinc-300">{lang === "fr" ? "Veuillez d'abord choisir la Wilaya" : "يرجى اختيار الولاية أولاً"}</option>
+                      ) : zrCommunes.length > 0 ? (
+                        zrCommunes.map((c) => (
+                          <option key={c.id} value={c.id} className="dark:bg-[#1a1a1a] dark:text-zinc-300">
+                            {isRTL && c.nameArabic ? c.nameArabic : c.name}
+                          </option>
+                        ))
                       ) : (
                         currentWilaya?.communes.map((commune, idx) => (
                           <option key={idx} value={commune} className="dark:bg-[#1a1a1a] dark:text-zinc-300">
