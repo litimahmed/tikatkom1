@@ -7,7 +7,7 @@ import { products as mockProducts, categories as mockCategories } from "../data"
 // 2. Otherwise, we detect if the app is served inside WordPress by parsing script tags
 // 3. Fall back to current origin.
 export function detectWordPressBaseUrl(): string {
-  const envUrl = import.meta.env.VITE_WORDPRESS_URL || "http://localhost/tikatkom";
+  const envUrl = process.env.VITE_WORDPRESS_URL || "http://localhost/tikatkom";
   if (envUrl) return envUrl.replace(/\/$/, "");
 
   // Search script tags to find the WordPress base path (in case of subdirectory install)

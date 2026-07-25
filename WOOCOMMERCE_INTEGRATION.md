@@ -321,8 +321,8 @@ export default function SecureCheckoutForm({ productId, price }: CheckoutFormPro
     }
 
     try {
-      // Resolve endpoint dynamically from Vite environment
-      const apiBase = import.meta.env.VITE_API_URL || "";
+      // Resolve endpoint dynamically from process environment
+      const apiBase = process.env.VITE_API_URL || "";
       
       // OPTION A (Express Proxy Endpoint)
       const endpoint = `${apiBase}/api/checkout`;
