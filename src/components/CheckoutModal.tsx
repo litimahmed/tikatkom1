@@ -2,19 +2,34 @@ import React, { useState, useEffect } from "react";
 import { X, Check, ShoppingBag, Phone, MapPin, Truck, AlertCircle, Plus, Minus, Landmark } from "lucide-react";
 import { Product, OrderForm, Wilaya } from "../types";
 import { AlgerianWilayas, translations } from "../data";
+import { fetchWilayasFromZR } from "../lib/zrexpress";
 
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
   product: Product | null;
   lang: "fr" | "ar";
+  wilayas?: Wilaya[];
 }
 
-export default function CheckoutModal({ isOpen, onClose, product, lang }: CheckoutModalProps) {
+export default function CheckoutModal({ isOpen, onClose, product, lang, wilayas = [] }: CheckoutModalProps) {
+  const [internalWilayas, setInternalWilayas] = useState<Wilaya[]>([]);
+
+  useEffect(() => {
+    if (wilayas.length === 0 && internalWilayas.length === 0) {
+      fetchWilayasFromZR().then((data) => {
+        if (data && data.length > 0) {
+          setInternalWilayas(data);
+        }
+      });
+    }
+  }, [wilayas]);
+
   if (!isOpen || !product) return null;
 
   const t = translations[lang];
   const isRTL = lang === "ar";
+  const availableWilayas = wilayas.length > 0 ? wilayas : internalWilayas;
 
   // State managers
   const [quantity, setQuantity] = useState<number>(1);
@@ -33,7 +48,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
   const [orderReference, setOrderReference] = useState<string>("");
 
   // Get selected Wilaya object
-  const currentWilaya = AlgerianWilayas.find((w) => w.code === selectedWilayaCode);
+  const currentWilaya = availableWilayas.find((w) => w.code === selectedWilayaCode);
 
   // Auto-select first commune when Wilaya changes
   useEffect(() => {
@@ -335,7 +350,7 @@ export default function CheckoutModal({ isOpen, onClose, product, lang }: Checko
                       id="input-wilaya"
                     >
                       <option value="" className="dark:bg-[#1a1a1a] dark:text-zinc-300">{lang === "fr" ? "-- Choisir votre Wilaya --" : "-- اختر الولاية --"}</option>
-                      {AlgerianWilayas.map((wilaya) => (
+                      {availableWilayas.map((wilaya) => (
                         <option key={wilaya.code} value={wilaya.code} className="dark:bg-[#1a1a1a] dark:text-zinc-300">
                           {wilaya.code} - {lang === "fr" ? wilaya.nameFR : wilaya.nameAR}
                         </option>

@@ -10,6 +10,8 @@ export default defineConfig(() => {
       'process.env.VITE_MERCHANT_WHATSAPP': JSON.stringify(process.env.VITE_MERCHANT_WHATSAPP || ''),
       'process.env.VITE_MERCHANT_EMAIL': JSON.stringify(process.env.VITE_MERCHANT_EMAIL || ''),
       'process.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || ''),
+      'process.env.VITE_ZR_TENANT_ID': JSON.stringify(process.env.VITE_ZR_TENANT_ID || 'd1dc440e-39ab-4ae7-beb9-783750e06d83'),
+      'process.env.VITE_ZR_SECRET_KEY': JSON.stringify(process.env.VITE_ZR_SECRET_KEY || 'xjek4BaaVQUyIW50JabZu6ukjtDD8ElLhdSOD6bTy1OT6D9WDuo6oNyFSQw7wpCG'),
     },
     plugins: [react(), tailwindcss()],
     base: './',
