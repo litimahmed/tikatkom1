@@ -1,4 +1,9 @@
 import { Product, Category, Wilaya } from "./types";
+import catElectronicsImg from "./assets/images/cat_electronics_1784436441215.jpg";
+import catHomeImg from "./assets/images/cat_home_1784436456290.jpg";
+import heroSmartwatchImg from "./assets/images/hero_smartwatch_1784436429431.jpg";
+import productChargerImg from "./assets/images/product_charger_1784436485346.jpg";
+import productWalletImg from "./assets/images/product_wallet_1784436470979.jpg";
 
 export const translations = {
   fr: {
@@ -177,21 +182,21 @@ export const categories: Category[] = [
     id: "electronics",
     nameFR: "Électronique & High-Tech",
     nameAR: "إلكترونيات وتكنولوجيا",
-    image: "/src/assets/images/cat_electronics_1784436441215.jpg",
+    image: catElectronicsImg,
     count: 12
   },
   {
     id: "accessories",
     nameFR: "Accessoires & Style",
     nameAR: "إكسسوارات وأناقة",
-    image: "/src/assets/images/product_wallet_1784436470979.jpg",
+    image: productWalletImg,
     count: 8
   },
   {
     id: "home",
     nameFR: "Maison & Bien-être",
     nameAR: "المنزل والراحة",
-    image: "/src/assets/images/cat_home_1784436456290.jpg",
+    image: catHomeImg,
     count: 15
   }
 ];
@@ -205,7 +210,7 @@ export const products: Product[] = [
     descriptionAR: "اكتشف متعة التكنولوجيا المتقدمة وتتبع صحتك بكل سهولة. شاشة Retina HD منحنية، إمكانية إجراء واستقبال المكالمات عبر البلوتوث، حساسات نبضات القلب والأنشطة الرياضية بدقة متناهية، مقاومة كاملة للماء والغبار IP68، بطارية تدوم حتى 7 أيام. هيكل من الألمنيوم المتين مع سوار سيليكون راقي باللون الأخضر الزمردي.",
     price: 6200,
     oldPrice: 8500,
-    image: "/src/assets/images/hero_smartwatch_1784436429431.jpg",
+    image: heroSmartwatchImg,
     category: "electronics",
     badgeFR: "OFFRE SPÉCIALE -27%",
     badgeAR: "عرض خاص -27%",
@@ -235,7 +240,7 @@ export const products: Product[] = [
     descriptionAR: "انغمس في تجربة صوتية نقية بجودة الاستوديو دون أي تشويش خارجي. تتميز سماعات Bass+ بشريحة معالجة صوتية متطورة، خاصية إلغاء الضوضاء النشطة (ANC)، جهير صوتي (Bass) عميق ومتوازن، وبطارية مذهلة تدوم 24 ساعة مع حافظة الشحن الذكية.",
     price: 3900,
     oldPrice: 5500,
-    image: "/src/assets/images/cat_electronics_1784436441215.jpg",
+    image: catElectronicsImg,
     category: "electronics",
     badgeFR: "MEILLEURE VENTE",
     badgeAR: "الأكثر مبيعًا",
@@ -265,7 +270,7 @@ export const products: Product[] = [
     descriptionAR: "حسن جودة الهواء في منزلك أو مكتبك وأضف لمسة جمالية دافئة. يقوم هذا الموزع بالموجات فوق الصوتية بنشر رذاذ خفيف من الماء والزيوت العطرية بلطف شديد، مع إضاءة LED مهدئة ومثالية للاسترخاء التام.",
     price: 4800,
     oldPrice: 6500,
-    image: "/src/assets/images/cat_home_1784436456290.jpg",
+    image: catHomeImg,
     category: "home",
     badgeFR: "INDISPENSABLE MAISON",
     badgeAR: "مهم لكل منزل",
@@ -295,7 +300,7 @@ export const products: Product[] = [
     descriptionAR: "احمِ بطاقاتك ومعلوماتك الشخصية بأناقة وأمان. مصممة من ألياف الكربون فائقة الخفة والمتانة مع لمسات راقية باللون الأخضر الزمردي الخلاب. تحتوي على نظام ذكي وسريع لإخراج الكروت بضغطة زر واحدة.",
     price: 2900,
     oldPrice: 3900,
-    image: "/src/assets/images/product_wallet_1784436470979.jpg",
+    image: productWalletImg,
     category: "accessories",
     badgeFR: "DESIGN COMPACT",
     badgeAR: "تصميم مدمج وأنيق",
@@ -325,7 +330,7 @@ export const products: Product[] = [
     descriptionAR: "ودع فوضى الأسلاك والوصت المتشابكة على مكتبك. اشحن هاتفك الذكي، سماعتك اللاسلكية وساعتك الذكية في نفس الوقت وبسرعة فائقة باستخدام كابل واحد فقط. مزود بمغناطيس قوي جداً وشاحن سريع آمن.",
     price: 5400,
     oldPrice: 7500,
-    image: "/src/assets/images/product_charger_1784436485346.jpg",
+    image: productChargerImg,
     category: "electronics",
     badgeFR: "PRODUIT HIGH-TECH",
     badgeAR: "منتج ذكي ومميز",
@@ -355,7 +360,7 @@ export const products: Product[] = [
     descriptionAR: "حضري ألذ المأكولات في وقت قياسي. مفرمة قوية بقدرة 500 واط مجهزة بوعاء فولاذي غير قابل للكسر بسعة 2 لتر و4 شفرات حادة للغاية مصنوعة من الفولاذ الجراحي.",
     price: 4200,
     oldPrice: 5800,
-    image: "/src/assets/images/cat_home_1784436456290.jpg",
+    image: catHomeImg,
     category: "home",
     badgeFR: "INDISPENSABLE CUISINE",
     badgeAR: "مهم للمطبخ",
@@ -385,7 +390,7 @@ export const products: Product[] = [
     descriptionAR: "استمتعي ببشرة ناعمة كالحرير في منزلك بكل خصوصية. جهاز إزالة الشعر بتقنية الضوء النبضي المكثف (IPL) يقلل نمو الشعر بنسبة ملحوظة بعد 4 أسابيع فقط، مجهز بنظام تبريد لحماية البشرة وضمان تجربة مريحة.",
     price: 9500,
     oldPrice: 14000,
-    image: "/src/assets/images/cat_home_1784436456290.jpg",
+    image: catHomeImg,
     category: "home",
     badgeFR: "OFFRE EXCLUSIVE -32%",
     badgeAR: "عرض حصري -32%",
@@ -415,7 +420,7 @@ export const products: Product[] = [
     descriptionAR: "احتفظ بجميع مستندات سفرك الهامة منظمة وفي مكان واحد آمن. تتسع هذه المحفظة الأنيقة لحمل عدة جوازات سفر، تذاكر الطيران، العملات الورقية والمعدنية، مع حماية مدمجة ضد النسخ الإلكتروني.",
     price: 3500,
     oldPrice: 4900,
-    image: "/src/assets/images/product_wallet_1784436470979.jpg",
+    image: productWalletImg,
     category: "accessories",
     badgeFR: "ÉDITION PREMIUM",
     badgeAR: "نسخة ممتازة فاخرة",

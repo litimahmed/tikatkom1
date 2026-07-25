@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown, Shield } from "lucide-react";
 import { translations } from "../data";
+import logoImg from "../assets/images/tikatkom.png";
 
 interface HeaderProps {
   lang: "fr" | "ar";
@@ -58,7 +59,7 @@ export default function Header({ lang, onOpenShippingModal, onLogoClick }: Heade
             >
               {/* 3. Updated Brand Logo Image with dynamic clip-path and transition */}
               <img
-                  src="/src/assets/images/tikatkom.png"
+                  src={logoImg}
                   alt="Tikatkom Logo"
                   className={`relative top-[18px] h-15 w-auto object-contain rounded-lg transition-all duration-300 ${
                       isScrolled ? "[clip-path:inset(0_0_52%_0)]" : "[clip-path:inset(0_0_0_0)]"
