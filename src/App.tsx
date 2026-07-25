@@ -7,13 +7,11 @@ import HomeSections from "./components/HomeSections";
 import ProductsGrid from "./components/ProductsGrid";
 import Footer from "./components/Footer";
 import ShippingModal from "./components/ShippingModal";
-import CheckoutModal from "./components/CheckoutModal";
+import CheckoutPage from "./components/CheckoutPage";
 import FloatingContact from "./components/FloatingContact";
-import { Product, Category, Wilaya } from "./types";
+import { Product, Category } from "./types";
 import { products as staticProducts, categories as staticCategories } from "./data";
-import { ChevronRight, ChevronLeft } from "lucide-react";
 import { getWooCategories, getWooProducts, detectWordPressBaseUrl } from "./lib/woocommerce";
-import { fetchWilayasFromZR } from "./lib/zrexpress";
 
 // Clean navigation helpers for traditional page reloads (hard loading)
 export function getStorePageUrl(categoryId?: string | null): string {
@@ -64,10 +62,13 @@ export default function App() {
     localStorage.removeItem("theme");
   }, []);
 
-  // Page Routing State: "home" or "products"
-  const [view, setView] = useState<"home" | "products">(() => {
+  // Page Routing State: "home" | "products" | "checkout"
+  const [view, setView] = useState<"home" | "products" | "checkout">((): "home" | "products" | "checkout" => {
     const currentPath = window.location.pathname;
     const params = new URLSearchParams(window.location.search);
+    if (params.get("view") === "checkout") {
+      return "checkout";
+    }
     if (
       currentPath.includes("/shop") || 
       currentPath.includes("/catalog") || 
@@ -82,12 +83,10 @@ export default function App() {
   // Dynamic Catalog States: initialized empty to prevent flashing of hardcoded data
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [wilayas, setWilayas] = useState<Wilaya[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Modals Visibility State
+  // Modals & Navigation State
   const [isShippingOpen, setIsShippingOpen] = useState<boolean>(false);
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
   const [checkoutProduct, setCheckoutProduct] = useState<Product | null>(null);
 
   // Active Category Filter
@@ -95,17 +94,6 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     return params.get("category");
   });
-
-  // Fetch Wilayas from ZR Express API on page load
-  useEffect(() => {
-    async function loadWilayasData() {
-      const data = await fetchWilayasFromZR();
-      if (data && data.length > 0) {
-        setWilayas(data);
-      }
-    }
-    loadWilayasData();
-  }, []);
 
   // Fetch from live WooCommerce backend on mount
   useEffect(() => {
@@ -145,10 +133,11 @@ export default function App() {
     document.documentElement.lang = lang;
   }, [lang]);
 
-  // Handler to open order form for a selected product
+  // Handler to open order page for a selected product
   const handleOpenCheckout = (product: Product) => {
     setCheckoutProduct(product);
-    setIsCheckoutOpen(true);
+    setView("checkout");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // Handler when clicking categories - sets view to products page and selects category filter
@@ -234,6 +223,12 @@ export default function App() {
               categories={categories}
             />
           </>
+        ) : view === "checkout" ? (
+          <CheckoutPage 
+            product={checkoutProduct} 
+            lang={lang} 
+            onBackToStore={() => setView("products")} 
+          />
         ) : (
           <>
             {/* Elegant Breadcrumbs & Navigation Bar for Dedicated Shop Page */}
@@ -278,15 +273,6 @@ export default function App() {
         isOpen={isShippingOpen} 
         onClose={() => setIsShippingOpen(false)} 
         lang={lang} 
-      />
-
-      {/* High-conversion Cash-On-Delivery Order Modal */}
-      <CheckoutModal 
-        isOpen={isCheckoutOpen} 
-        onClose={() => setIsCheckoutOpen(false)} 
-        product={checkoutProduct} 
-        lang={lang} 
-        wilayas={wilayas}
       />
 
       {/* Floating Modern Contact Elements (WhatsApp & Email) */}
