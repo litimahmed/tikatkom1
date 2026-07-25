@@ -14,6 +14,22 @@ export default function CheckoutPage({ product, lang, onBackToStore }: CheckoutP
   const [wilayas, setWilayas] = useState<Wilaya[]>([]);
   const [isLoadingWilayas, setIsLoadingWilayas] = useState<boolean>(true);
 
+  // Form State
+  const [quantity, setQuantity] = useState<number>(1);
+  const [fullName, setFullName] = useState<string>("");
+  const [phone, setPhone] = useState<string>("");
+  const [selectedWilayaCode, setSelectedWilayaCode] = useState<string>("");
+  const [selectedCommune, setSelectedCommune] = useState<string>("");
+  const [address, setAddress] = useState<string>("");
+  const [deliveryType, setDeliveryType] = useState<"home" | "desk">("home");
+  const [notes, setNotes] = useState<string>("");
+
+  // Validation & Submit State
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isSuccess, setIsSuccess] = useState<boolean>(false);
+  const [orderReference, setOrderReference] = useState<string>("");
+
   // Trigger Wilayas API fetch when entering the Checkout Page
   useEffect(() => {
     let isMounted = true;
@@ -30,6 +46,18 @@ export default function CheckoutPage({ product, lang, onBackToStore }: CheckoutP
       isMounted = false;
     };
   }, []);
+
+  // Get selected Wilaya object
+  const currentWilaya = wilayas.find((w) => w.code === selectedWilayaCode);
+
+  // Auto select commune if present
+  useEffect(() => {
+    if (currentWilaya && currentWilaya.communes && currentWilaya.communes.length > 0) {
+      setSelectedCommune(currentWilaya.communes[0]);
+    } else {
+      setSelectedCommune("");
+    }
+  }, [selectedWilayaCode, currentWilaya]);
 
   if (!product) {
     return (
@@ -49,34 +77,6 @@ export default function CheckoutPage({ product, lang, onBackToStore }: CheckoutP
 
   const t = translations[lang];
   const isRTL = lang === "ar";
-
-  // Form State
-  const [quantity, setQuantity] = useState<number>(1);
-  const [fullName, setFullName] = useState<string>("");
-  const [phone, setPhone] = useState<string>("");
-  const [selectedWilayaCode, setSelectedWilayaCode] = useState<string>("");
-  const [selectedCommune, setSelectedCommune] = useState<string>("");
-  const [address, setAddress] = useState<string>("");
-  const [deliveryType, setDeliveryType] = useState<"home" | "desk">("home");
-  const [notes, setNotes] = useState<string>("");
-
-  // Validation & Submit State
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [isSuccess, setIsSuccess] = useState<boolean>(false);
-  const [orderReference, setOrderReference] = useState<string>("");
-
-  // Get selected Wilaya object
-  const currentWilaya = wilayas.find((w) => w.code === selectedWilayaCode);
-
-  // Auto select commune if present
-  useEffect(() => {
-    if (currentWilaya && currentWilaya.communes && currentWilaya.communes.length > 0) {
-      setSelectedCommune(currentWilaya.communes[0]);
-    } else {
-      setSelectedCommune("");
-    }
-  }, [selectedWilayaCode, currentWilaya]);
 
   const grandTotal = product.price * quantity;
   const productName = lang === "fr" ? product.titleFR : product.titleAR;

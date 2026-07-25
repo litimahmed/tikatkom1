@@ -49,6 +49,23 @@ export function getHomePageUrl(): string {
   return baseUrl;
 }
 
+export function getCheckoutPageUrl(productId?: string): string {
+  const currentUrl = new URL(window.location.href);
+  let target: URL;
+
+  if (currentUrl.hostname.includes("run.app") || currentUrl.port === "3000" || currentUrl.hostname === "localhost") {
+    target = new URL("/tikatkom/checkout", window.location.origin);
+  } else {
+    const baseUrl = detectWordPressBaseUrl().replace(/\/$/, "");
+    target = new URL(`${baseUrl}/tikatkom/checkout`);
+  }
+
+  if (productId) {
+    target.searchParams.set("product", productId);
+  }
+  return target.toString();
+}
+
 export default function App() {
   // Primary Localization State: read from localStorage for persistent traditional hard reload behavior
   const [lang, setLang] = useState<"fr" | "ar">(() => {
@@ -66,7 +83,7 @@ export default function App() {
   const [view, setView] = useState<"home" | "products" | "checkout">((): "home" | "products" | "checkout" => {
     const currentPath = window.location.pathname;
     const params = new URLSearchParams(window.location.search);
-    if (params.get("view") === "checkout") {
+    if (currentPath.includes("/checkout") || currentPath.includes("/tikatkom/checkout") || params.get("view") === "checkout") {
       return "checkout";
     }
     if (
@@ -88,6 +105,24 @@ export default function App() {
   // Modals & Navigation State
   const [isShippingOpen, setIsShippingOpen] = useState<boolean>(false);
   const [checkoutProduct, setCheckoutProduct] = useState<Product | null>(null);
+
+  // Select checkout product from query parameters when products load
+  useEffect(() => {
+    if (products.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const productId = params.get("product") || params.get("id");
+      if (productId) {
+        const found = products.find((p) => String(p.id) === String(productId));
+        if (found) {
+          setCheckoutProduct(found);
+          return;
+        }
+      }
+      if (!checkoutProduct) {
+        setCheckoutProduct(products[0]);
+      }
+    }
+  }, [products]);
 
   // Active Category Filter
   const [selectedCategory, setSelectedCategory] = useState<string | null>(() => {
@@ -133,11 +168,9 @@ export default function App() {
     document.documentElement.lang = lang;
   }, [lang]);
 
-  // Handler to open order page for a selected product
+  // Handler to open order page for a selected product via hard reload navigation
   const handleOpenCheckout = (product: Product) => {
-    setCheckoutProduct(product);
-    setView("checkout");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.location.href = getCheckoutPageUrl(product.id);
   };
 
   // Handler when clicking categories - sets view to products page and selects category filter
@@ -227,7 +260,9 @@ export default function App() {
           <CheckoutPage 
             product={checkoutProduct} 
             lang={lang} 
-            onBackToStore={() => setView("products")} 
+            onBackToStore={() => {
+              window.location.href = getStorePageUrl();
+            }} 
           />
         ) : (
           <>
