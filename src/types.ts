@@ -27,6 +27,7 @@ export interface Category {
 }
 
 export interface Wilaya {
+  id?: string;
   code: string;
   nameFR: string;
   nameAR: string;

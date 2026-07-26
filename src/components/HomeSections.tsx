@@ -45,6 +45,11 @@ export default function HomeSections({ lang, onBuyClick, onViewAllClick, product
     },
   ];
 
+  if (!products || products.length === 0) return null;
+
+  const validSections = sectionsData.filter((sec) => getProductsForSection(products, sec.id).length > 0);
+  if (validSections.length === 0) return null;
+
   return (
     <div className="space-y-16 py-12 lg:py-16">
       {sectionsData.map((sec) => {
@@ -97,7 +102,6 @@ export default function HomeSections({ lang, onBuyClick, onViewAllClick, product
             <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3">
               {secProducts.map((product) => {
                 const title = lang === "fr" ? product.titleFR : product.titleAR;
-                const badge = lang === "fr" ? product.badgeFR : product.badgeAR;
                 
                 return (
                   <div
@@ -113,13 +117,6 @@ export default function HomeSections({ lang, onBuyClick, onViewAllClick, product
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                         referrerPolicy="no-referrer"
                       />
-                      
-                      {/* Badge overlay */}
-                      {badge && (
-                        <span className={`absolute top-2.5 ${isRTL ? "right-2.5" : "left-2.5"} rounded bg-brand-green px-1.5 py-0.5 text-[8px] font-extrabold text-white uppercase tracking-wider`}>
-                          {badge}
-                        </span>
-                      )}
                     </div>
 
                     {/* Info Section */}

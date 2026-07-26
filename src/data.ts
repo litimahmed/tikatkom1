@@ -76,7 +76,7 @@ export const translations = {
     subtotal: "Sous-total",
     shippingFee: "Frais de livraison",
     grandTotal: "Total à payer",
-    submitOrder: "Confirmer ma Commande (Paiement à la livraison)",
+    submitOrder: "Confirmer ma Commande",
     submitting: "Traitement en cours...",
     
     requiredError: "Ce champ est obligatoire",
@@ -161,7 +161,7 @@ export const translations = {
     subtotal: "المجموع الفرعي",
     shippingFee: "مصاريف التوصيل",
     grandTotal: "المجموع الإجمالي للدفع",
-    submitOrder: "تأكيد الطلب الآن (الدفع عند الاستلام)",
+    submitOrder: "تأكيد الطلب الآن",
     submitting: "جاري تسجيل طلبك...",
     
     requiredError: "هذا الحقل مطلوب ولا يمكن تركه فارغاً",
@@ -440,6 +440,246 @@ export const products: Product[] = [
       "تتسع لـ 4 جوازات سفر، 8 بطاقات بنكية، وجيب كبير للنقود الورقية",
       "سحاب معدني قوي وناعم جداً من ماركة YKK الشهيرة لمتانة تدوم طويلاً",
       "حجم مدمج وأنيق يسهل حملها باليد أو وضعها في حقيبة السفر"
+    ]
+  }
+];
+
+export const digitalCategories: Category[] = [
+  {
+    id: "streaming",
+    nameFR: "Streaming & IPTV",
+    nameAR: "بث وتلفزيون",
+    image: "https://images.unsplash.com/photo-1593784991095-a205069470b6?auto=format&fit=crop&w=800&q=80",
+    count: 2
+  },
+  {
+    id: "apps",
+    nameFR: "Abonnements & Logiciels",
+    nameAR: "اشتراكات وتطبيقات",
+    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
+    count: 2
+  },
+  {
+    id: "keys",
+    nameFR: "Clés d'Activation",
+    nameAR: "مفاتيح وتفعيلات",
+    image: "https://images.unsplash.com/photo-1629654297299-c8506221ca97?auto=format&fit=crop&w=800&q=80",
+    count: 1
+  },
+  {
+    id: "ebooks",
+    nameFR: "E-Books & Formations",
+    nameAR: "كتب وروايات رقمية",
+    image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80",
+    count: 2
+  },
+  {
+    id: "ai",
+    nameFR: "Intelligence Artificielle",
+    nameAR: "الذكاء الاصطناعي",
+    image: "https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=800&q=80",
+    count: 1
+  },
+  {
+    id: "design",
+    nameFR: "Design & Graphisme",
+    nameAR: "التصميم والجرافيك",
+    image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=800&q=80",
+    count: 1
+  }
+];
+
+export const digitalProducts: Product[] = [
+  {
+    id: "digi-1",
+    titleFR: "Abonnement IPTV Pro 12 Mois - Ultra HD 4K",
+    titleAR: "اشتراك IPTV برو 12 شهر - جميع القنوات والبرامج",
+    descriptionFR: "Accédez à des milliers de chaînes sportives, films et séries en qualité 4K Ultra HD sans coupure. Compatible Smart TV, Android, iOS et PC.",
+    descriptionAR: "استمتع بمشاهدة آلاف القنوات الرياضية والترفيهية، الأفلام والمسلسلات بجودة 4K/FHD بدون تقطيع مع دعم فني متواصل ومجاني.",
+    price: 3500,
+    oldPrice: 5000,
+    image: "https://images.unsplash.com/photo-1593784991095-a205069470b6?auto=format&fit=crop&w=800&q=80",
+    category: "streaming",
+    rating: 4.9,
+    reviewsCount: 184,
+    stockStatus: "in_stock",
+    featuresFR: [
+      "Plus de 15 000 chaînes en direct sport & divertissement",
+      "Bibliothèque VOD de 50 000+ films et séries sous-titrés",
+      "Qualité 4K / FHD / HD haute stabilité"
+    ],
+    featuresAR: [
+      "أكثر من 15,000 قناة رياضية وترفيهية مباشر",
+      "مكتبة تتجاوز 50,000 فيلم ومسلسل مترجم",
+      "جودة عالية 4K / FHD / HD تناسب جميع السرعات"
+    ]
+  },
+  {
+    id: "digi-2",
+    titleFR: "Pack E-Books Business & E-Commerce (2026)",
+    titleAR: "حزمة الكتب الرقمية الشاملة للتجارة الإلكترونية والعمل الحر",
+    descriptionFR: "Collection complète de plus de 50 e-books stratégiques pour maîtriser le marketing digital, le e-commerce et la vente en ligne.",
+    descriptionAR: "مجموعة شاملة تضم أكثر من 50 كتاباً إلكترونياً ودليلاً عملياً لتعلم التسويق الرقمي والتجارة الإلكترونية وزيادة المبيعات.",
+    price: 2200,
+    oldPrice: 4000,
+    image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80",
+    category: "ebooks",
+    rating: 4.9,
+    reviewsCount: 142,
+    stockStatus: "in_stock",
+    featuresFR: [
+      "Format PDF & EPUB téléchargeable immédiatement",
+      "Guides pratiques pas à pas avec exemples réels",
+      "Mises à jour gratuites incluses"
+    ],
+    featuresAR: [
+      "ملفات PDF و EPUB قابلة للتحميل والقراءة فوراً",
+      "شروحات عملية وخطوات بسيطة قابلة للتطبيق",
+      "تحديثات ودلائل إضافية مجانية"
+    ]
+  },
+  {
+    id: "digi-3",
+    titleFR: "Licence Canva Pro à Vie - Compte Officiel",
+    titleAR: "اشتراك Canva Pro مدى الحياة - حساب رسمي",
+    descriptionFR: "Profitez de toutes les fonctionnalités premium de Canva Pro : accès illimité aux templates, suppression d'arrière-plan par IA et banque d'images HD.",
+    descriptionAR: "تفعيل رسمي لحساب Canva Pro للاستفادة من جميع الميزات المدفوعة والقوالب الاحترافية والذكاء الاصطناعي لإزالة الخلفيات وتصميم الصور.",
+    price: 1800,
+    oldPrice: 3500,
+    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
+    category: "apps",
+    rating: 4.8,
+    reviewsCount: 129,
+    stockStatus: "in_stock",
+    featuresFR: [
+      "Accès illimité à tous les éléments premium & modèles",
+      "Outil de suppression d'arrière-plan par IA",
+      "Stockage cloud étendu et espace de travail"
+    ],
+    featuresAR: [
+      "الوصول لجميع الصور والتصاميم والقوالب الاحترافية",
+      "أداة إزالة خلفيات الصور بضغطة زر عبر الذكاء الاصطناعي",
+      "تخزين سحابي واسع ومساحة عمل احترافية"
+    ]
+  },
+  {
+    id: "digi-4",
+    titleFR: "Pack 10,000+ Assets Design & Templates Photoshop",
+    titleAR: "حزمة الملحقات الضخمة للمصممين - ملحقات وقوالب احترافية",
+    descriptionFR: "Plus de 10 000 ressources graphiques premium : fichiers PSD, mockups 3D, polices arabes et presets Lightroom professionnels.",
+    descriptionAR: "أكثر من 10,000 عنصر جرافيك احترافي يضم قوالب فوتوشوب، موك أب ثلاثي الأبعاد، خطوط عربية فاخرة وفلاتر لايتروم.",
+    price: 2500,
+    oldPrice: 4500,
+    image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=800&q=80",
+    category: "design",
+    rating: 5.0,
+    reviewsCount: 95,
+    stockStatus: "in_stock",
+    featuresFR: [
+      "Téléchargement rapide via Google Drive illimité",
+      "Mockups haute définition & polices premium",
+      "Libre de droits pour projets commerciaux"
+    ],
+    featuresAR: [
+      "تحميل مباشر وسريع عبر جوجل درايف مدى الحياة",
+      "نماذج عروض احترافية وخطوط حصرية",
+      "حقوق استغلال تجاري مفتوحة للعملاء"
+    ]
+  },
+  {
+    id: "digi-5",
+    titleFR: "Clé d'Activation Windows 11 Pro Officielle",
+    titleAR: "مفتاح تفعيل ويندوز 11 برو الأصلي 100%",
+    descriptionFR: "Clé de licence originale à vie pour Windows 11 Pro. Recevez les mises à jour officielles Microsoft en toute sécurité.",
+    descriptionAR: "سيريال أصلي ومدى الحياة لتفعيل Windows 11 Pro مع استقبال التحديثات الرسمية من شركة مايكروسوفت مباشرة.",
+    price: 1500,
+    oldPrice: 2800,
+    image: "https://images.unsplash.com/photo-1629654297299-c8506221ca97?auto=format&fit=crop&w=800&q=80",
+    category: "keys",
+    rating: 5.0,
+    reviewsCount: 210,
+    stockStatus: "in_stock",
+    featuresFR: [
+      "Activation pour 1 PC à vie",
+      "Support 32-bit et 64-bit",
+      "Mises à jour officielles Microsoft"
+    ],
+    featuresAR: [
+      "تفعيل لجهاز شخصي واحد مدى الحياة",
+      "يدعم النواتين 32-bit و 64-bit",
+      "تحديثات رسمية مستمرة من Microsoft"
+    ]
+  },
+  {
+    id: "digi-6",
+    titleFR: "Abonnement ChatGPT Plus (GPT-4o) - Compte Privé",
+    titleAR: "اشتراك ChatGPT Plus (GPT-4o) - حساب مخصص",
+    descriptionFR: "Explorez la puissance de l'IA avancée avec GPT-4o, la génération d'images DALL-E 3 et l'analyse de données sans contrainte.",
+    descriptionAR: "احصل على أفضل تجربة للذكاء الاصطناعي مع الوصول المباشر لنماذج GPT-4o وتوليد الصور DALL-E والتحليل المتقدم للبيانات.",
+    price: 2900,
+    oldPrice: 4500,
+    image: "https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=800&q=80",
+    category: "ai",
+    rating: 4.9,
+    reviewsCount: 165,
+    stockStatus: "in_stock",
+    featuresFR: [
+      "Accès prioritaire à GPT-4o & GPT-4",
+      "Génération d'images DALL-E 3",
+      "Vitesse de réponse ultra-rapide"
+    ],
+    featuresAR: [
+      "أولوية الوصول لنماذج GPT-4o و GPT-4",
+      "إنشاء وتصميم الصور بالذكاء الاصطناعي DALL-E 3",
+      "سرعة استجابة فائقة بدون انتظار"
+    ]
+  },
+  {
+    id: "digi-7",
+    titleFR: "Abonnement Netflix 4K UHD - 1 Mois Privé",
+    titleAR: "اشتراك نيتفليكس 4K Ultra HD - شهر كامل",
+    descriptionFR: "Profitez de vos séries et films préférés en 4K Ultra HD avec un profil privé sécurisé par code PIN.",
+    descriptionAR: "حساب نيتفليكس رسمي بجودة 4K Ultra HD لمشاهدة أحدث الأفلام والمسلسلات مع شاشة خاصة برمز PIN لضمان الخصوصية.",
+    price: 1200,
+    oldPrice: 1900,
+    image: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?auto=format&fit=crop&w=800&q=80",
+    category: "streaming",
+    rating: 4.8,
+    reviewsCount: 230,
+    stockStatus: "in_stock",
+    featuresFR: [
+      "Profil privé avec code PIN",
+      "Qualité 4K Ultra HD / HDR",
+      "Garantie complète 30 jours"
+    ],
+    featuresAR: [
+      "ملف شخصي خاص مقفل برقم سري PIN",
+      "جودة مشاهدة فائقة 4K Ultra HD / HDR",
+      "ضمان طيلة مدة الاشتراك"
+    ]
+  },
+  {
+    id: "digi-8",
+    titleFR: "Abonnement Spotify Premium 12 Mois - Sans Pub",
+    titleAR: "اشتراك Spotify Premium 12 شهر - بدون إعلانات",
+    descriptionFR: "Écoutez toute votre musique sans publicité, en haute qualité et téléchargez vos titres pour une écoute hors-ligne.",
+    descriptionAR: "استمع إلى جميع الأغاني والبودكاست بدون إعلانات وبجودة عالية مع إمكانية التحميل والاستماع أوفلاين بدون إنترنت.",
+    price: 2400,
+    oldPrice: 3800,
+    image: "https://images.unsplash.com/photo-1614680376593-902f749f7edc?auto=format&fit=crop&w=800&q=80",
+    category: "apps",
+    rating: 4.7,
+    reviewsCount: 98,
+    stockStatus: "in_stock",
+    featuresFR: [
+      "Musique sans interruption publicitaire",
+      "Téléchargement pour écoute hors-ligne",
+      "Activation directe sur votre compte"
+    ],
+    featuresAR: [
+      "استماع متواصل بدون إعلانات مزعجة",
+      "تنزيل الأغاني والاستماع أوفلاين بدون إنترنت",
+      "تفعيل على حسابك الشخصي الأصلي"
     ]
   }
 ];

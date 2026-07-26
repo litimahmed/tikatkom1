@@ -1,21 +1,25 @@
 import { useRef, useState, useEffect } from "react";
 import { ArrowRight, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
-import { translations } from "../data";
 import { Category } from "../types";
+import { digitalCategories as defaultDigitalCategories } from "../data";
 import { motion } from "motion/react";
 
-interface CategoriesGridProps {
+interface DigitalProductProps {
   lang: "fr" | "ar";
   onCategoryClick: (categoryId: string) => void;
-  categories: Category[];
+  onViewAllClick: () => void;
+  categories?: Category[];
 }
 
-export default function CategoriesGrid({ lang, onCategoryClick, categories }: CategoriesGridProps) {
+export default function DigitalProduct({
+  lang,
+  onCategoryClick,
+  onViewAllClick,
+  categories = defaultDigitalCategories,
+}: DigitalProductProps) {
   if (!categories || categories.length === 0) return null;
 
-  const t = translations[lang];
   const isRTL = lang === "ar";
-  
   const sliderRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
@@ -69,7 +73,7 @@ export default function CategoriesGrid({ lang, onCategoryClick, categories }: Ca
       const maxScroll = scrollWidth - clientWidth;
       const absScrollLeft = Math.abs(scrollLeft);
 
-      const cardWidth = sliderRef.current.querySelector(".category-card-item")?.clientWidth || 300;
+      const cardWidth = sliderRef.current.querySelector(".digital-cat-card-item")?.clientWidth || 300;
       const step = cardWidth + 24;
 
       if (isRTL) {
@@ -91,8 +95,9 @@ export default function CategoriesGrid({ lang, onCategoryClick, categories }: Ca
   }, [categories, lang, isPaused, isSlider, isRTL]);
 
   return (
-    <section className="bg-white dark:bg-[#0f0f10] py-12 sm:py-16 overflow-hidden" id="categories-section">
+    <section className="bg-white dark:bg-[#0f0f10] py-12 sm:py-16 overflow-hidden" id="digital-categories-section">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        
         {/* Section Header */}
         <div 
           className="mb-8 flex flex-col justify-between border-b border-gray-100 dark:border-zinc-800 pb-4 md:flex-row md:items-end gap-4"
@@ -100,16 +105,29 @@ export default function CategoriesGrid({ lang, onCategoryClick, categories }: Ca
         >
           <div className={isRTL ? "text-right" : "text-left"}>
             <p className="font-sans text-[10px] font-black uppercase tracking-widest text-brand-green sm:text-xs">
-              {lang === "fr" ? "NOS CATÉGORIES" : "تصفح أقسامنا"}
+              {lang === "fr" ? "NOS CATÉGORIES NUMÉRIQUES" : "أقسام المنتجات الرقمية"}
             </p>
             <h3 className="font-arabic text-2xl font-black text-brand-navy dark:text-white tracking-tight sm:text-3xl mt-1">
-              {lang === "fr" ? "Découvrez Nos Univers" : "منتجات مختارة بجودة مضمونة"}
+              {lang === "fr" ? "Abonnements & Services Numériques" : "تصفح أقسام الخدمات والمنتجات الرقمية"}
             </h3>
           </div>
+
+          <button
+            onClick={onViewAllClick}
+            className="group flex items-center gap-1.5 text-xs font-black text-brand-navy dark:text-zinc-200 hover:text-brand-green transition-colors focus:outline-none cursor-pointer"
+            id="digital-view-all-btn"
+          >
+            <span>{lang === "fr" ? "Voir tout" : "عرض الكل"}</span>
+            {isRTL ? (
+              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+            ) : (
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            )}
+          </button>
         </div>
 
+        {/* Digital Categories Slider / Grid */}
         {isSlider ? (
-          /* Slider Container with side chevron buttons */
           <div 
             className="relative group"
             onMouseEnter={() => setIsPaused(true)}
@@ -118,13 +136,13 @@ export default function CategoriesGrid({ lang, onCategoryClick, categories }: Ca
             {/* Left Chevron Button */}
             <button
               onClick={() => {
-                const cardWidth = sliderRef.current?.querySelector(".category-card-item")?.clientWidth || 300;
+                const cardWidth = sliderRef.current?.querySelector(".digital-cat-card-item")?.clientWidth || 300;
                 scrollByAmount(-(cardWidth + 24));
               }}
               disabled={!showLeftArrow}
               className="absolute -left-3 sm:-left-6 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/95 dark:bg-zinc-900/95 text-brand-navy dark:text-white shadow-xl border border-gray-200 dark:border-zinc-800 backdrop-blur-sm transition-all hover:bg-white dark:hover:bg-zinc-800 hover:scale-110 disabled:opacity-0 disabled:pointer-events-none cursor-pointer"
               aria-label="Scroll Left"
-              id="cat-slider-left-btn"
+              id="digital-cat-slider-left-btn"
             >
               <ChevronLeft className="h-6 w-6" />
             </button>
@@ -132,13 +150,13 @@ export default function CategoriesGrid({ lang, onCategoryClick, categories }: Ca
             {/* Right Chevron Button */}
             <button
               onClick={() => {
-                const cardWidth = sliderRef.current?.querySelector(".category-card-item")?.clientWidth || 300;
+                const cardWidth = sliderRef.current?.querySelector(".digital-cat-card-item")?.clientWidth || 300;
                 scrollByAmount(cardWidth + 24);
               }}
               disabled={!showRightArrow}
               className="absolute -right-3 sm:-right-6 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/95 dark:bg-zinc-900/95 text-brand-navy dark:text-white shadow-xl border border-gray-200 dark:border-zinc-800 backdrop-blur-sm transition-all hover:bg-white dark:hover:bg-zinc-800 hover:scale-110 disabled:opacity-0 disabled:pointer-events-none cursor-pointer"
               aria-label="Scroll Right"
-              id="cat-slider-right-btn"
+              id="digital-cat-slider-right-btn"
             >
               <ChevronRight className="h-6 w-6" />
             </button>
@@ -157,8 +175,8 @@ export default function CategoriesGrid({ lang, onCategoryClick, categories }: Ca
                   <motion.div
                     key={category.id}
                     onClick={() => onCategoryClick(category.id)}
-                    className="category-card-item group relative aspect-[4/5] w-[280px] sm:w-[320px] lg:w-[360px] shrink-0 snap-start cursor-pointer overflow-hidden rounded-[24px] bg-gray-50 dark:bg-[#1e1e1e] transition-all duration-500 hover:shadow-xl hover:-translate-y-1"
-                    id={`cat-card-${category.id}`}
+                    className="digital-cat-card-item group relative aspect-[4/5] w-[280px] sm:w-[320px] lg:w-[360px] shrink-0 snap-start cursor-pointer overflow-hidden rounded-[24px] bg-gray-50 dark:bg-[#1e1e1e] transition-all duration-500 hover:shadow-xl hover:-translate-y-1"
+                    id={`digital-cat-card-${category.id}`}
                     whileHover={{ y: -4 }}
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -198,7 +216,6 @@ export default function CategoriesGrid({ lang, onCategoryClick, categories }: Ca
             </div>
           </div>
         ) : (
-          /* Standard 3-Column Grid Layout */
           <div 
             className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
             style={{ direction: isRTL ? "rtl" : "ltr" }}
@@ -212,7 +229,7 @@ export default function CategoriesGrid({ lang, onCategoryClick, categories }: Ca
                   key={category.id}
                   onClick={() => onCategoryClick(category.id)}
                   className="group relative aspect-[4/5] w-full cursor-pointer overflow-hidden rounded-[24px] bg-gray-50 dark:bg-[#1e1e1e] transition-all duration-500 hover:shadow-xl hover:-translate-y-1"
-                  id={`cat-card-${category.id}`}
+                  id={`digital-cat-card-${category.id}`}
                 >
                   {/* Background Image */}
                   <img
@@ -246,6 +263,7 @@ export default function CategoriesGrid({ lang, onCategoryClick, categories }: Ca
             })}
           </div>
         )}
+
       </div>
     </section>
   );

@@ -97,6 +97,27 @@ export function parseMultilingual(text: string): { fr: string; ar: string } {
   }
 }
 
+// Helper to identify if a category belongs to digital store (slug starts with "dig" or matches known digital categories)
+export function isDigitalCategory(cat: { id: string }): boolean {
+  if (!cat || !cat.id) return false;
+  const slug = cat.id.toLowerCase();
+  if (slug.startsWith("dig")) return true;
+  const knownDigitalSlugs = ["streaming", "apps", "keys", "ebooks", "ai", "design"];
+  return knownDigitalSlugs.includes(slug);
+}
+
+// Helper to identify if a product belongs to digital store
+export function isDigitalProduct(product: Product, digitalCatSlugs: string[] = []): boolean {
+  if (!product) return false;
+  const catSlug = (product.category || "").toLowerCase();
+  if (catSlug.startsWith("dig")) return true;
+  if (digitalCatSlugs.some(s => s.toLowerCase() === catSlug)) return true;
+  const knownDigitalSlugs = ["streaming", "apps", "keys", "ebooks", "ai", "design"];
+  if (knownDigitalSlugs.includes(catSlug)) return true;
+  if (product.id && product.id.startsWith("digi-")) return true;
+  return false;
+}
+
 // Map WooCommerce Store API category to our App's Category type
 export function mapWooCategory(wpCat: any): Category {
   const nameInfo = parseMultilingual(wpCat.name || "");

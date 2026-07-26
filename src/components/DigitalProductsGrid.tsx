@@ -1,23 +1,23 @@
-import { translations } from "../data";
+import { translations, digitalProducts as defaultDigitalProducts, digitalCategories as defaultDigitalCategories } from "../data";
 import { Product, Category } from "../types";
 
-interface ProductsGridProps {
+interface DigitalProductsGridProps {
   lang: "fr" | "ar";
   onBuyClick: (product: Product) => void;
   selectedCategory: string | null;
   setSelectedCategory: (catId: string | null) => void;
-  products: Product[];
-  categories: Category[];
+  products?: Product[];
+  categories?: Category[];
 }
 
-export default function ProductsGrid({
+export default function DigitalProductsGrid({
   lang,
   onBuyClick,
   selectedCategory,
   setSelectedCategory,
-  products,
-  categories,
-}: ProductsGridProps) {
+  products = defaultDigitalProducts,
+  categories = defaultDigitalCategories,
+}: DigitalProductsGridProps) {
   if (!products || products.length === 0) return null;
 
   const t = translations[lang];
@@ -29,17 +29,19 @@ export default function ProductsGrid({
     : products;
 
   return (
-    <section className="bg-gray-50/50 dark:bg-[#121212] py-16 sm:py-20 lg:py-24" id="products-section">
+    <section className="bg-gray-50/50 dark:bg-[#121212] py-16 sm:py-20 lg:py-24" id="digital-products-section">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
         <div className={`mb-10 text-center ${isRTL ? "rtl" : "ltr"}`} style={{ direction: isRTL ? "rtl" : "ltr" }}>
           <h2 className="font-display text-3xl font-extrabold tracking-tight text-brand-navy dark:text-white sm:text-4xl">
-            {t.featHeader}
+            {lang === "fr" ? "Boutique des Produits Numériques" : "متجر المنتجات والخدمات الرقمية"}
           </h2>
           <div className="mx-auto mt-3 h-1 w-12 rounded-full bg-brand-green"></div>
           <p className="mx-auto mt-4 max-w-2xl text-sm text-gray-500 dark:text-zinc-400 sm:text-base">
-            {t.featSub}
+            {lang === "fr" 
+              ? "Découvrez nos abonnements, licences et produits numériques" 
+              : "تصفح جميع الاشتراكات والمفاتيح والمنتجات الرقمية المتوفرة"}
           </p>
         </div>
 
@@ -52,7 +54,7 @@ export default function ProductsGrid({
                 ? "bg-brand-navy dark:bg-[#262626] text-white shadow-md shadow-brand-navy/10"
                 : "bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-[#262626] hover:border-gray-300 dark:hover:border-[#333333]"
             }`}
-            id="filter-all-btn"
+            id="digital-filter-all-btn"
           >
             {lang === "fr" ? "Tous les produits" : "جميع المنتجات"}
           </button>
@@ -70,7 +72,7 @@ export default function ProductsGrid({
                     ? "bg-brand-navy dark:bg-[#262626] text-white shadow-md shadow-brand-navy/10"
                     : "bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-[#262626] hover:border-gray-300 dark:hover:border-[#333333]"
                 }`}
-                id={`filter-btn-${cat.id}`}
+                id={`digital-filter-btn-${cat.id}`}
               >
                 {name}
               </button>
@@ -88,7 +90,7 @@ export default function ProductsGrid({
               <div
                 key={product.id}
                 className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-gray-100 dark:border-[#2a2a2a] bg-white dark:bg-[#1a1a1a] shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
-                id={`product-card-${product.id}`}
+                id={`digital-product-card-${product.id}`}
               >
                 {/* Image Section */}
                 <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-[#1e1e1e]">
@@ -138,7 +140,7 @@ export default function ProductsGrid({
                   <button
                     onClick={() => onBuyClick(product)}
                     className="mt-6 w-full rounded-xl bg-brand-navy dark:bg-[#262626] py-3 px-4 text-xs font-bold text-white transition-all duration-200 hover:bg-brand-green hover:shadow-md hover:shadow-brand-green/20 active:scale-[0.98] cursor-pointer"
-                    id={`buy-btn-${product.id}`}
+                    id={`digital-buy-btn-${product.id}`}
                   >
                     {t.buyNow}
                   </button>

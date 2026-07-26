@@ -7,7 +7,7 @@ interface FloatingContactProps {
 
 export default function FloatingContact({ lang }: FloatingContactProps) {
   // Read WhatsApp and Email from environment variables with safe defaults
-  const whatsappNumber = (process.env.VITE_MERCHANT_WHATSAPP || "+213781913776").replace(/\s+/g, "");
+  const whatsappNumber = (process.env.VITE_MERCHANT_WHATSAPP || "+19379153250").replace(/\s+/g, "");
   const merchantEmail = process.env.VITE_MERCHANT_EMAIL || "litimahmed67@gmail.com";
 
   // Build localized message text for WhatsApp
